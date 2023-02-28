@@ -21,6 +21,10 @@ class otrack_class:
 
     @staticmethod
     def converttime(time):
+        """Converts the number given by Bonsai for the timestamps to seconds.
+        Seen in Bonsai google group
+        Input:
+        time (int)"""
         # offset = time & 0xFFF
         cycle1 = (time >> 12) & 0x1FFF
         cycle2 = (time >> 25) & 0x7F
@@ -28,19 +32,11 @@ class otrack_class:
         return seconds
 
     @staticmethod
-    def overlayDLCtracks(vidObj, otracks, frameNr, paw, frame_width, frame_height):
-        if paw == 'FR':
-            paw_color = (255, 0, 0)
-        if paw == 'FL':
-            paw_color = (0, 0, 255)
-        vidObj.set(1, frameNr)
-        cap, frame = vidObj.read()
-        frame_otracks = cv2.circle(frame, (np.int64(otracks.iloc[frameNr, 2]), np.int64(otracks.iloc[frameNr, 3])),
-                                   radius=5, color=paw_color, thickness=0)
-        return frame_otracks
-
-    @staticmethod
     def get_port_data(sync, port):
+        """Converts the synchronizer csv data into the square pulses that it generated.
+        Input:
+        sync: dataframe from .._synch.csv
+        port: name of the channel (int)"""
         sync_signal = sync.iloc[np.where(sync.iloc[:, 1] == 32)[0], :]
         sync_dev = []
         for i in range(len(sync_signal.iloc[:, 3])):
@@ -62,6 +58,9 @@ class otrack_class:
         return sync_timestamps_full, sync_signal_full
 
     def get_session_metadata(self, plot_data):
+        """From the meta csv get the timestamps and frame counter.
+        Input:
+        plot_data: boolean"""
         timestamps_session = []
         frame_counter_session = []
         frame_counter_0 = []
@@ -99,6 +98,9 @@ class otrack_class:
         return timestamps_session, frame_counter_session, frame_counter_0, timestamps_0
 
     def get_synchronizer_data(self, plot_data):
+        """From the sync csv get the pulses generated from synchronizer.
+        Input:
+        plot_data: boolean"""
         trial_signal_session = []
         sync_signal_session = []
         sync_files = glob.glob(os.path.join(self.path,'*_synch.csv'))
@@ -129,6 +131,12 @@ class otrack_class:
         return trial_signal_session, sync_signal_session
 
     def get_otrack_event_data(self, frame_counter_0_session, timestamps_0_session):
+        """Get the online tracking data (timestamps, frame counter, paw positionx and y).
+        Use the first timestamps from the whole video to generate the sliced timestamps
+        of the online tracking
+        Input:
+        frame_counter_0_session: list
+        timestamps_0_session: list"""
         sync_files = glob.glob(os.path.join(self.path,'*_otrack.csv'))
         trial_order = []
         filelist = []
@@ -162,24 +170,30 @@ class otrack_class:
             otracks_timestamps = [0]
             for j in np.arange(1, len(otracks.iloc[:,0])):
                 otracks_timestamps.append(self.converttime(np.array(otracks.iloc[j,0]-timestamps_0_session[trial])))
-            otracks_st_time.extend(list(otracks_timestamps)[stance_frames])
-            otracks_sw_time.extend(list(otracks_timestamps)[swing_frames])
-            otracks_st_frames.extend(list(otracks_frame_counter)[stance_frames])
-            otracks_sw_frames.extend(list(otracks_frame_counter)[swing_frames])
-            otracks_st_trials.extend(list(np.ones(len(otracks_frame_counter))[stance_frames]*(trial+1)))
-            otracks_sw_trials.extend(list(np.ones(len(otracks_frame_counter))[swing_frames]*(trial+1)))
-            otracks_st_posx.extend(list(otracks.iloc[stance_frames, 2]))
-            otracks_sw_posx.extend(list(otracks.iloc[swing_frames, 2]))
-            otracks_st_posy.extend(list(otracks.iloc[stance_frames, 3]))
-            otracks_sw_posy.extend(list(otracks.iloc[swing_frames, 3]))
+            otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames])
+            otracks_sw_time.extend(np.array(otracks_timestamps)[swing_frames])
+            otracks_st_frames.extend(np.array(otracks_frame_counter)[stance_frames])
+            otracks_sw_frames.extend(np.array(otracks_frame_counter)[swing_frames])
+            otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter))[stance_frames]*(trial+1)))
+            otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter))[swing_frames]*(trial+1)))
+            otracks_st_posx.extend(np.array(otracks.iloc[stance_frames, 2]))
+            otracks_sw_posx.extend(np.array(otracks.iloc[swing_frames, 2]))
+            otracks_st_posy.extend(np.array(otracks.iloc[stance_frames, 3]))
+            otracks_sw_posy.extend(np.array(otracks.iloc[swing_frames, 3]))
         otracks_st = pd.DataFrame({'time': otracks_st_time, 'frames': otracks_st_frames, 'trial': otracks_st_trials,
             'x': otracks_st_posx, 'y': otracks_st_posy})
-        print(otracks_st)
-        otracks_sw = pd.DataFrame([otracks_sw_time.tolist(), otracks_sw_frames.tolist(), otracks_sw_trials.tolist(),
-            otracks_sw_posx.tolist(), otracks_sw_posy.tolist()], columns=['time', 'frame', 'trial', 'x', 'y'])
+        otracks_sw = pd.DataFrame({'time': otracks_sw_time, 'frames': otracks_sw_frames, 'trial': otracks_sw_trials,
+            'x': otracks_sw_posx, 'y': otracks_sw_posy})
         return otracks_st, otracks_sw
 
     def get_offtrack_event_data(self, paw, loco, animal, session):
+        """Use the locomotion class to get the stance and swing points from
+        the post-hoc tracking.
+        Input:
+        paw: 'FR' or 'FL'
+        loco: locomotion class
+        animal: (str)
+        session: (int)"""
         if paw == 'FR':
             p = 0
         if paw == 'FL':
@@ -216,19 +230,18 @@ class otrack_class:
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0)
             [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)
-            # DO THIS AS A DATAFRAME
-            offtracks_st_time.append(np.array(st_strides_mat[p][:, 0, 0] / 1000))
-            offtracks_sw_time.append(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
-            offtracks_st_frames.append(np.array(st_strides_mat[p][:, 0, -1]))
-            offtracks_sw_frames.append(np.array(sw_pts_mat[p][:, 0, -1]))
-            offtracks_st_trials.append(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial)
-            offtracks_sw_trials.append(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial)
-            offtracks_st_posx.append(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])])
-            offtracks_sw_posx.append(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])])
-            offtracks_st_posy.append(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])])
-            offtracks_sw_posy.append(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])])
-        offtracks_st = pd.DataFrame([offtracks_st_time.tolist(), offtracks_st_frames.tolist(), offtracks_st_trials.tolist(),
-            offtracks_st_posx.tolist(), offtracks_st_posy.tolist()], columns=['time', 'frame', 'trial', 'x', 'y'])
-        offtracks_sw = pd.DataFrame([offtracks_sw_time.tolist(), offtracks_sw_frames.tolist(), offtracks_sw_trials.tolist(),
-            offtracks_sw_posx.tolist(), offtracks_sw_posy.tolist()], columns=['time', 'frame', 'trial', 'x', 'y'])
+            offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000))
+            offtracks_sw_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
+            offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1]))
+            offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial)
+            offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial)
+            offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])])
+            offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])])
+            offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])])
+            offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])])
+        offtracks_st = pd.DataFrame({'time': offtracks_st_time, 'frames': offtracks_st_frames, 'trial': offtracks_st_trials,
+            'x': offtracks_st_posx, 'y': offtracks_st_posy})
+        offtracks_sw = pd.DataFrame({'time': offtracks_sw_time, 'frames': offtracks_sw_frames, 'trial': offtracks_sw_trials,
+            'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
         return offtracks_st, offtracks_sw
