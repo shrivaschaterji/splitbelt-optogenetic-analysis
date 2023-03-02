@@ -103,12 +103,12 @@ class otrack_class:
         plot_data: boolean"""
         trial_signal_session = []
         sync_signal_session = []
-        sync_files = glob.glob(os.path.join(self.path,'*_synch.csv'))
+        sync_files = glob.glob(os.path.join(self.path, '*_synch.csv'))
         trial_order = []
         filelist = []
         for f in sync_files:
             path_split = f.split(self.delim)
-            filename_split = path_split[-2].split('_')
+            filename_split = path_split[-1].split('_')
             filelist.append(f)
             trial_order.append(int(filename_split[7]))
         trial_ordered = np.sort(np.array(trial_order) ) #reorder trials
@@ -229,7 +229,7 @@ class otrack_class:
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0)
-            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0) #no exclusion of strides
             offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000))
             offtracks_sw_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1]))
