@@ -57,6 +57,16 @@ class otrack_class:
         sync_timestamps_full[0] = -0.1
         return sync_timestamps_full, sync_signal_full
 
+    def get_trials(self):
+        metadata_files = glob.glob(os.path.join(self.path, '*_meta.csv'))
+        trial_order = []
+        for f in metadata_files:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            trial_order.append(int(filename_split[7]))
+        trials = np.sort(np.array(trial_order))
+        return trials
+
     def get_session_metadata(self, plot_data):
         """From the meta csv get the timestamps and frame counter.
         Input:
@@ -186,6 +196,38 @@ class otrack_class:
             'x': otracks_sw_posx, 'y': otracks_sw_posy})
         return otracks_st, otracks_sw
 
+    def get_offtrack_paws(self, loco, animal, session):
+        """Use the locomotion class to get the paw excursions from
+        the post-hoc tracking.
+        Input:
+        loco: locomotion class
+        animal: (str)
+        session: (int)"""
+        h5files = glob.glob(os.path.join(self.path, '*.h5'))
+        filelist = []
+        trial_order = []
+        for f in h5files:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            animal_name = filename_split[0][filename_split[0].find('M'):]
+            session_nr = int(filename_split[6])
+            if animal_name == animal and session_nr == session:
+                filelist.append(path_split[-1])
+                trial_order.append(int(filename_split[7][:-3]))
+        trial_ordered = np.sort(np.array(trial_order))  # reorder trials
+        files_ordered = []  # order tif filenames by file order
+        for f in range(len(filelist)):
+            tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
+            files_ordered.append(filelist[tr_ind])
+        final_tracks_trials = []
+        for f in files_ordered:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            trial = int(filename_split[7][:-3])
+            [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0)
+            final_tracks_trials.append(final_tracks)
+        return final_tracks_trials
+
     def get_offtrack_event_data(self, paw, loco, animal, session):
         """Use the locomotion class to get the stance and swing points from
         the post-hoc tracking.
@@ -216,8 +258,12 @@ class otrack_class:
             files_ordered.append(filelist[tr_ind])
         offtracks_st_time = []
         offtracks_sw_time = []
+        offtracks_st_off_time = []
+        offtracks_sw_off_time = []
         offtracks_st_frames = []
         offtracks_sw_frames = []
+        offtracks_st_off_frames = []
+        offtracks_sw_off_frames = []
         offtracks_st_trials = []
         offtracks_sw_trials = []
         offtracks_st_posx = []
@@ -229,19 +275,253 @@ class otrack_class:
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0)
-            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0) #no exclusion of strides
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # no exclusion of strides
             offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000))
+            offtracks_st_off_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
             offtracks_sw_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
+            offtracks_sw_off_time.extend(np.append(np.array(st_strides_mat[p][1:, 0, 0] / 1000), 0))
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1]))
             offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_sw_off_frames.extend(np.append(np.array(st_strides_mat[p][1:, 0, -1]), 0))
             offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial)
             offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial)
             offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])])
             offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])])
             offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])])
             offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])])
-        offtracks_st = pd.DataFrame({'time': offtracks_st_time, 'frames': offtracks_st_frames, 'trial': offtracks_st_trials,
-            'x': offtracks_st_posx, 'y': offtracks_st_posy})
-        offtracks_sw = pd.DataFrame({'time': offtracks_sw_time, 'frames': offtracks_sw_frames, 'trial': offtracks_sw_trials,
-            'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
+        offtracks_st = pd.DataFrame(
+            {'time': offtracks_st_time, 'time_off': offtracks_st_off_time, 'frames': offtracks_st_frames, 'frames_off': offtracks_st_off_frames,
+             'trial': offtracks_st_trials,
+             'x': offtracks_st_posx, 'y': offtracks_st_posy})
+        offtracks_sw = pd.DataFrame(
+            {'time': offtracks_sw_time, 'time_off': offtracks_sw_off_time, 'frames': offtracks_sw_frames, 'frames_off': offtracks_sw_off_frames,
+             'trial': offtracks_sw_trials,
+             'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
         return offtracks_st, offtracks_sw
+
+    @staticmethod
+    def get_hits_swst_online(trials, otracks_st, otracks_sw, offtracks_st, offtracks_sw):
+        """Get the otrack data for correspondent offtrack data. Also outputs the number of misses
+        of sw and st for each trial.
+        Input:
+            trials: list of trials in the session
+            otracks_st: dataframe with the otrack stance data
+            otracks_sw: dataframe with the otrack swing data
+            offtracks_st: dataframe with the offtrack stance data
+            offtracks_sw: dataframe with the offtrack swing data"""
+        otrack_st_miss = np.zeros(len(trials))
+        otrack_st_frames_hits = []
+        otrack_st_time_hits = []
+        offtrack_st_frames_hits = []
+        offtrack_st_time_hits = []
+        otrack_st_trial = []
+        for count_t, trial in enumerate(trials):
+            offtrack_st_times = offtracks_st.loc[offtracks_st['trial'] == trial, 'time']
+            offtrack_st_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            otrack_st_hits = []
+            for t in np.array(offtrack_st_times):
+                offtrack_frame = np.int64(
+                    offtrack_st_trial.loc[offtrack_st_times.index[np.where(t == offtrack_st_times)[0][0]], 'frames'])
+                offtrack_timeoff = offtrack_st_trial.loc[offtrack_st_times.index[np.where(t == offtrack_st_times)[0][0]], 'time_off']
+                time_diff = t - np.array(otracks_st.loc[otracks_st['trial'] == trial, 'time'])
+                idx_correspondent_offtrack = np.where((time_diff < 0) & (time_diff > -(offtrack_timeoff-t)))[0]
+                if len(idx_correspondent_offtrack) > 0:
+                    otrack_st_hits.append(otracks_st.loc[otracks_st['trial'] == trial].iloc[
+                                              idx_correspondent_offtrack, 1])  # to get the number of correspondences
+                    otrack_st_frames_hits.extend(
+                        otracks_st.loc[otracks_st['trial'] == trial].iloc[idx_correspondent_offtrack, 1])
+                    otrack_st_time_hits.extend(
+                        otracks_st.loc[otracks_st['trial'] == trial].iloc[idx_correspondent_offtrack, 0])
+                    offtrack_st_frames_hits.extend(np.repeat(offtrack_frame, len(
+                        otracks_st.loc[otracks_st['trial'] == trial].iloc[idx_correspondent_offtrack, 1])))
+                    offtrack_st_time_hits.extend(
+                        np.repeat(t, len(otracks_st.loc[otracks_st['trial'] == trial].iloc[idx_correspondent_offtrack, 0])))
+                    otrack_st_trial.extend(np.repeat(trial, len(
+                        otracks_st.loc[otracks_st['trial'] == trial].iloc[idx_correspondent_offtrack, 0])))
+            otrack_st_miss[count_t] = (len(offtrack_st_times) - len(otrack_st_hits))/len(offtrack_st_times)
+        tracks_hits_st = pd.DataFrame({'otrack_frames': otrack_st_frames_hits, 'otrack_times': otrack_st_time_hits,
+                                       'offtrack_frames': offtrack_st_frames_hits, 'offtrack_times': offtrack_st_time_hits,
+                                       'trial': otrack_st_trial})
+        otrack_sw_miss = np.zeros(len(trials))
+        otrack_sw_frames_hits = []
+        otrack_sw_time_hits = []
+        offtrack_sw_frames_hits = []
+        offtrack_sw_time_hits = []
+        otrack_sw_trial = []
+        for count_t, trial in enumerate(trials):
+            offtrack_sw_times = offtracks_sw.loc[offtracks_sw['trial'] == trial, 'time']
+            offtrack_sw_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            otrack_sw_hits = []
+            for t in np.array(offtrack_sw_times):
+                offtrack_frame = np.int64(
+                    offtrack_sw_trial.loc[offtrack_sw_times.index[np.where(t == offtrack_sw_times)[0][0]], 'frames'])
+                time_diff = t - np.array(otracks_sw.loc[otracks_st['trial'] == trial, 'time'])
+                offtrack_timeoff = offtrack_sw_trial.loc[
+                    offtrack_sw_times.index[np.where(t == offtrack_sw_times)[0][0]], 'time_off']
+                idx_correspondent_offtrack = np.where((time_diff < 0) & (time_diff > -(offtrack_timeoff-t)))[0]
+                if len(idx_correspondent_offtrack) > 0:
+                    otrack_sw_hits.append(otracks_sw.loc[otracks_sw['trial'] == trial].iloc[
+                                              idx_correspondent_offtrack, 1])  # to get the number of correspondences
+                    otrack_sw_frames_hits.extend(
+                        otracks_sw.loc[otracks_sw['trial'] == trial].iloc[idx_correspondent_offtrack, 1])
+                    otrack_sw_time_hits.extend(
+                        otracks_sw.loc[otracks_sw['trial'] == trial].iloc[idx_correspondent_offtrack, 0])
+                    offtrack_sw_frames_hits.extend(np.repeat(offtrack_frame, len(
+                        otracks_sw.loc[otracks_sw['trial'] == trial].iloc[idx_correspondent_offtrack, 1])))
+                    offtrack_sw_time_hits.extend(
+                        np.repeat(t, len(otracks_sw.loc[otracks_sw['trial'] == trial].iloc[idx_correspondent_offtrack, 0])))
+                    otrack_sw_trial.extend(np.repeat(trial, len(
+                        otracks_sw.loc[otracks_sw['trial'] == trial].iloc[idx_correspondent_offtrack, 0])))
+            otrack_sw_miss[count_t] = (len(offtrack_sw_times) - len(otrack_sw_hits))/len(offtrack_sw_times)
+        tracks_hits_sw = pd.DataFrame({'otrack_frames': otrack_sw_frames_hits, 'otrack_times': otrack_sw_time_hits,
+                                       'offtrack_frames': offtrack_sw_frames_hits, 'offtrack_times': offtrack_sw_time_hits,
+                                       'trial': otrack_sw_trial})
+        return tracks_hits_st, tracks_hits_sw, otrack_st_miss, otrack_sw_miss
+
+    @staticmethod
+    def frames_outside_st_sw(trials, offtracks_st, offtracks_sw, otracks_st, otracks_sw):
+        detected_frames_bad_st = np.zeros(len(trials))
+        for count_t, trial in enumerate(trials):
+            offtracks_st_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            otracks_st_trial = otracks_st.loc[otracks_st['trial'] == trial]
+            frames_st = []
+            for i in range(np.shape(offtracks_st_trial)[0]):
+                frames_st.extend(np.arange(offtracks_st_trial.iloc[i, 2], offtracks_st_trial.iloc[i, 3]))
+            detected_frames_bad_st[count_t] = len(
+                np.setdiff1d(np.array(otracks_st_trial['frames']), np.array(frames_st)))
+        detected_frames_bad_sw = np.zeros(len(trials))
+        for count_t, trial in enumerate(trials):
+            offtracks_sw_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            otracks_sw_trial = otracks_sw.loc[otracks_sw['trial'] == trial]
+            frames_sw = []
+            for i in range(np.shape(offtracks_sw_trial)[0]):
+                frames_sw.extend(np.arange(offtracks_sw_trial.iloc[i, 2], offtracks_sw_trial.iloc[i, 3]))
+            detected_frames_bad_sw[count_t] = len(
+                np.setdiff1d(np.array(otracks_sw_trial['frames']), np.array(frames_sw)))
+        return detected_frames_bad_st, detected_frames_bad_sw
+
+    def overlay_tracks_video(self, trial, paw_otrack, offtracks_st, offtracks_sw, otracks_st, otracks_sw):
+        """Function to overlay the post-hoc tracking (large circle) and the online
+         (small filled circle) tracking on the video
+         Input:
+         trial: int
+         paw_otrack: (str) FR or  FL
+         otracks_st: dataframe with the otrack stance data
+         otracks_sw: dataframe with the otrack swing data
+         offtracks_st: dataframe with the offtrack stance data
+         offtracks_sw: dataframe with the offtrack swing data"""
+        mp4_files = glob.glob(self.path + '*.mp4')
+        frame_width = 1088
+        frame_height = 420
+        for f in mp4_files:
+            filename_split = f.split(self.delim)[-1]
+            trial_nr = np.int64(filename_split.split('_')[-1][:-4])
+            if trial_nr == trial:
+                filename = f
+        vidObj = cv2.VideoCapture(filename)
+        frames_total = int(vidObj.get(cv2.CAP_PROP_FRAME_COUNT))
+        out = cv2.VideoWriter(filename[:-4] + 'tracks.mp4', cv2.VideoWriter_fourcc(*'XVID'), self.sr,
+                              (frame_width, frame_height), True)
+        if paw_otrack == 'FR':
+            paw_color_st = (0, 0, 255)
+            paw_color_sw = (255, 0, 0)
+        if paw_otrack == 'FL':
+            paw_color_st = (255, 0, 0)
+            paw_color_sw = (0, 0, 255)
+        for frameNr in range(frames_total):
+            vidObj.set(1, frameNr)
+            if frameNr in np.int64(offtracks_st.loc[offtracks_st['trial'] == trial, 'frames']):
+                cap1, frame1 = vidObj.read()
+                if cap1:
+                    st_x_off = np.array(
+                        offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'x'])
+                    st_y_off = np.array(
+                        offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'y'])
+                    sw_x_off = np.array(
+                        offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'x'])
+                    sw_y_off = np.array(
+                        offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'y'])
+                    if np.all([~np.isnan(st_x_off), ~np.isnan(st_y_off)]) and len(st_x_off) > 0 and len(st_y_off) > 0:
+                        frame_offtracks_st = cv2.circle(frame1, (np.int64(st_x_off)[0], np.int64(st_y_off)[0]),
+                                                        radius=11, color=paw_color_st, thickness=2)
+                        out.write(frame_offtracks_st)
+                    if np.all([~np.isnan(sw_x_off), ~np.isnan(sw_y_off)]) and len(sw_x_off) > 0 and len(sw_y_off) > 0:
+                        frame_offtracks_sw = cv2.circle(frame1, (np.int64(sw_x_off)[0], np.int64(sw_y_off)[0]),
+                                                        radius=11, color=paw_color_sw, thickness=2)
+                        out.write(frame_offtracks_sw)
+            if frameNr in np.int64(otracks_st.loc[otracks_st['trial'] == trial, 'frames']):
+                cap2, frame2 = vidObj.read()
+                if cap2:
+                    st_x_on = np.array(
+                        otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'x'])
+                    st_y_on = np.array(
+                        otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'y'])
+                    sw_x_on = np.array(
+                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'x'])
+                    sw_y_on = np.array(
+                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'y'])
+                    if np.all([~np.isnan(st_x_on), ~np.isnan(st_y_on)]):
+                        frame_otracks_st = cv2.circle(frame2, (np.int64(st_x_on)[0], np.int64(st_y_on)[0]), radius=5,
+                                                      color=paw_color_st, thickness=5)
+                        out.write(frame_otracks_st)
+                    if np.all([~np.isnan(sw_x_on), ~np.isnan(sw_y_on)]):
+                        frame_otracks_sw = cv2.circle(frame2, (np.int64(sw_x_on)[0], np.int64(sw_y_on)[0]), radius=5,
+                                                      color=paw_color_sw, thickness=5)
+                        out.write(frame_otracks_sw)
+            cap3, frame3 = vidObj.read()
+            if cap3:
+                out.write(frame3)
+        vidObj.release()
+        out.release()
+
+    def measure_light_on_videos(self, trial, timestamps_session, otracks_st, otracks_sw):
+        """Function to measure when the light in the video was ON (equivalent to optogenetic
+        stimulation).
+         Input:
+         trial: int
+         timestamps_session: list with the camera timestamps for each session
+         otracks_st: dataframe with the otrack stance data
+         otracks_sw: dataframe with the otrack swing data"""
+        mp4_files = glob.glob(self.path + '*.mp4')
+        for f in mp4_files:
+            filename_split = f.split(self.delim)[-1]
+            trial_nr = np.int64(filename_split.split('_')[-1][:-4])
+            if trial_nr == trial:
+                filename = f
+        vidObj = cv2.VideoCapture(filename)
+        frames_total = int(vidObj.get(cv2.CAP_PROP_FRAME_COUNT))
+        st_led = []
+        sw_led = []
+        for frameNr in range(frames_total):
+            vidObj.set(1, frameNr)
+            cap, frame = vidObj.read()
+            if cap:
+                st_led.append(np.mean(frame[:60, 980:1050, :].flatten()))
+                sw_led.append(np.mean(frame[:60, 1050:, :].flatten()))
+        vidObj.release()
+        st_led_on = np.where(np.diff(st_led) > 20)[0]
+        sw_led_on = np.where(np.diff(st_led) > 20)[0]
+        st_led_on_time = np.array(timestamps_session[trial - 1])[st_led_on]
+        sw_led_on_time = np.array(timestamps_session[trial - 1])[sw_led_on]
+        st_led_off = np.where(-np.diff(st_led) > 10)[0]
+        sw_led_off = np.where(-np.diff(st_led) > 10)[0]
+        st_led_frames = np.vstack((st_led_on, st_led_off))
+        sw_led_frames = np.vstack((sw_led_on, sw_led_off))
+        otrack_st_trial = otracks_st.loc[otracks_st['trial'] == trial]
+        otrack_sw_trial = otracks_sw.loc[otracks_sw['trial'] == trial]
+        latency_trial_st = np.zeros(len(otrack_st_trial['time']))
+        latency_trial_st[:] = np.nan
+        for count_t, t in enumerate(otrack_st_trial['time']):
+            time_diff = st_led_on_time - t
+            time_diff_larger_0 = time_diff[time_diff > 0]
+            if len(time_diff_larger_0)>0:
+                latency_trial_st[count_t] = np.min(time_diff_larger_0) * 1000
+        latency_trial_sw = np.zeros(len(otrack_sw_trial['time']))
+        latency_trial_sw[:] = np.nan
+        for count_t, t in enumerate(otrack_sw_trial['time']):
+            time_diff = sw_led_on_time - t
+            time_diff_larger_0 = time_diff[time_diff > 0]
+            if len(time_diff_larger_0) > 0:
+                latency_trial_sw[count_t] = np.min(time_diff_larger_0) * 1000
+        return latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames
