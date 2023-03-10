@@ -676,14 +676,16 @@ class otrack_class:
                 st_led.append(np.mean(frame[:60, 980:1050, :].flatten()))
                 sw_led.append(np.mean(frame[:60, 1050:, :].flatten()))
         vidObj.release()
-        st_led_on = np.where(np.diff(st_led) > 10)[0]
-        sw_led_on = np.where(np.diff(sw_led) > 10)[0]
+        st_led_on = np.where(np.diff(st_led))[0]
+        sw_led_on = np.where(np.diff(sw_led))[0]
         st_led_on_time = np.array(timestamps_session[trial - 1])[st_led_on]
         sw_led_on_time = np.array(timestamps_session[trial - 1])[sw_led_on]
-        st_led_off = np.where(-np.diff(st_led) > 10)[0]
-        sw_led_off = np.where(-np.diff(sw_led) > 10)[0]
-        print(st_led_on)
-        print(st_led_off)
+        st_led_off = np.where(-np.diff(st_led))[0]
+        sw_led_off = np.where(-np.diff(sw_led))[0]
+        if len(st_led_on) != len(st_led_off):
+            st_led_off = np.append(st_led_off, frameNr)
+        if len(sw_led_on) != len(sw_led_off):
+            sw_led_off = np.append(sw_led_off, frameNr)
         st_led_frames = np.vstack((st_led_on, st_led_off))
         sw_led_frames = np.vstack((sw_led_on, sw_led_off))
         otrack_st_trial = otracks_st.loc[otracks_st['trial'] == trial]

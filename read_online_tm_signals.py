@@ -11,10 +11,10 @@ from scipy.signal import find_peaks
 
 paw_otrack = 'FR'
 path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Test Bonsai OneBelt Two Belts 100322\\'
-subdir = 'TwoBeltsCMBonsai\\'
+subdir = 'TwoBeltsHRPawBonsai\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16946CM'
+animal = 'MC16946HR'
 session = 1
 plot_data = 0
 import online_tracking_class
@@ -122,9 +122,9 @@ ax[1].set_title('swing')
 # PERIODS WITH LIGHT ON
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 fig, ax = plt.subplots(tight_layout=True)
-# for r in range(np.shape(st_led_frames)[1]):
-#     ax.axvline(timestamps_session[trial-1][st_led_frames[0, r]], color='lightgray')
-#     ax.axvline(timestamps_session[trial - 1][st_led_frames[1, r]], color='lightgray')
+for r in range(np.shape(st_led_frames)[1]):
+    ax.axvline(timestamps_session[trial-1][st_led_frames[0, r]], color='lightgray')
+    ax.axvline(timestamps_session[trial-1][st_led_frames[1, r]], color='lightgray')
 for p in range(4):
     ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :-1], color=paw_colors[p])
 ax.set_title('light on stance')
