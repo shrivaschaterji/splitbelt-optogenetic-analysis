@@ -145,7 +145,7 @@ class loco_class:
         for l in range(np.shape(trackcols)[0]):
             for c in range(np.shape(trackcols)[1]):
                 idx_to_nan = np.array(likelihood_df.iloc[:,l]<threshold)
-                track_df.iloc[idx_to_nan,trackcols[l,c]] = np.nan        
+                track_df.iloc[idx_to_nan,trackcols[l,c]] = np.nan
         #build final_tracks like variable: [x y z xside; paws nose; frames]
         #initialize arrays
         final_tracks = np.zeros((4,5,track_df.shape[0]))
@@ -163,7 +163,7 @@ class loco_class:
         tracks_tail[1,:,:] = np.transpose(track_df.iloc[:,np.arange(112,track_df.shape[1],3)]) #y
         tracks_tail[2,:,:] = np.transpose(track_df.iloc[:,np.arange(67,110,3)]) #side z
         tracks_tail[3,:,:] = np.transpose(track_df.iloc[:,np.arange(66,110,3)]) #side x
-        joints_wrist[:,:,0] = np.transpose(track_df.iloc[:,[42,48,45,51]]) #paws, frames x,z 
+        joints_wrist[:,:,0] = np.transpose(track_df.iloc[:,[42,48,45,51]]) #paws, frames x,z
         joints_wrist[:,:,1] = np.transpose(track_df.iloc[:,[43,49,46,52]])
         joints_elbow[:,:,0] = np.transpose(track_df.iloc[:,[54,60,57,63]]) #x
         joints_elbow[:,:,1] = np.transpose(track_df.iloc[:,[55,61,58,64]])
@@ -177,6 +177,62 @@ class loco_class:
             ear = ear[:,frames_loco:]
             bodycenter = bodycenter[:,frames_loco:]
         return final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter
+
+    def read_h5_bottom(self,filename,threshold,frames_loco):
+        """Function to read output of DLC (as h5 file) and output the matrices final_tracks
+        tracks_tail, joints_wrist, joints_elbow, ear and bodycenter for locomotion analysis
+        Inputs:
+            filename (str)
+            threshold: to consider valid tracking
+            frames_loco: list with the number of frames per trial removed in the Miniscope video (after triggering)"""
+        track_df = pd.read_hdf(self.path+filename,'df_with_missing')
+        likelihood_df = track_df[track_df.columns[2::3]]
+        #tracks with likelihood below 0.9 are NaN
+        xcol = np.arange(0,track_df.shape[1],3)
+        trackcols = np.concatenate((xcol.reshape((-1,1)),xcol.reshape((-1,1))+1),axis=1) #array with indices of the tracks (x,y all views)
+        for l in range(np.shape(trackcols)[0]):
+            for c in range(np.shape(trackcols)[1]):
+                idx_to_nan = np.array(likelihood_df.iloc[:,l]<threshold)
+                track_df.iloc[idx_to_nan,trackcols[l,c]] = np.nan
+        #build final_tracks like variable: [x y z xside; paws nose; frames]
+        #initialize arrays
+        final_tracks = np.zeros((4,5,track_df.shape[0]))
+        #fill with tracks
+        final_tracks[0,:,:] = np.transpose(track_df.iloc[:,[9, 15, 12, 18, 0]]) #x
+        final_tracks[1,:,:] = np.transpose(track_df.iloc[:,[10, 16, 13, 19, 1]]) #y
+        final_tracks[3,:,:] = np.transpose(track_df.iloc[:,[9, 15, 12, 18, 0]]) # same as x bottom to keep structure
+        final_tracks[2,:,:] = np.transpose(track_df.iloc[:,[10, 16, 13, 19, 1]]) # same as y bottom to keep structure
+        if frames_loco>0:
+            final_tracks = final_tracks[:,:,frames_loco:]
+        return final_tracks
+
+    def read_h5_bottomright(self,filename,threshold,frames_loco):
+        """Function to read output of DLC (as h5 file) and output the matrices final_tracks
+        tracks_tail, joints_wrist, joints_elbow, ear and bodycenter for locomotion analysis
+        Inputs:
+            filename (str)
+            threshold: to consider valid tracking
+            frames_loco: list with the number of frames per trial removed in the Miniscope video (after triggering)"""
+        track_df = pd.read_hdf(self.path+filename,'df_with_missing')
+        likelihood_df = track_df[track_df.columns[2::3]]
+        #tracks with likelihood below 0.9 are NaN
+        xcol = np.arange(0,track_df.shape[1],3)
+        trackcols = np.concatenate((xcol.reshape((-1,1)),xcol.reshape((-1,1))+1),axis=1) #array with indices of the tracks (x,y all views)
+        for l in range(np.shape(trackcols)[0]):
+            for c in range(np.shape(trackcols)[1]):
+                idx_to_nan = np.array(likelihood_df.iloc[:,l]<threshold)
+                track_df.iloc[idx_to_nan,trackcols[l,c]] = np.nan
+        #build final_tracks like variable: [x y z xside; paws nose; frames]
+        #initialize arrays
+        final_tracks = np.zeros((4,5,track_df.shape[0]))
+        #fill with tracks
+        final_tracks[0,:,:] = np.transpose(track_df.iloc[:,[0, 0, 3, 3, 0]]) #x
+        final_tracks[1,:,:] = np.transpose(track_df.iloc[:,[1, 1, 4, 4, 1]]) #y
+        final_tracks[3,:,:] = np.transpose(track_df.iloc[:,[0, 0, 3, 3, 0]]) # same as x bottom to keep structure
+        final_tracks[2,:,:] = np.transpose(track_df.iloc[:,[1, 1, 4, 4, 1]]) # same as y bottom to keep structure
+        if frames_loco>0:
+            final_tracks = final_tracks[:,:,frames_loco:]
+        return final_tracks
 
     def compute_joint_angles(self,final_tracks,tracks_tail,joints_elbow,joints_wrist):
         """Compute body axis angles, tail axis angles and wrist angles"""

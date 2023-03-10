@@ -10,11 +10,11 @@ import cv2
 from scipy.signal import find_peaks
 
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Online Tracking Treadmill\\NetworkTest_280223\\'
-subdir = 'Full Network\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Test Bonsai OneBelt Two Belts 100322\\'
+subdir = 'TwoBeltsCMBonsai\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MFullNetwork'
+animal = 'MC16946CM'
 session = 1
 plot_data = 0
 import online_tracking_class
@@ -32,10 +32,10 @@ trials = otrack_class.get_trials()
 [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(frame_counter_0_session, timestamps_0_session)
 
 # READ OFFLINE DLC TRACKS
-[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
+[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data_bottom(paw_otrack, loco, animal, session)
 
 # READ OFFLINE PAW EXCURSIONS
-final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
+final_tracks_trials = otrack_class.get_offtrack_paws_bottom(loco, animal, session)
 
 # LATENCY OF OTRACK IN RELATION TO OFFTRACK
 [tracks_hits_st, tracks_hits_sw, otrack_st_miss, otrack_sw_miss] = otrack_class.get_hits_swst_online(trials, otracks_st, otracks_sw, offtracks_st, offtracks_sw)
@@ -99,7 +99,7 @@ ax[1].spines['top'].set_visible(False)
 latency_light_st = []
 latency_light_sw = []
 for trial in trials:
-    [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames ] = otrack_class.measure_light_on_videos(trial, timestamps_session, otracks_st, otracks_sw)
+    [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames] = otrack_class.measure_light_on_videos(trial, timestamps_session, otracks_st, otracks_sw)
     latency_light_st.append(latency_trial_st)
     latency_light_sw.append(latency_trial_sw)
 fig, ax = plt.subplots(2, 1, tight_layout=True)
@@ -122,9 +122,9 @@ ax[1].set_title('swing')
 # PERIODS WITH LIGHT ON
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 fig, ax = plt.subplots(tight_layout=True)
-for r in range(np.shape(st_led_frames)[1]):
-    ax.axvline(timestamps_session[trial-1][st_led_frames[0, r]], color='lightgray')
-    ax.axvline(timestamps_session[trial - 1][st_led_frames[1, r]], color='lightgray')
+# for r in range(np.shape(st_led_frames)[1]):
+#     ax.axvline(timestamps_session[trial-1][st_led_frames[0, r]], color='lightgray')
+#     ax.axvline(timestamps_session[trial - 1][st_led_frames[1, r]], color='lightgray')
 for p in range(4):
     ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :-1], color=paw_colors[p])
 ax.set_title('light on stance')
@@ -145,5 +145,3 @@ ax.spines['top'].set_visible(False)
 # # READ MP4 AND OVERLAY OFFLINE AND ONLINE DLC TRACKS
 # trial = 3
 # otrack_class.overlay_tracks_video(trial, paw_otrack, offtracks_st, offtracks_sw, otracks_st, otracks_sw)
-
-

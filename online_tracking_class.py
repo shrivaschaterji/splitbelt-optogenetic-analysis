@@ -196,7 +196,7 @@ class otrack_class:
             'x': otracks_sw_posx, 'y': otracks_sw_posy})
         return otracks_st, otracks_sw
 
-    def get_offtrack_paws(self, loco, animal, session):
+    def get_offtrack_paws_bottom(self, loco, animal, session):
         """Use the locomotion class to get the paw excursions from
         the post-hoc tracking.
         Input:
@@ -224,7 +224,39 @@ class otrack_class:
             path_split = f.split(self.delim)
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
-            [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0)
+            final_tracks = loco.read_h5_bottom(f, 0.9, 0)
+            final_tracks_trials.append(final_tracks)
+        return final_tracks_trials
+
+    def get_offtrack_paws_bottomright(self, loco, animal, session):
+        """Use the locomotion class to get the paw excursions from
+        the post-hoc tracking.
+        Input:
+        loco: locomotion class
+        animal: (str)
+        session: (int)"""
+        h5files = glob.glob(os.path.join(self.path, '*.h5'))
+        filelist = []
+        trial_order = []
+        for f in h5files:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            animal_name = filename_split[0][filename_split[0].find('M'):]
+            session_nr = int(filename_split[6])
+            if animal_name == animal and session_nr == session:
+                filelist.append(path_split[-1])
+                trial_order.append(int(filename_split[7][:-3]))
+        trial_ordered = np.sort(np.array(trial_order))  # reorder trials
+        files_ordered = []  # order tif filenames by file order
+        for f in range(len(filelist)):
+            tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
+            files_ordered.append(filelist[tr_ind])
+        final_tracks_trials = []
+        for f in files_ordered:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            trial = int(filename_split[7][:-3])
+            final_tracks = loco.read_h5_bottomright(f, 0.9, 0)
             final_tracks_trials.append(final_tracks)
         return final_tracks_trials
 
@@ -275,6 +307,150 @@ class otrack_class:
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0)
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # no exclusion of strides
+            offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000))
+            offtracks_st_off_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
+            offtracks_sw_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
+            offtracks_sw_off_time.extend(np.append(np.array(st_strides_mat[p][1:, 0, 0] / 1000), 0))
+            offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1]))
+            offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_sw_off_frames.extend(np.append(np.array(st_strides_mat[p][1:, 0, -1]), 0))
+            offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial)
+            offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial)
+            offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])])
+            offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])])
+            offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])])
+            offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])])
+        offtracks_st = pd.DataFrame(
+            {'time': offtracks_st_time, 'time_off': offtracks_st_off_time, 'frames': offtracks_st_frames, 'frames_off': offtracks_st_off_frames,
+             'trial': offtracks_st_trials,
+             'x': offtracks_st_posx, 'y': offtracks_st_posy})
+        offtracks_sw = pd.DataFrame(
+            {'time': offtracks_sw_time, 'time_off': offtracks_sw_off_time, 'frames': offtracks_sw_frames, 'frames_off': offtracks_sw_off_frames,
+             'trial': offtracks_sw_trials,
+             'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
+        return offtracks_st, offtracks_sw
+
+    def get_offtrack_event_data_bottom(self, paw, loco, animal, session):
+        """Use the locomotion class to get the stance and swing points from
+        the post-hoc tracking.
+        Input:
+        paw: 'FR' or 'FL'
+        loco: locomotion class
+        animal: (str)
+        session: (int)"""
+        if paw == 'FR':
+            p = 0
+        if paw == 'FL':
+            p = 2
+        h5files = glob.glob(os.path.join(self.path, '*.h5'))
+        filelist = []
+        trial_order = []
+        for f in h5files:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            animal_name = filename_split[0][filename_split[0].find('M'):]
+            session_nr = int(filename_split[6])
+            if animal_name == animal and session_nr == session:
+                filelist.append(path_split[-1])
+                trial_order.append(int(filename_split[7][:-3]))
+        trial_ordered = np.sort(np.array(trial_order))  # reorder trials
+        files_ordered = []  # order tif filenames by file order
+        for f in range(len(filelist)):
+            tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
+            files_ordered.append(filelist[tr_ind])
+        offtracks_st_time = []
+        offtracks_sw_time = []
+        offtracks_st_off_time = []
+        offtracks_sw_off_time = []
+        offtracks_st_frames = []
+        offtracks_sw_frames = []
+        offtracks_st_off_frames = []
+        offtracks_sw_off_frames = []
+        offtracks_st_trials = []
+        offtracks_sw_trials = []
+        offtracks_st_posx = []
+        offtracks_sw_posx = []
+        offtracks_st_posy = []
+        offtracks_sw_posy = []
+        for f in files_ordered:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            trial = int(filename_split[7][:-3])
+            final_tracks = loco.read_h5_bottom(f, 0.9, 0)
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # no exclusion of strides
+            offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000))
+            offtracks_st_off_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
+            offtracks_sw_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
+            offtracks_sw_off_time.extend(np.append(np.array(st_strides_mat[p][1:, 0, 0] / 1000), 0))
+            offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1]))
+            offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1]))
+            offtracks_sw_off_frames.extend(np.append(np.array(st_strides_mat[p][1:, 0, -1]), 0))
+            offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial)
+            offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial)
+            offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])])
+            offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])])
+            offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])])
+            offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])])
+        offtracks_st = pd.DataFrame(
+            {'time': offtracks_st_time, 'time_off': offtracks_st_off_time, 'frames': offtracks_st_frames, 'frames_off': offtracks_st_off_frames,
+             'trial': offtracks_st_trials,
+             'x': offtracks_st_posx, 'y': offtracks_st_posy})
+        offtracks_sw = pd.DataFrame(
+            {'time': offtracks_sw_time, 'time_off': offtracks_sw_off_time, 'frames': offtracks_sw_frames, 'frames_off': offtracks_sw_off_frames,
+             'trial': offtracks_sw_trials,
+             'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
+        return offtracks_st, offtracks_sw
+
+    def get_offtrack_event_data_bottomright(self, paw, loco, animal, session):
+        """Use the locomotion class to get the stance and swing points from
+        the post-hoc tracking.
+        Input:
+        paw: 'FR' or 'FL'
+        loco: locomotion class
+        animal: (str)
+        session: (int)"""
+        if paw == 'FR':
+            p = 0
+        if paw == 'FL':
+            p = 2
+        h5files = glob.glob(os.path.join(self.path, '*.h5'))
+        filelist = []
+        trial_order = []
+        for f in h5files:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            animal_name = filename_split[0][filename_split[0].find('M'):]
+            session_nr = int(filename_split[6])
+            if animal_name == animal and session_nr == session:
+                filelist.append(path_split[-1])
+                trial_order.append(int(filename_split[7][:-3]))
+        trial_ordered = np.sort(np.array(trial_order))  # reorder trials
+        files_ordered = []  # order tif filenames by file order
+        for f in range(len(filelist)):
+            tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
+            files_ordered.append(filelist[tr_ind])
+        offtracks_st_time = []
+        offtracks_sw_time = []
+        offtracks_st_off_time = []
+        offtracks_sw_off_time = []
+        offtracks_st_frames = []
+        offtracks_sw_frames = []
+        offtracks_st_off_frames = []
+        offtracks_sw_off_frames = []
+        offtracks_st_trials = []
+        offtracks_sw_trials = []
+        offtracks_st_posx = []
+        offtracks_sw_posx = []
+        offtracks_st_posy = []
+        offtracks_sw_posy = []
+        for f in files_ordered:
+            path_split = f.split(self.delim)
+            filename_split = path_split[-1].split('_')
+            trial = int(filename_split[7][:-3])
+            final_tracks = loco.read_h5_bottomright(f, 0.9, 0)
             [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # no exclusion of strides
             offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000))
             offtracks_st_off_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000))
@@ -500,12 +676,14 @@ class otrack_class:
                 st_led.append(np.mean(frame[:60, 980:1050, :].flatten()))
                 sw_led.append(np.mean(frame[:60, 1050:, :].flatten()))
         vidObj.release()
-        st_led_on = np.where(np.diff(st_led) > 20)[0]
-        sw_led_on = np.where(np.diff(st_led) > 20)[0]
+        st_led_on = np.where(np.diff(st_led) > 10)[0]
+        sw_led_on = np.where(np.diff(sw_led) > 10)[0]
         st_led_on_time = np.array(timestamps_session[trial - 1])[st_led_on]
         sw_led_on_time = np.array(timestamps_session[trial - 1])[sw_led_on]
         st_led_off = np.where(-np.diff(st_led) > 10)[0]
-        sw_led_off = np.where(-np.diff(st_led) > 10)[0]
+        sw_led_off = np.where(-np.diff(sw_led) > 10)[0]
+        print(st_led_on)
+        print(st_led_off)
         st_led_frames = np.vstack((st_led_on, st_led_off))
         sw_led_frames = np.vstack((sw_led_on, sw_led_off))
         otrack_st_trial = otracks_st.loc[otracks_st['trial'] == trial]
