@@ -105,6 +105,12 @@ class otrack_class:
                 plt.title('Camera metadata for trial '+str(trial+1))
                 plt.xlabel('Camera timestamps (s)')
                 plt.ylabel('Frame counter')
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), timestamps_session)
+        np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), frame_counter_session)
+        np.save(os.path.join(self.path, 'processed files', 'frame_counter_0.npy'), frame_counter_0)
+        np.save(os.path.join(self.path, 'processed files', 'timestamps_0.npy'), timestamps_0)
         return timestamps_session, frame_counter_session, frame_counter_0, timestamps_0
 
     def get_synchronizer_data(self, plot_data):
@@ -138,6 +144,10 @@ class otrack_class:
                 plt.plot(sync_timestamps_p0, sync_signal_p0, linewidth=2)
                 plt.title('Sync data for trial '+str(t+1))
                 plt.xlabel('Time (ms)')
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        np.save(os.path.join(self.path, 'processed files', 'trial_signal_session.npy'), trial_signal_session)
+        np.save(os.path.join(self.path, 'processed files', 'sync_signal_session.npy'), sync_signal_session)
         return trial_signal_session, sync_signal_session
 
     def get_otrack_event_data(self, frame_counter_0_session, timestamps_0_session):
@@ -173,7 +183,7 @@ class otrack_class:
         for trial, f in enumerate(files_ordered):
             otracks = pd.read_csv(os.path.join(self.path, f))
             stance_frames = np.where(otracks.iloc[:, 4]==True)[0]
-            swing_frames = np.where(otracks.iloc[:, 4]==True)[0]
+            swing_frames = np.where(otracks.iloc[:, 5]==True)[0]
             otracks_frame_counter = []
             for i in range(len(otracks.iloc[:,1])):
                 otracks_frame_counter.append((otracks.iloc[i,1]-frame_counter_0_session[trial]))
@@ -194,6 +204,14 @@ class otrack_class:
             'x': otracks_st_posx, 'y': otracks_st_posy})
         otracks_sw = pd.DataFrame({'time': otracks_sw_time, 'frames': otracks_sw_frames, 'trial': otracks_sw_trials,
             'x': otracks_sw_posx, 'y': otracks_sw_posy})
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        otracks_st.to_csv(
+            os.path.join(self.path, 'processed files', 'otracks_st.csv'), sep=',',
+            index=False)
+        otracks_sw.to_csv(
+            os.path.join(self.path, 'processed files', 'otracks_sw.csv'), sep=',',
+            index=False)
         return otracks_st, otracks_sw
 
     def get_offtrack_paws_bottom(self, loco, animal, session):
@@ -221,9 +239,6 @@ class otrack_class:
             files_ordered.append(filelist[tr_ind])
         final_tracks_trials = []
         for f in files_ordered:
-            path_split = f.split(self.delim)
-            filename_split = path_split[-1].split('_')
-            trial = int(filename_split[7][:-3])
             final_tracks = loco.read_h5_bottom(f, 0.9, 0)
             final_tracks_trials.append(final_tracks)
         return final_tracks_trials
@@ -253,9 +268,6 @@ class otrack_class:
             files_ordered.append(filelist[tr_ind])
         final_tracks_trials = []
         for f in files_ordered:
-            path_split = f.split(self.delim)
-            filename_split = path_split[-1].split('_')
-            trial = int(filename_split[7][:-3])
             final_tracks = loco.read_h5_bottomright(f, 0.9, 0)
             final_tracks_trials.append(final_tracks)
         return final_tracks_trials
@@ -330,6 +342,14 @@ class otrack_class:
             {'time': offtracks_sw_time, 'time_off': offtracks_sw_off_time, 'frames': offtracks_sw_frames, 'frames_off': offtracks_sw_off_frames,
              'trial': offtracks_sw_trials,
              'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        offtracks_st.to_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_st.csv'), sep=',',
+            index=False)
+        offtracks_sw.to_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_sw.csv'), sep=',',
+            index=False)
         return offtracks_st, offtracks_sw
 
     def get_offtrack_event_data_bottom(self, paw, loco, animal, session):
@@ -402,6 +422,14 @@ class otrack_class:
             {'time': offtracks_sw_time, 'time_off': offtracks_sw_off_time, 'frames': offtracks_sw_frames, 'frames_off': offtracks_sw_off_frames,
              'trial': offtracks_sw_trials,
              'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        offtracks_st.to_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_st.csv'), sep=',',
+            index=False)
+        offtracks_sw.to_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_sw.csv'), sep=',',
+            index=False)
         return offtracks_st, offtracks_sw
 
     def get_offtrack_event_data_bottomright(self, paw, loco, animal, session):
@@ -474,6 +502,14 @@ class otrack_class:
             {'time': offtracks_sw_time, 'time_off': offtracks_sw_off_time, 'frames': offtracks_sw_frames, 'frames_off': offtracks_sw_off_frames,
              'trial': offtracks_sw_trials,
              'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        offtracks_st.to_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_st.csv'), sep=',',
+            index=False)
+        offtracks_sw.to_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_sw.csv'), sep=',',
+            index=False)
         return offtracks_st, offtracks_sw
 
     @staticmethod
@@ -532,7 +568,7 @@ class otrack_class:
             for t in np.array(offtrack_sw_times):
                 offtrack_frame = np.int64(
                     offtrack_sw_trial.loc[offtrack_sw_times.index[np.where(t == offtrack_sw_times)[0][0]], 'frames'])
-                time_diff = t - np.array(otracks_sw.loc[otracks_st['trial'] == trial, 'time'])
+                time_diff = t - np.array(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'])
                 offtrack_timeoff = offtrack_sw_trial.loc[
                     offtrack_sw_times.index[np.where(t == offtrack_sw_times)[0][0]], 'time_off']
                 idx_correspondent_offtrack = np.where((time_diff < 0) & (time_diff > -(offtrack_timeoff-t)))[0]
@@ -557,6 +593,14 @@ class otrack_class:
 
     @staticmethod
     def frames_outside_st_sw(trials, offtracks_st, offtracks_sw, otracks_st, otracks_sw):
+        """Function to detect how many frames the online tracking said were relevant and
+        they were outside the target swing or stance
+        Inputs:
+        trials: list of trials
+        otracks_st: dataframe with the otrack stance data
+        otracks_sw: dataframe with the otrack swing data
+        offtracks_st: dataframe with the offtrack stance data
+        offtracks_sw: dataframe with the offtrack swing data"""
         detected_frames_bad_st = np.zeros(len(trials))
         for count_t, trial in enumerate(trials):
             offtracks_st_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
@@ -587,6 +631,8 @@ class otrack_class:
          otracks_sw: dataframe with the otrack swing data
          offtracks_st: dataframe with the offtrack stance data
          offtracks_sw: dataframe with the offtrack swing data"""
+        if not os.path.exists(self.path + 'videos with tracks'):
+            os.mkdir(self.path + 'videos with tracks')
         mp4_files = glob.glob(self.path + '*.mp4')
         frame_width = 1088
         frame_height = 420
@@ -597,7 +643,7 @@ class otrack_class:
                 filename = f
         vidObj = cv2.VideoCapture(filename)
         frames_total = int(vidObj.get(cv2.CAP_PROP_FRAME_COUNT))
-        out = cv2.VideoWriter(filename[:-4] + 'tracks.mp4', cv2.VideoWriter_fourcc(*'XVID'), self.sr,
+        out = cv2.VideoWriter(os.path.join(self.path, 'videos with tracks', filename.split(self.delim)[-1][:-4] + 'tracks.mp4'), cv2.VideoWriter_fourcc(*'XVID'), self.sr,
                               (frame_width, frame_height), True)
         if paw_otrack == 'FR':
             paw_color_st = (0, 0, 255)
@@ -633,21 +679,24 @@ class otrack_class:
                         otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'x'])
                     st_y_on = np.array(
                         otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'y'])
-                    sw_x_on = np.array(
-                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'x'])
-                    sw_y_on = np.array(
-                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'y'])
                     if np.all([~np.isnan(st_x_on), ~np.isnan(st_y_on)]):
                         frame_otracks_st = cv2.circle(frame2, (np.int64(st_x_on)[0], np.int64(st_y_on)[0]), radius=5,
                                                       color=paw_color_st, thickness=5)
                         out.write(frame_otracks_st)
+            if frameNr in np.int64(otracks_sw.loc[otracks_sw['trial'] == trial, 'frames']):
+                cap3, frame3 = vidObj.read()
+                if cap3:
+                    sw_x_on = np.array(
+                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'x'])
+                    sw_y_on = np.array(
+                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'y'])
                     if np.all([~np.isnan(sw_x_on), ~np.isnan(sw_y_on)]):
-                        frame_otracks_sw = cv2.circle(frame2, (np.int64(sw_x_on)[0], np.int64(sw_y_on)[0]), radius=5,
+                        frame_otracks_sw = cv2.circle(frame3, (np.int64(sw_x_on)[0], np.int64(sw_y_on)[0]), radius=5,
                                                       color=paw_color_sw, thickness=5)
                         out.write(frame_otracks_sw)
-            cap3, frame3 = vidObj.read()
-            if cap3:
-                out.write(frame3)
+            cap4, frame4 = vidObj.read()
+            if cap4:
+                out.write(frame4)
         vidObj.release()
         out.release()
 
@@ -676,16 +725,20 @@ class otrack_class:
                 st_led.append(np.mean(frame[:60, 980:1050, :].flatten()))
                 sw_led.append(np.mean(frame[:60, 1050:, :].flatten()))
         vidObj.release()
-        st_led_on = np.where(np.diff(st_led))[0]
-        sw_led_on = np.where(np.diff(sw_led))[0]
+        st_led_on_all = np.where(np.diff(st_led) > 5)[0]
+        st_led_on = np.array(otrack_class.remove_consecutive_numbers(st_led_on_all))
+        sw_led_on_all = np.where(np.diff(sw_led) > 5)[0]
+        sw_led_on = np.array(otrack_class.remove_consecutive_numbers(sw_led_on_all))
         st_led_on_time = np.array(timestamps_session[trial - 1])[st_led_on]
         sw_led_on_time = np.array(timestamps_session[trial - 1])[sw_led_on]
-        st_led_off = np.where(-np.diff(st_led))[0]
-        sw_led_off = np.where(-np.diff(sw_led))[0]
+        st_led_off_all = np.where(-np.diff(st_led) > 5)[0]
+        st_led_off = np.array(otrack_class.remove_consecutive_numbers(st_led_off_all))
+        sw_led_off_all = np.where(-np.diff(sw_led) > 5)[0]
+        sw_led_off = np.array(otrack_class.remove_consecutive_numbers(sw_led_off_all))
         if len(st_led_on) != len(st_led_off):
-            st_led_off = np.append(st_led_off, frameNr)
+            st_led_off = np.append(st_led_off, frameNr-1) # because python starts at 0
         if len(sw_led_on) != len(sw_led_off):
-            sw_led_off = np.append(sw_led_off, frameNr)
+            sw_led_off = np.append(sw_led_off, frameNr-1) # because python starts at 0
         st_led_frames = np.vstack((st_led_on, st_led_off))
         sw_led_frames = np.vstack((sw_led_on, sw_led_off))
         otrack_st_trial = otracks_st.loc[otracks_st['trial'] == trial]
@@ -705,3 +758,58 @@ class otrack_class:
             if len(time_diff_larger_0) > 0:
                 latency_trial_sw[count_t] = np.min(time_diff_larger_0) * 1000
         return latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames
+
+    def get_led_information_trials(self, trials, timestamps_session, otracks_st, otracks_sw):
+        """Using the function to see, in wach trial when the LED were on and off loop over the session
+        trials and compile this information across trials
+        Inputs:
+        trials: list of trials
+        timestamps_session: list with the camera timestamps for each session
+        otracks_st: dataframe with the otrack stance data
+        otracks_sw: dataframe with the otrack swing data"""
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        latency_light_st = []
+        latency_light_sw = []
+        st_led_trials = []
+        sw_led_trials = []
+        for trial in trials:
+            [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames] = self.measure_light_on_videos(trial, timestamps_session, otracks_st, otracks_sw)
+            latency_light_st.append(latency_trial_st)
+            latency_light_sw.append(latency_trial_sw)
+            st_led_trials.append(st_led_frames)
+            sw_led_trials.append(sw_led_frames)
+            np.save(os.path.join(self.path, 'processed files', 'latency_light_st_trial' + str(trial) + '.npy'), latency_trial_st)
+            np.save(os.path.join(self.path, 'processed files', 'latency_light_sw_trial' + str(trial) + '.npy'), latency_trial_sw)
+            np.save(os.path.join(self.path, 'processed files', 'st_led_trials_trial' + str(trial) + '.npy'), st_led_frames)
+            np.save(os.path.join(self.path, 'processed files', 'sw_led_trials_trial' + str(trial) + '.npy'), sw_led_frames)
+        return latency_light_st, latency_light_sw, st_led_trials, sw_led_trials
+
+    @staticmethod
+    def remove_consecutive_numbers(list_original):
+        """Function that takes a list and removes any consecutive numbers, keeping the first one only
+        Input:
+        list_original (list)"""
+        list_clean = []  # if there are consecutive numbers take the first
+        last_seen = None
+        for s in list_original:
+            if (s - 1) != last_seen:
+                list_clean.append(s)
+            last_seen = s
+        return list_clean
+
+    def load_processed_files(self):
+        """Function to load processed files (camera timestamps, online and offline tracking info, led light on info.
+         Outputs:
+         otracks_st, otracks_sw, offtracks_st, offtracks_sw, latency_light_st, latency_light_sw, st_led_frames,
+         sw_led_frames, timestamps_session, final_tracks_trials"""
+        otracks_st = pd.read_csv(
+            os.path.join(self.path, 'processed files', 'otracks_st.csv'))
+        otracks_sw = pd.read_csv(
+            os.path.join(self.path, 'processed files', 'otracks_sw.csv'))
+        offtracks_st = pd.read_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_st.csv'))
+        offtracks_sw = pd.read_csv(
+            os.path.join(self.path, 'processed files', 'offtracks_sw.csv'))
+        timestamps_session = np.load(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), allow_pickle=True)
+        return otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session
