@@ -6,11 +6,11 @@ Created on Tue Feb  7 16:59:15 2023
 import os
 
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Online Tracking Treadmill\\Test Bonsai OneBelt Two Belts 100322\\MC16947\\'
-subdir = 'TwoBeltsCM\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\learning and threshold tests 140323\\'
+subdir = 'thresholds test 140323 hrpaw\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16947CM'
+animal = 'MC16947HR'
 session = 1
 plot_data = 0
 import online_tracking_class
@@ -19,22 +19,24 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 trials = otrack_class.get_trials()
 # READ CAMERA TIMESTAMPS AND FRAME COUNTER
-[timestamps_session, frame_counter_session, frame_counter_0_session, timestamps_0_session] = otrack_class.get_session_metadata(plot_data)
+[camera_timestamps_session, camera_frame_counter_session] = otrack_class.get_session_metadata(plot_data)
 
 # READ SYNCHRONIZER SIGNALS
-[trial_signal_session, sync_signal_session] = otrack_class.get_synchronizer_data(plot_data)
+plot_data = 1
+[timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session] = otrack_class.get_synchronizer_data(plot_data)
 
 # READ ONLINE DLC TRACKS
-[otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(frame_counter_0_session, timestamps_0_session)
+otracks = otrack_class.get_otrack_excursion_data(timestamps_session)
+[otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session)
 
 # READ OFFLINE DLC TRACKS
-[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data_bottom(paw_otrack, loco, animal, session)
+[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
 
 # READ OFFLINE PAW EXCURSIONS
-final_tracks_trials = otrack_class.get_offtrack_paws_bottom(loco, animal, session)
+final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 
 # LATENCY OF LIGHT IN RELATION TO OTRACK
-[latency_light_st, latency_light_sw, st_led_trials, sw_led_trials] = otrack_class.get_led_information_trials(trials, timestamps_session, otracks_st, otracks_sw)
+[latency_light_st, latency_light_sw, st_led_on, sw_led_on] = otrack_class.get_led_information_trials(trials, timestamps_session, otracks_st, otracks_sw)
 
 # READ MP4 AND OVERLAY OFFLINE AND ONLINE DLC TRACKS
 for t in trials:

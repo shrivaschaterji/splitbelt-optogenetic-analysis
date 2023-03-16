@@ -37,12 +37,11 @@ class loco_class:
         self.delim = self.path[-1]
         path_split = self.path.split(self.delim)
         self.experiment = path_split[-3]
-        self.pixel_to_mm = 1/1.955 #dana's setup
-        self.sr = 330 #sampling rate of behavior camera for treadmill
+        self.pixel_to_mm = 3.3
+        self.sr = 333.33 #sampling rate of behavior camera for treadmill
         self.sr_F = 30
         self.my_dpi = 96 #resolution for plotting
-        self.floor = 152*self.pixel_to_mm #Dana's setup
-        # floor = 155*pixel_to_mm #Jovin's setup    
+        self.floor = 268*self.pixel_to_mm
 
     @staticmethod
     def inpaint_nans(A):
