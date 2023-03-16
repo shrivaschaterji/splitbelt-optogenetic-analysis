@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\learning and threshold tests 140323\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Online Tracking Treadmill\\learning and threshold tests 140323\\'
 subdir = 'thresholds test 140323 cm\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
