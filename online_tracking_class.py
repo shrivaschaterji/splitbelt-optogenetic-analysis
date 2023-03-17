@@ -324,7 +324,9 @@ class otrack_class:
             files_ordered.append(filelist[tr_ind])
         final_tracks_trials = []
         for f in files_ordered:
+            print(files_ordered)
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0) #read h5 using the full network features
+            print(np.shape(final_tracks))
             final_tracks_trials.append(final_tracks)
         return final_tracks_trials
 
@@ -667,7 +669,7 @@ class otrack_class:
             offtrack_st_times = offtracks_st.loc[offtracks_st['trial'] == trial, 'time']
             offtrack_st_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             otrack_st_hits = []
-            for t in np.array(offtrack_st_times):
+            for t in np.array(offtrack_st_times[:-1]):
                 offtrack_frame = np.int64(
                     offtrack_st_trial.loc[offtrack_st_times.index[np.where(t == offtrack_st_times)[0][0]], 'frames'])
                 offtrack_timeoff = offtrack_st_trial.loc[offtrack_st_times.index[np.where(t == offtrack_st_times)[0][0]], 'time_off']
@@ -700,13 +702,17 @@ class otrack_class:
             offtrack_sw_times = offtracks_sw.loc[offtracks_sw['trial'] == trial, 'time']
             offtrack_sw_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
             otrack_sw_hits = []
-            for t in np.array(offtrack_sw_times):
+            for t in np.array(offtrack_sw_times[:-1]):
                 offtrack_frame = np.int64(
-                    offtrack_sw_trial.loc[offtrack_sw_times.index[np.where(t == offtrack_sw_times)[0][0]], 'frames'])
-                time_diff = t - np.array(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'])
+                    offtrack_sw_trial.loc[offtrack_sw_times.index[
+                        np.where(t == offtrack_sw_times)[0][0]], 'frames'])  # frame of swing onset
                 offtrack_timeoff = offtrack_sw_trial.loc[
-                    offtrack_sw_times.index[np.where(t == offtrack_sw_times)[0][0]], 'time_off']
-                idx_correspondent_offtrack = np.where((time_diff < 0) & (time_diff > -(offtrack_timeoff-t)))[0]
+                    offtrack_sw_times.index[
+                        np.where(t == offtrack_sw_times)[0][0]], 'time_off']  # time of swing offset
+                time_diff = t - np.array(
+                    otracks_sw.loc[otracks_sw['trial'] == trial, 'time'])  # check the difference to te otrack times
+                idx_correspondent_offtrack = np.where((time_diff < 0) & (time_diff > -(offtrack_timeoff - t)))[
+                    0]  # get idx of otrack if in stance time
                 if len(idx_correspondent_offtrack) > 0:
                     otrack_sw_hits.append(otracks_sw.loc[otracks_sw['trial'] == trial].iloc[
                                               idx_correspondent_offtrack, 1])  # to get the number of correspondences
@@ -947,6 +953,8 @@ class otrack_class:
             os.mkdir(self.path + 'processed files')
         st_led_on.to_csv(os.path.join(self.path, 'processed files', 'st_led_on.csv'), sep=',', index=False)
         sw_led_on.to_csv(os.path.join(self.path, 'processed files', 'sw_led_on.csv'), sep=',', index=False)
+        np.save(os.path.join(self.path, 'processed files', 'latency_light_st.npy'), st_led_on)
+        np.save(os.path.join(self.path, 'processed files', 'latency_light_sw.npy'), sw_led_on)
         return latency_light_st, latency_light_sw, st_led_on, sw_led_on
 
         offtracks_sw = pd.DataFrame(
@@ -987,5 +995,9 @@ class otrack_class:
             os.path.join(self.path, 'processed files', 'offtracks_st.csv'))
         offtracks_sw = pd.read_csv(
             os.path.join(self.path, 'processed files', 'offtracks_sw.csv'))
+        st_led_on = pd.read_csv(
+            os.path.join(self.path, 'processed files', 'st_led_on.csv'))
+        sw_led_on = pd.read_csv(
+            os.path.join(self.path, 'processed files', 'sw_led_on.csv'))
         timestamps_session = np.load(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), allow_pickle=True)
-        return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session
+        return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on

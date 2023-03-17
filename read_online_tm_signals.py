@@ -7,10 +7,10 @@ import os
 
 paw_otrack = 'FR'
 path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\learning and threshold tests 140323\\'
-subdir = 'thresholds test 140323 hrpaw\\'
+subdir = 'thresholds test 140323 cm\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16947HR'
+animal = 'MC16946CM'
 session = 1
 plot_data = 0
 import online_tracking_class

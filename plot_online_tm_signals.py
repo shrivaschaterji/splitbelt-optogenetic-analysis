@@ -18,7 +18,7 @@ loco = locomotion_class.loco_class(path)
 trials = otrack_class.get_trials()
 
 # LOAD PROCESSED DATA
-[otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session] = otrack_class.load_processed_files()
+[otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on] = otrack_class.load_processed_files()
 
 # READ OFFLINE PAW EXCURSIONS
 final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
@@ -38,12 +38,12 @@ for trial in trials:
 # latency plot
 fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
 for count_t, trial in enumerate(trials):
-    ax[0, count_t].hist(latency_st[count_t], bins=100, color='black', range=(-50, np.max([i for sublist in latency_st for i in sublist])))
+    ax[0, count_t].hist(latency_st[count_t], bins=100, color='black')
     ax[0, count_t].set_title('stance latency trial '+str(trial))
     ax[0, count_t].spines['right'].set_visible(False)
     ax[0, count_t].spines['top'].set_visible(False)
 for count_t, trial in enumerate(trials):
-    ax[1, count_t].hist(latency_sw[count_t], bins=100, color='black', range=(0, np.max([i for sublist in latency_sw for i in sublist])))
+    ax[1, count_t].hist(latency_sw[count_t], bins=100, color='black')
     ax[1, count_t].set_title('swing latency trial '+str(trial))
     ax[1, count_t].spines['right'].set_visible(False)
     ax[1, count_t].spines['top'].set_visible(False)
@@ -85,16 +85,15 @@ if not os.path.exists(otrack_class.path + 'plots'):
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'frames_bad_detected.png'))
 
 # LATENCY OF LIGHT IN RELATION TO OTRACK
+latency_light_st = np.load(os.path.join(otrack_class.path, 'processed files', 'latency_light_st.npy'), allow_pickle=True)
+latency_light_sw = np.load(os.path.join(otrack_class.path, 'processed files', 'latency_light_sw.npy'), allow_pickle=True)
 fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
 for count_t, trial in enumerate(trials):
-    latency_light_st = np.load(os.path.join(otrack_class.path, 'processed files', 'latency_light_st_trial' + str(trial) + '.npy'), allow_pickle=True)
-    ax[0, count_t].hist(latency_light_st, bins=100, color='black', range=(-50, np.nanmax(latency_light_st)))
+    ax[0, count_t].hist(latency_light_st[count_t], bins=100, color='black')
     ax[0, count_t].set_title('led stance latency trial ' + str(trial))
     ax[0, count_t].spines['right'].set_visible(False)
     ax[0, count_t].spines['top'].set_visible(False)
-for count_t, trial in enumerate(trials):
-    latency_light_sw = np.load(os.path.join(otrack_class.path, 'processed files', 'latency_light_sw_trial' + str(trial) + '.npy'), allow_pickle=True)
-    ax[1, count_t].hist(latency_light_sw, bins=100, color='black', range=(-50, np.nanmax(latency_light_sw)))
+    ax[1, count_t].hist(latency_light_sw[count_t], bins=100, color='black')
     ax[1, count_t].spines['right'].set_visible(False)
     ax[1, count_t].spines['top'].set_visible(False)
     ax[1, count_t].set_title('led swing latency trial ' + str(trial))
@@ -103,27 +102,27 @@ if not os.path.exists(otrack_class.path + 'plots'):
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'latency_otrack_ledon.png'))
 
 # PERIODS WITH LIGHT ON
-#TODO PUT THRESHOLDS
-trial = 4
-st_led_trials = np.load(os.path.join(otrack_class.path, 'processed files', 'st_led_trials_trial' + str(trial) + '.npy'), allow_pickle=True)
-sw_led_trials = np.load(os.path.join(otrack_class.path, 'processed files', 'sw_led_trials_trial' + str(trial) + '.npy'), allow_pickle=True)
+#TODO PUT THRESHOLDS AND FIX
+trial = 2
+st_led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial']==trial].iloc[:, 2:4]))
+sw_led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial']==trial].iloc[:, 2:4]))
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 p = 0
 fig, ax = plt.subplots()
 for r in range(np.shape(st_led_trials)[1]):
-    rectangle = plt.Rectangle((timestamps_session[trial-1][st_led_trials[0, r]], min(final_tracks_trials[trial-1][0, p, :-1])), timestamps_session[trial-1][st_led_trials[1, r]]-timestamps_session[trial-1][st_led_trials[0, r]], max(final_tracks_trials[trial-1][0, p, :-1]) - min(final_tracks_trials[trial-1][0, p, :-1]), fc='grey', alpha=0.3)
+    rectangle = plt.Rectangle((timestamps_session[trial-1][st_led_trials[0, r]], min(final_tracks_trials[trial-1][0, p, :-1])), timestamps_session[trial-1][st_led_trials[1, r]]-timestamps_session[trial-1][st_led_trials[0, r]], max(final_tracks_trials[trial-1][0, p, :]) - min(final_tracks_trials[trial-1][0, p, :]), fc='grey', alpha=0.3)
     plt.gca().add_patch(rectangle)
-ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :-1], color=paw_colors[p], linewidth=2)
-ax.plot(timestamps_session[trial-1], otracks.loc[otracks['trial']==trial, 'x'], color='black')
+ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :], color=paw_colors[p], linewidth=2)
+ax.plot(otracks.loc[otracks['trial']==trial, 'time'], otracks.loc[otracks['trial']==trial, 'x'], color='black')
 # for p in range(4):
 ax.set_title('light on stance')
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 fig, ax = plt.subplots()
-for r in range(np.shape(sw_led_trials)[1]-1):
+for r in range(np.shape(sw_led_trials)[1]):
     rectangle = plt.Rectangle((timestamps_session[trial-1][sw_led_trials[0, r]], min(final_tracks_trials[trial-1][0, p, :-1])), timestamps_session[trial-1][sw_led_trials[1, r]]-timestamps_session[trial-1][sw_led_trials[0, r]], max(final_tracks_trials[trial-1][0, p, :-1]) - min(final_tracks_trials[trial-1][0, p, :-1]), fc='grey', alpha=0.3)
     plt.gca().add_patch(rectangle)
-ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :-1], color=paw_colors[p])
+ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :], color=paw_colors[p])
 ax.plot(timestamps_session[trial-1], otracks.loc[otracks['trial']==trial, 'x'], color='black')
 ax.set_title('light on swing')
 ax.spines['right'].set_visible(False)
