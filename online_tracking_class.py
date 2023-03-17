@@ -942,9 +942,9 @@ class otrack_class:
             sw_led_time_off.extend(timestamps_session[trial-1][sw_led_frames[1, :]])
             st_led_trial.extend(np.repeat(trial, len(st_led_frames[0, :])))
             sw_led_trial.extend(np.repeat(trial, len(sw_led_frames[0, :])))
-        st_led_on = pd.DataFrame({'time_on': st_led_time_on, 'time_off': st_led_time_on, 'frames_on': st_led_on, 'frames_off': st_led_off,
+        st_led_on = pd.DataFrame({'time_on': st_led_time_on, 'time_off': st_led_time_off, 'frames_on': st_led_on, 'frames_off': st_led_off,
              'trial': st_led_trial})
-        sw_led_on = pd.DataFrame({'time_on': sw_led_time_on, 'time_off': sw_led_time_on, 'frames_on': sw_led_on, 'frames_off': sw_led_off,
+        sw_led_on = pd.DataFrame({'time_on': sw_led_time_on, 'time_off': sw_led_time_off, 'frames_on': sw_led_on, 'frames_off': sw_led_off,
              'trial': sw_led_trial})
         if not os.path.exists(self.path + 'processed files'): #save csv
             os.mkdir(self.path + 'processed files')
