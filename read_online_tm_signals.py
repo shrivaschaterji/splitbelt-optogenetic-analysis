@@ -32,9 +32,6 @@ otracks = otrack_class.get_otrack_excursion_data(timestamps_session)
 # READ OFFLINE DLC TRACKS
 [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
 
-# READ OFFLINE PAW EXCURSIONS
-final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
-
 # LATENCY OF LIGHT IN RELATION TO OTRACK
 [latency_light_st, latency_light_sw, st_led_on, sw_led_on] = otrack_class.get_led_information_trials(trials, timestamps_session, otracks_st, otracks_sw)
 
