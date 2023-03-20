@@ -83,16 +83,17 @@ class otrack_class:
             filename_split = path_split[-1].split('_')
             trial_order.append(int(filename_split[7]))
         trials = np.sort(np.array(trial_order))
+        self.trials = trials
+        trials_idx = np.arange(0, len(trials))
+        self.trials_idx = trials_idx
         return trials
 
     def get_session_metadata(self, plot_data):
         """From the meta csv get the timestamps and frame counter.
         Input:
         plot_data: boolean"""
-        timestamps_session = []
+        frames_kept = []
         frame_counter_session = []
-        frame_counter_0 = []
-        timestamps_0 = []
         metadata_files = glob.glob(os.path.join(self.path,'*_meta.csv'))
         trial_order = []
         filelist = []
@@ -107,24 +108,33 @@ class otrack_class:
             tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
             files_ordered.append(filelist[tr_ind])
         for trial, f in enumerate(files_ordered): #for each metadata file
-            metadata = pd.read_csv(os.path.join(self.path, f))
+            metadata = pd.read_csv(os.path.join(self.path, f), names=['a','b','c','d','e','f','g','h','i','j']) #ADD HEADER AND IT SHOUDL BE FINE
             cam_timestamps = [0]
             for t in np.arange(1, len(metadata.iloc[:,9])):
                 cam_timestamps.append(self.converttime(metadata.iloc[t,9]-metadata.iloc[0,9])) #get the camera timestamps subtracting the first as the 0
-            frame_counter = metadata.iloc[:,3]-metadata.iloc[0,3] #get the camera frame counter subtracting the first as the 0
-            # frame_counter_0.append(metadata.iloc[0,3]) #keep the value for the 0 framecounter to align the otrack file
-            timestamps_session.append(list(cam_timestamps))
-            # timestamps_0.append(metadata.iloc[0,9]) #keep the value for the 0 timestamp to align the otrack file
-            frame_counter_session.append(list(frame_counter))
+            frame_counter = np.array(metadata.iloc[:, 3] - metadata.iloc[
+                0, 3])  # get the camera frame counter subtracting the first as the 0
+            frame_counter_vec = np.arange(0, len(frame_counter)+1)
+            frame_counter_diff = np.diff(frame_counter) #check for missing frames
+            missing_frames_idx_start = frame_counter[np.where(np.diff(frame_counter) > 1)[0]]
+            missing_frames = frame_counter_diff[np.diff(frame_counter) > 1] - 1
+            missing_frames_idx = [] #do all the frames that are missing
+            for count_i, i in enumerate(missing_frames_idx_start):
+                for r in range(missing_frames[count_i]): #loop over the number of missing frames for that idx
+                    i += 1
+                    missing_frames_idx.append(i)
+            frames_in = np.setdiff1d(np.arange(0, frame_counter[-1]+1), missing_frames_idx)
+            frame_counter_session.append(frame_counter_vec)
+            frames_kept.append(frames_in)
             if plot_data: #plot the camera timestamps and frame counter to see
                 plt.figure()
                 plt.plot(list(cam_timestamps), metadata.iloc[:,3]-metadata.iloc[0,3])
                 plt.title('Camera metadata for trial '+str(trial+1))
                 plt.xlabel('Camera timestamps (s)')
                 plt.ylabel('Frame counter')
-        return timestamps_session, frame_counter_session
+        return frames_kept, frame_counter_session
 
-    def get_synchronizer_data(self, plot_data):
+    def get_synchronizer_data(self, frames_kept, plot_data):
         """From the sync csv get the pulses generated from synchronizer.
         Input:
         plot_data: boolean"""
@@ -144,12 +154,15 @@ class otrack_class:
         trial_p0_list_session = []
         trial_p1_list_session = []
         trial_p2_list_session = []
+        trial_p3_list_session = []
         p0_signal_list = []
         p1_signal_list = []
         p2_signal_list = []
+        p3_signal_list = []
         p0_time_list = []
         p1_time_list = []
         p2_time_list = []
+        p3_time_list = []
         timestamps_session = []
         frame_counter_session = []
         for t, f in enumerate(files_ordered):
@@ -157,15 +170,19 @@ class otrack_class:
             [sync_timestamps_p0, sync_signal_p0] = self.get_port_data(sync_csv, 0) #read channel 0 of synchronizer - TRIAL START
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
             [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-            trial_p0_list_session.extend(np.repeat(t+1, len(sync_timestamps_p0)))
-            trial_p1_list_session.extend(np.repeat(t+1, len(sync_timestamps_p1)))
-            trial_p2_list_session.extend(np.repeat(t+1, len(sync_timestamps_p2)))
+            [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            trial_p0_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p0)))
+            trial_p1_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p1)))
+            trial_p2_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p2)))
+            trial_p3_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p3)))
             p0_signal_list.extend(sync_signal_p0)
             p1_signal_list.extend(sync_signal_p1)
             p2_signal_list.extend(sync_signal_p2)
+            p3_signal_list.extend(sync_signal_p3)
             p0_time_list.extend(sync_timestamps_p0/1000)
             p1_time_list.extend(sync_timestamps_p1/1000)
             p2_time_list.extend(sync_timestamps_p2/1000)
+            p3_time_list.extend(sync_timestamps_p3/1000)
             if plot_data: # plot channel 0 and 1 from synchronizer to see
                 plt.figure()
                 plt.plot(sync_timestamps_p1/1000, sync_signal_p1)
@@ -174,22 +191,29 @@ class otrack_class:
                 plt.xlabel('Time (ms)')
                 plt.figure()
                 plt.plot(sync_timestamps_p2/1000, sync_signal_p2)
-                plt.title('Laser sync data for trial ' + str(t + 1))
+                plt.title('Laser sync data for trial ' + str(self.trials[t]))
+                plt.xlabel('Time (ms)')
+                plt.figure()
+                plt.plot(sync_timestamps_p3/1000, sync_signal_p3)
+                plt.title('Laser trial sync data for trial ' + str(self.trials[t]))
                 plt.xlabel('Time (ms)')
             camera_timestamps = sync_timestamps_p1[np.where(np.diff(sync_signal_p1) > 0)[0]] + 0.000001
-            timestamps_session.append(camera_timestamps/1000)
-            frame_counter_session.append(np.arange(0, len(camera_timestamps)))
+            camera_timestamps_in = camera_timestamps[frames_kept[self.trials_idx[t]]] / 1000
+            timestamps_session.append(camera_timestamps_in)
+            frame_counter_session.append(frames_kept[self.trials_idx[t]])
         if not os.path.exists(self.path + 'processed files'):  # save camera timestamps and frame counter in processed files
             os.mkdir(self.path + 'processed files')
         trial_signals = pd.DataFrame({'time': p0_time_list, 'trial': trial_p0_list_session, 'signal': p0_signal_list})
         cam_signals = pd.DataFrame({'time': p1_time_list, 'trial': trial_p1_list_session, 'signal': p1_signal_list})
         laser_signals = pd.DataFrame({'time': p2_time_list, 'trial': trial_p2_list_session, 'signal': p2_signal_list})
+        laser_trial_signals = pd.DataFrame({'time': p3_time_list, 'trial': trial_p3_list_session, 'signal': p3_signal_list})
         trial_signals.to_csv(os.path.join(self.path, 'processed files', 'trial_signals.csv'), sep=',', index=False)
         cam_signals.to_csv(os.path.join(self.path, 'processed files', 'cam_signals.csv'), sep=',', index=False)
         laser_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_signals.csv'), sep=',', index=False)
+        laser_trial_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_trial_signals.csv'), sep=',', index=False)
         np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), timestamps_session)
         np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), frame_counter_session)
-        return timestamps_session, frame_counter_session, trial_signals, cam_signals, laser_signals
+        return timestamps_session, frame_counter_session, trial_signals, cam_signals, laser_signals, laser_trial_signals
 
     def get_otrack_excursion_data(self, timestamps_session):
         """Get the online tracking data (timestamps, frame counter, paw position x and y).
@@ -223,7 +247,7 @@ class otrack_class:
             otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
             otracks_frames.extend(np.array(otracks_frame_counter))  # list of frame counters
             otracks_trials.extend(
-                np.array(np.ones(len(otracks_frame_counter)) * (trial + 1)))  # list of trial value
+                np.array(np.ones(len(otracks_frame_counter)) * (self.trials[trial])))  # list of trial value
             otracks_posx.extend(
                 np.array(otracks.iloc[:, 2]))  # list of otrack paw x position when in stance
             otracks_posy.extend(
