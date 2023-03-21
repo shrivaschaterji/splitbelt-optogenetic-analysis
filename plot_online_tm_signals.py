@@ -35,12 +35,12 @@ latency_st = []
 for trial in trials:
     diff_otrack_offtrack = tracks_hits_st.loc[tracks_hits_st['trial'] == trial, 'otrack_times']-tracks_hits_st.loc[tracks_hits_st['trial'] == trial, 'offtrack_times']
     diff_otrack_offtrack_peak_idx = find_peaks(-diff_otrack_offtrack)[0]
-    latency_st.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx]*1000)
+    latency_st.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx[0]]*1000)
 latency_sw = []
 for trial in trials:
     diff_otrack_offtrack = tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial, 'otrack_times']-tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial, 'offtrack_times']
     diff_otrack_offtrack_peak_idx = find_peaks(-diff_otrack_offtrack)[0]
-    latency_sw.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx]*1000)
+    latency_sw.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx[0]]*1000)
 # latency plot
 fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
 for count_t, trial in enumerate(trials):

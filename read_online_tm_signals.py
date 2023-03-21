@@ -38,3 +38,13 @@ otracks = otrack_class.get_otrack_excursion_data(camera_timestamps_session)
 # # READ MP4 AND OVERLAY OFFLINE AND ONLINE DLC TRACKS
 # for t in trials:
 #     otrack_class.overlay_tracks_video(t, paw_otrack, offtracks_st, offtracks_sw, otracks_st, otracks_sw)
+
+# READ OFFLINE DLC TRACKS
+[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
+
+# LATENCY OF LIGHT IN RELATION TO OTRACK
+[latency_light_st, latency_light_sw, st_led_on, sw_led_on] = otrack_class.get_led_information_trials(trials, timestamps_session, otracks_st, otracks_sw)
+
+# READ MP4 AND OVERLAY OFFLINE AND ONLINE DLC TRACKS
+#for t in trials:
+#     otrack_class.overlay_tracks_video(t, paw_otrack, offtracks_st, offtracks_sw, otracks_st, otracks_sw)
