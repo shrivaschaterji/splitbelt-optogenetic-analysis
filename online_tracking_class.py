@@ -217,8 +217,8 @@ class otrack_class:
         cam_signals.to_csv(os.path.join(self.path, 'processed files', 'cam_signals.csv'), sep=',', index=False)
         laser_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_signals.csv'), sep=',', index=False)
         laser_trial_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_trial_signals.csv'), sep=',', index=False)
-        # np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), timestamps_session)
-        # np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), frame_counter_session)
+        # np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
+        # np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
         return timestamps_session, frame_counter_session, trial_signals, cam_signals, laser_signals, laser_trial_signals
 
     def get_otrack_excursion_data(self, timestamps_session):
@@ -908,8 +908,8 @@ class otrack_class:
         st_led_on = np.array(self.remove_consecutive_numbers(st_led_on_all)) #sometimes it takes a bit to turn on so get only the first value (weird but there's different intensities at times)
         sw_led_on_all = np.where(np.diff(sw_led) > 5)[0] #find when the right light turned on (idx)
         sw_led_on = np.array(self.remove_consecutive_numbers(sw_led_on_all)) #sometimes it takes a bit to turn on so get only the first value
-        st_led_on_time = np.array(timestamps_session[self.trials_idx[trial]])[st_led_on] #find when the left light turned on
-        sw_led_on_time = np.array(timestamps_session[self.trials_idx[trial]])[sw_led_on] #find when the right light turned on
+        st_led_on_time = np.array(timestamps_session[trial-1])[st_led_on] #find when the left light turned on
+        sw_led_on_time = np.array(timestamps_session[trial-1])[sw_led_on] #find when the right light turned on
         st_led_off_all = np.where(-np.diff(st_led) > 5)[0] #find when the left light turned off (idx)
         st_led_off = np.array(self.remove_consecutive_numbers(st_led_off_all)) #sometimes it takes a bit to turn off so get only the first value
         sw_led_off_all = np.where(-np.diff(sw_led) > 5)[0] #find when the right light turned off (idx)
@@ -958,7 +958,7 @@ class otrack_class:
         sw_led_time_on = []
         sw_led_time_off = []
         sw_led_trial = []
-        for trial in trials:
+        for count_t, trial in enumerate(trials):
             [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames] = self.measure_light_on_videos(trial, timestamps_session, otracks_st, otracks_sw)
             latency_light_st.append(latency_trial_st)
             latency_light_sw.append(latency_trial_sw)
@@ -966,10 +966,10 @@ class otrack_class:
             sw_led_on.extend(sw_led_frames[0, :])
             st_led_off.extend(st_led_frames[1, :])
             sw_led_off.extend(sw_led_frames[1, :])
-            st_led_time_on.extend(timestamps_session[trial-1][st_led_frames[0, :]])
-            st_led_time_off.extend(timestamps_session[trial-1][st_led_frames[1, :]])
-            sw_led_time_on.extend(timestamps_session[trial-1][sw_led_frames[0, :]])
-            sw_led_time_off.extend(timestamps_session[trial-1][sw_led_frames[1, :]])
+            st_led_time_on.extend(np.array(timestamps_session[self.trials_idx[count_t]])[st_led_frames[0, :]])
+            st_led_time_off.extend(np.array(timestamps_session[self.trials_idx[count_t]])[st_led_frames[1, :]])
+            sw_led_time_on.extend(np.array(timestamps_session[self.trials_idx[count_t]])[sw_led_frames[0, :]])
+            sw_led_time_off.extend(np.array(timestamps_session[self.trials_idx[count_t]])[sw_led_frames[1, :]])
             st_led_trial.extend(np.repeat(trial, len(st_led_frames[0, :])))
             sw_led_trial.extend(np.repeat(trial, len(sw_led_frames[0, :])))
         st_led_on = pd.DataFrame({'time_on': st_led_time_on, 'time_off': st_led_time_off, 'frames_on': st_led_on, 'frames_off': st_led_off,
@@ -980,8 +980,8 @@ class otrack_class:
             os.mkdir(self.path + 'processed files')
         st_led_on.to_csv(os.path.join(self.path, 'processed files', 'st_led_on.csv'), sep=',', index=False)
         sw_led_on.to_csv(os.path.join(self.path, 'processed files', 'sw_led_on.csv'), sep=',', index=False)
-        np.save(os.path.join(self.path, 'processed files', 'latency_light_st.npy'), latency_light_st)
-        np.save(os.path.join(self.path, 'processed files', 'latency_light_sw.npy'), latency_light_sw)
+        np.save(os.path.join(self.path, 'processed files', 'latency_light_st.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
+        np.save(os.path.join(self.path, 'processed files', 'latency_light_sw.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
         return latency_light_st, latency_light_sw, st_led_on, sw_led_on
 
     @staticmethod
