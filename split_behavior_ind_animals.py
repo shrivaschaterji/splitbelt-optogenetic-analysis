@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 from scipy.stats import circmean
 
 #path inputs
-path_loco = 'C:\\Users\\Ana\\Documents\\PhD\\Online Tracking Treadmill\\learning and threshold tests 140323\\split contra fast test 140323 cm\\'
+path_loco = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\tests 200323\\split_ipsi_fast_200323\\'
 print_plots  = 1
 frames_dFF = 0 #black frames removed before ROI segmentation
 paw_colors = ['red','magenta','blue','cyan']
-plot_trials = np.array([3,4,12,13,23])
+plot_trials = np.array([3,4,13,14,23])
 trials_name = ['last baseline', 'early split', 'late split', 'early washout', 'late washout']
 color_trials = ['black','red','salmon','dodgerblue','turquoise']
 
