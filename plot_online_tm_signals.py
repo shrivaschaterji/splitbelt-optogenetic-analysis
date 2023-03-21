@@ -6,11 +6,11 @@ from decord import VideoReader
 from decord import cpu
 
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\tests 200323\\thresholds\\'
-subdir = 'hrpaw\\'
+path_main = 'C:\\Users\\alice\\Dropbox (Personal)\\CareyLab\\materialAnaG\\test sync pulse 200323\\' #'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\learning and threshold tests 140323\\'
+subdir = '' #'thresholds test 140323 cm\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16946HR'
+animal = 'MC16947CM'      #'MC16946CM'
 session = 1
 plot_data = 0
 import online_tracking_class
