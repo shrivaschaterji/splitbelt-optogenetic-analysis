@@ -94,6 +94,7 @@ class otrack_class:
         plot_data: boolean"""
         frames_kept = []
         frame_counter_session = []
+        timestamps_session = []
         metadata_files = glob.glob(os.path.join(self.path,'*_meta.csv'))
         trial_order = []
         filelist = []
@@ -112,6 +113,7 @@ class otrack_class:
             cam_timestamps = [0]
             for t in np.arange(1, len(metadata.iloc[:,9])):
                 cam_timestamps.append(self.converttime(metadata.iloc[t,9]-metadata.iloc[0,9])) #get the camera timestamps subtracting the first as the 0
+            timestamps_session.append(cam_timestamps)
             frame_counter = np.array(metadata.iloc[:, 3] - metadata.iloc[
                 0, 3])  # get the camera frame counter subtracting the first as the 0
             frame_counter_vec = np.arange(0, len(frame_counter)+1)
@@ -129,10 +131,10 @@ class otrack_class:
             if plot_data: #plot the camera timestamps and frame counter to see
                 plt.figure()
                 plt.plot(list(cam_timestamps), metadata.iloc[:,3]-metadata.iloc[0,3])
-                plt.title('Camera metadata for trial '+str(trial+1))
+                plt.title('Camera metadata for trial '+str(self.trials[trial]))
                 plt.xlabel('Camera timestamps (s)')
                 plt.ylabel('Frame counter')
-        return frames_kept, frame_counter_session
+        return timestamps_session, frames_kept, frame_counter_session
 
     def get_synchronizer_data(self, frames_kept, plot_data):
         """From the sync csv get the pulses generated from synchronizer.
@@ -198,8 +200,12 @@ class otrack_class:
                 plt.title('Laser trial sync data for trial ' + str(self.trials[t]))
                 plt.xlabel('Time (ms)')
             camera_timestamps = sync_timestamps_p1[np.where(np.diff(sync_signal_p1) > 0)[0]] + 0.000001
-            camera_timestamps_in = camera_timestamps[frames_kept[self.trials_idx[t]]] / 1000
-            timestamps_session.append(camera_timestamps_in)
+            print('#sync pulses '+str(len(camera_timestamps)))
+            print('#frames ' + str(len(frames_kept[self.trials_idx[t]])))
+            # camera_timestamps_in = camera_timestamps[frames_kept[self.trials_idx[t]]] / 1000
+            # print('#pulses in'+str(len(camera_timestamps_in)))
+            # timestamps_session.append(camera_timestamps_in)
+            timestamps_session.append(camera_timestamps)
             frame_counter_session.append(frames_kept[self.trials_idx[t]])
         if not os.path.exists(self.path + 'processed files'):  # save camera timestamps and frame counter in processed files
             os.mkdir(self.path + 'processed files')
@@ -211,8 +217,8 @@ class otrack_class:
         cam_signals.to_csv(os.path.join(self.path, 'processed files', 'cam_signals.csv'), sep=',', index=False)
         laser_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_signals.csv'), sep=',', index=False)
         laser_trial_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_trial_signals.csv'), sep=',', index=False)
-        np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), timestamps_session)
-        np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), frame_counter_session)
+        # np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), timestamps_session)
+        # np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), frame_counter_session)
         return timestamps_session, frame_counter_session, trial_signals, cam_signals, laser_signals, laser_trial_signals
 
     def get_otrack_excursion_data(self, timestamps_session):
@@ -241,8 +247,8 @@ class otrack_class:
         otracks_posy = []
         for trial, f in enumerate(files_ordered):
             otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'y', 'st', 'sw'])
-            otracks_frame_counter = otracks.iloc[:, 1] - otracks.iloc[0, 1]# get the frame counter of otrack, first line is the same as first frame of the trial
-            otracks_timestamps = timestamps_session[trial][otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
+            otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
+            otracks_timestamps = np.array(timestamps_session[self.trials_idx[trial]])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
             otracks_frames.extend(np.array(otracks_frame_counter))  # list of frame counters
@@ -295,15 +301,15 @@ class otrack_class:
             otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'y', 'st', 'sw'])
             stance_frames = np.where(otracks.iloc[:, 4]==True)[0] #get all the otrack where it detected a stance (above the threshold set in bonsai)
             swing_frames = np.where(otracks.iloc[:, 5]==True)[0] #get all the otrack where it detected a swing (above the threshold set in bonsai)
-            otracks_frame_counter = otracks.iloc[:, 1] - otracks.iloc[0, 1]# get the frame counter of otrack, first line is the same as first frame of the trial
-            otracks_timestamps = timestamps_session[trial][otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
+            otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
+            otracks_timestamps = np.array(timestamps_session[self.trials_idx[trial]])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames]) #list of timestamps
             otracks_sw_time.extend(np.array(otracks_timestamps)[swing_frames]) #list of timestamps
             otracks_st_frames.extend(np.array(otracks_frame_counter)[stance_frames]) #list of frame counters
             otracks_sw_frames.extend(np.array(otracks_frame_counter)[swing_frames]) #list of frame counters
-            otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter))[stance_frames]*(trial+1))) #list of trial value
-            otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter))[swing_frames]*(trial+1))) #list of trial value
+            otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter))[stance_frames]*(self.trials[trial]))) #list of trial value
+            otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter))[swing_frames]*(self.trials[trial]))) #list of trial value
             otracks_st_posx.extend(np.array(otracks.iloc[stance_frames, 2])) #list of otrack paw x position when in stance
             otracks_sw_posx.extend(np.array(otracks.iloc[swing_frames, 2])) #list of otrack paw x position when in swing
             otracks_st_posy.extend(np.array(otracks.iloc[stance_frames, 3])) #list of otrack paw y position when in stance
@@ -902,8 +908,8 @@ class otrack_class:
         st_led_on = np.array(self.remove_consecutive_numbers(st_led_on_all)) #sometimes it takes a bit to turn on so get only the first value (weird but there's different intensities at times)
         sw_led_on_all = np.where(np.diff(sw_led) > 5)[0] #find when the right light turned on (idx)
         sw_led_on = np.array(self.remove_consecutive_numbers(sw_led_on_all)) #sometimes it takes a bit to turn on so get only the first value
-        st_led_on_time = np.array(timestamps_session[trial - 1])[st_led_on] #find when the left light turned on
-        sw_led_on_time = np.array(timestamps_session[trial - 1])[sw_led_on] #find when the right light turned on
+        st_led_on_time = np.array(timestamps_session[self.trials_idx[trial]])[st_led_on] #find when the left light turned on
+        sw_led_on_time = np.array(timestamps_session[self.trials_idx[trial]])[sw_led_on] #find when the right light turned on
         st_led_off_all = np.where(-np.diff(st_led) > 5)[0] #find when the left light turned off (idx)
         st_led_off = np.array(self.remove_consecutive_numbers(st_led_off_all)) #sometimes it takes a bit to turn off so get only the first value
         sw_led_off_all = np.where(-np.diff(sw_led) > 5)[0] #find when the right light turned off (idx)
