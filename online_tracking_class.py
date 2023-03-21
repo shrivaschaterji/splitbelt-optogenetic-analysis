@@ -913,6 +913,11 @@ class otrack_class:
             frame_np = frame.asnumpy()
             st_led.append(np.mean(frame_np[:60, 980:1050, :].flatten())) #get the mean intensity of the location where left LED is
             sw_led.append(np.mean(frame_np[:60, 1050:, :].flatten())) #get the mean intensity of the location where right LED is
+        #if it starts on
+        if st_led[0]>15:
+            st_led[0] = 0
+        if sw_led[0]>15:
+            sw_led[0] = 0
         st_led_on_all = np.where(np.diff(st_led) > 5)[0] #find when the left light turned on (idx)
         st_led_on = np.array(self.remove_consecutive_numbers(st_led_on_all)) #sometimes it takes a bit to turn on so get only the first value (weird but there's different intensities at times)
         sw_led_on_all = np.where(np.diff(sw_led) > 5)[0] #find when the right light turned on (idx)
