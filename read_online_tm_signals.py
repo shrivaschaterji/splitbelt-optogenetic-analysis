@@ -7,7 +7,7 @@ import os
 
 paw_otrack = 'FR'
 path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\tests 200323\\thresholds\\'
-subdir = 'hrpaw\\'
+subdir = 'cm\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
 animal = 'MC16947CM'
@@ -29,8 +29,8 @@ plot_data = 1
 otracks = otrack_class.get_otrack_excursion_data(camera_timestamps_session)
 [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(camera_timestamps_session)
 
-# # READ OFFLINE DLC TRACKS
-# [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
+# READ OFFLINE DLC TRACKS
+[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
 
 # LATENCY OF LIGHT IN RELATION TO OTRACK
 [latency_light_st, latency_light_sw, st_led_on, sw_led_on] = otrack_class.get_led_information_trials(trials, camera_timestamps_session, otracks_st, otracks_sw)
