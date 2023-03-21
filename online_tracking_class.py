@@ -211,8 +211,8 @@ class otrack_class:
         cam_signals.to_csv(os.path.join(self.path, 'processed files', 'cam_signals.csv'), sep=',', index=False)
         laser_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_signals.csv'), sep=',', index=False)
         laser_trial_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_trial_signals.csv'), sep=',', index=False)
-        np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), timestamps_session)
-        np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), frame_counter_session)
+        np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
+        np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), np.array(frame_counter_session, dtype=object), allow_pickle=True)
         return timestamps_session, frame_counter_session, trial_signals, cam_signals, laser_signals, laser_trial_signals
 
     def get_otrack_excursion_data(self, timestamps_session):
