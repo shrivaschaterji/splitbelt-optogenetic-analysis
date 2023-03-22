@@ -118,6 +118,7 @@ class otrack_class:
             timestamps_session.append(cam_timestamps)
             frame_counter = np.array(metadata.iloc[:, 3] - metadata.iloc[
                 0, 3])  # get the camera frame counter subtracting the first as the 0
+            print('total frame counter ' + str(frame_counter[-1]+1))
             frame_counter_vec = np.arange(0, len(frame_counter)+1)
             frame_counter_diff = np.diff(frame_counter) #check for missing frames
             missing_frames_idx_start = frame_counter[np.where(np.diff(frame_counter) > 1)[0]]
@@ -172,6 +173,12 @@ class otrack_class:
         for t, f in enumerate(files_ordered):
             sync_csv = pd.read_csv(os.path.join(self.path, f))
             [sync_timestamps_p0, sync_signal_p0] = self.get_port_data(sync_csv, 0) #read channel 0 of synchronizer - TRIAL START
+            [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1)  # read channel 1 of synchronizer - CAMERA TRIGGERS
+            sync_signal_p0_on_idx = np.where(sync_signal_p0 > 0)[0][0]
+            sync_signal_p0_off_idx = np.where(sync_signal_p0 > 0)[0][-1]
+            time_beg = sync_timestamps_p0[sync_signal_p0_on_idx] #time when trial start signal started
+            time_end = sync_timestamps_p0[sync_signal_p0_off_idx] #time when trial start signal ended
+            timestamps_p1 = np.arange(time_beg, time_end, 3) #since cam is triggered all triggers should appear every 3ms between trial start ON
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
             [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
             [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
@@ -201,13 +208,10 @@ class otrack_class:
                 plt.plot(sync_timestamps_p3/1000, sync_signal_p3)
                 plt.title('Laser trial sync data for trial ' + str(self.trials[t]))
                 plt.xlabel('Time (ms)')
-            camera_timestamps = sync_timestamps_p1[np.where(np.diff(sync_signal_p1) > 0)[0]] + 0.000001
-            print('#sync pulses '+str(len(camera_timestamps)))
+            print('#sync pulses '+str(len(timestamps_p1)))
             print('#frames ' + str(len(frames_kept[self.trials_idx[t]])))
-            # camera_timestamps_in = camera_timestamps[frames_kept[self.trials_idx[t]]] / 1000
-            # print('#pulses in'+str(len(camera_timestamps_in)))
-            # timestamps_session.append(camera_timestamps_in)
-            timestamps_session.append(camera_timestamps)
+            camera_timestamps_in = timestamps_p1[frames_kept[self.trials_idx[t]]] / 1000
+            timestamps_session.append(camera_timestamps_in)
             frame_counter_session.append(frames_kept[self.trials_idx[t]])
         if not os.path.exists(self.path + 'processed files'):  # save camera timestamps and frame counter in processed files
             os.mkdir(self.path + 'processed files')
@@ -219,8 +223,8 @@ class otrack_class:
         cam_signals.to_csv(os.path.join(self.path, 'processed files', 'cam_signals.csv'), sep=',', index=False)
         laser_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_signals.csv'), sep=',', index=False)
         laser_trial_signals.to_csv(os.path.join(self.path, 'processed files', 'laser_trial_signals.csv'), sep=',', index=False)
-        # np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
-        # np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
+        np.save(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), np.array(timestamps_session, dtype=object), allow_pickle=True)
+        np.save(os.path.join(self.path, 'processed files', 'frame_counter_session.npy'), np.array(frame_counter_session, dtype=object), allow_pickle=True)
         return timestamps_session, frame_counter_session, trial_signals, cam_signals, laser_signals, laser_trial_signals
 
     def get_otrack_excursion_data(self, timestamps_session):
