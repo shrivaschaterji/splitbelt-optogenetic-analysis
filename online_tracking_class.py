@@ -1033,3 +1033,163 @@ class otrack_class:
         # timestamps_session = np.load(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), allow_pickle=True)
         # return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on
         return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, st_led_on, sw_led_on
+
+    def plot_led_on_paws(self, timestamps_session, st_led_on, sw_led_on, final_tracks_trials, otracks, st_th, sw_th, trial, event, online_bool):
+        """Plot when LED was on paw excursions, either online or offline
+        Inputs:
+            timestamps_session: list with the timestamps for each trial
+            st_led_on: csv with frames and times when st led was on
+            sw_led_on: csv with frames and times when sw led was on
+            final_tracks_trials: list with the final tracks (offline paw excursions)
+            otracks: csv with online paw excursion
+            st_th: (int) threshold for stance detection
+            sw_th: (int) threshold for swing detection
+            trial: (int) trial to plot
+            event: (str) stance or swing
+            online_bool: boolean for plotting online excursions (1) or offline (0) or both (2)
+            """
+        paw_colors = ['red', 'blue', 'magenta', 'cyan']
+        p = 0
+        if online_bool == 0 or online_bool == 2:
+            scale_max = 800
+            scale_min = -400
+        else:
+            scale_max = 250
+            scale_min = 0
+        st_led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
+        otrack_trial_x = np.array(otracks.loc[otracks['trial'] == trial, 'x'] - 280)
+        otrack_trial_time = np.array(otracks.loc[otracks['trial'] == trial, 'time'])
+        otrack_threshold_st = self.remove_consecutive_numbers(np.where(otrack_trial_x > st_th)[0])
+        otrack_threshold_sw = self.remove_consecutive_numbers(np.where(otrack_trial_x < sw_th)[0])
+        if event == 'stance':
+            fig, ax = plt.subplots()
+            for r in range(np.shape(st_led_trials)[1]):
+                rectangle = plt.Rectangle((timestamps_session[trial - 1][st_led_trials[0, r]], scale_min),
+                                          timestamps_session[trial - 1][st_led_trials[1, r]] -
+                                          timestamps_session[trial - 1][st_led_trials[0, r]], scale_max, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            if online_bool == 0:
+                ax.plot(timestamps_session[trial - 1],
+                        final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+            if online_bool == 1:
+                ax.plot(otrack_trial_time, otrack_trial_x, color='black')
+                for t in otrack_threshold_st:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            if online_bool == 2:
+                ax.plot(timestamps_session[trial - 1],
+                        final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+                ax.plot(otrack_trial_time, otrack_trial_x, color='black')
+                for t in otrack_threshold_st:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            ax.set_title('light on stance')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        if event=='swing':
+            sw_led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+            fig, ax = plt.subplots()
+            for r in range(np.shape(sw_led_trials)[1]):
+                rectangle = plt.Rectangle((timestamps_session[trial - 1][sw_led_trials[0, r]], scale_min),
+                                          timestamps_session[trial - 1][sw_led_trials[1, r]] -
+                                          timestamps_session[trial - 1][sw_led_trials[0, r]], scale_max, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            if online_bool == 0:
+                ax.plot(timestamps_session[trial - 1],
+                        final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+            if online_bool == 1:
+                ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'] - 280,
+                        color='black')
+                for t in otrack_threshold_sw:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            if online_bool == 2:
+                ax.plot(timestamps_session[trial - 1],
+                        final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+                ax.plot(otrack_trial_time, otrack_trial_x, color='black')
+                for t in otrack_threshold_sw:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            ax.set_title('light on swing')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return
+
+    def plot_led_on_paws_frames(self, timestamps_session, st_led_on, sw_led_on, final_tracks_trials, otracks, st_th, sw_th, trial, event, online_bool):
+        """Plot when LED was on paw excursions, either online or offline
+        Inputs:
+            timestamps_session: list with the timestamps for each trial
+            st_led_on: csv with frames and times when st led was on
+            sw_led_on: csv with frames and times when sw led was on
+            final_tracks_trials: list with the final tracks (offline paw excursions)
+            otracks: csv with online paw excursion
+            st_th: (int) threshold for stance detection
+            sw_th: (int) threshold for swing detection
+            trial: (int) trial to plot
+            event: (str) stance or swing
+            online_bool: boolean for plotting online excursions (1) or offline (0) or both (2)
+            """
+        paw_colors = ['red', 'blue', 'magenta', 'cyan']
+        p = 0
+        if online_bool == 0 or online_bool == 2:
+            scale_max = 800
+            scale_min = -400
+        else:
+            scale_max = 250
+            scale_min = 0
+        st_led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
+        otrack_trial_x = np.array(otracks.loc[otracks['trial'] == trial, 'x'] - 280)
+        otrack_trial_time = np.array(otracks.loc[otracks['trial'] == trial, 'frames'])
+        otrack_threshold_st = self.remove_consecutive_numbers(np.where(otrack_trial_x > st_th)[0])
+        otrack_threshold_sw = self.remove_consecutive_numbers(np.where(otrack_trial_x < sw_th)[0])
+        if event == 'stance':
+            fig, ax = plt.subplots()
+            for r in range(np.shape(st_led_trials)[1]):
+                rectangle = plt.Rectangle((st_led_trials[0, r], scale_min),
+                                          st_led_trials[1, r] -
+                                          st_led_trials[0, r], scale_max, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            if online_bool == 0:
+                ax.plot(final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+            if online_bool == 1:
+                ax.plot(otrack_trial_time, otrack_trial_x, color='black')
+                for t in otrack_threshold_st:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            if online_bool == 2:
+                ax.plot(timestamps_session[trial - 1],
+                        final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+                ax.plot(otrack_trial_time, otrack_trial_x, color='black')
+                for t in otrack_threshold_st:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            ax.set_title('light on stance')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        if event=='swing':
+            sw_led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+            fig, ax = plt.subplots()
+            for r in range(np.shape(sw_led_trials)[1]):
+                rectangle = plt.Rectangle((sw_led_trials[0, r], scale_min),
+                                          sw_led_trials[1, r] -
+                                          sw_led_trials[0, r], scale_max, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            if online_bool == 0:
+                ax.plot(final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+            if online_bool == 1:
+                ax.plot(otracks.loc[otracks['trial'] == trial, 'frames'], otracks.loc[otracks['trial'] == trial, 'x'] - 280,
+                        color='black')
+                for t in otrack_threshold_sw:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            if online_bool == 2:
+                ax.plot(timestamps_session[trial - 1],
+                        final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
+                        color=paw_colors[p], linewidth=2)
+                ax.plot(otrack_trial_time, otrack_trial_x, color='black')
+                for t in otrack_threshold_sw:
+                    ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
+            ax.set_title('light on swing')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return
