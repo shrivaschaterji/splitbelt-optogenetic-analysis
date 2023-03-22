@@ -5,6 +5,7 @@ from scipy.signal import find_peaks
 from decord import VideoReader
 from decord import cpu
 
+paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
 path_main = 'C:\\Users\\alice\\Dropbox (Personal)\\CareyLab\\materialAnaG\\test sync pulse 200323\\' #'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\learning and threshold tests 140323\\'
 subdir = '' #'thresholds test 140323 cm\\'
@@ -20,11 +21,10 @@ loco = locomotion_class.loco_class(path)
 trials = otrack_class.get_trials()
 
 # LOAD PROCESSED DATA
-# [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on] = otrack_class.load_processed_files()
-[otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, st_led_on, sw_led_on] = otrack_class.load_processed_files()
+[otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on] = otrack_class.load_processed_files()
 
-# READ CAMERA TIMESTAMPS AND FRAME COUNTER
-[timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_class.get_session_metadata(plot_data)
+# READ SYNCHRONIZER SIGNALS
+[timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session, laser_trial_signal_session] = otrack_class.get_synchronizer_data(camera_frames_kept, plot_data)
 
 # READ OFFLINE PAW EXCURSIONS
 final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
@@ -111,29 +111,27 @@ if not os.path.exists(otrack_class.path + 'plots'):
     os.mkdir(otrack_class.path + 'plots')
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'latency_otrack_ledon.png'))
 
-# PERIODS WITH LIGHT ON - can't plot subtraction because only saving FR online tracking
-trial = 2
-p = 0
+# OVERLAP OF SYNCH SIGNAL LASER WITH LED ON FROM VIDEO
+trial = 1
+#stance
 st_led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
-sw_led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
-paw_colors = ['red', 'magenta', 'blue', 'cyan']
-# stance
-fig, ax = plt.subplots()
+plt.figure()
 for r in range(np.shape(st_led_trials)[1]):
-    rectangle = plt.Rectangle((timestamps_session[trial-1][st_led_trials[0, r]], -400), timestamps_session[trial-1][st_led_trials[1, r]]-timestamps_session[trial-1][st_led_trials[0, r]], 800, fc='grey', alpha=0.3)
+    rectangle = plt.Rectangle((timestamps_session[trial-1][st_led_trials[0, r]], 0), timestamps_session[trial-1][st_led_trials[1, r]]-timestamps_session[trial-1][st_led_trials[0, r]], 1, fc='grey', alpha=0.3)
     plt.gca().add_patch(rectangle)
-ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :]-np.nanmean(final_tracks_trials[trial-1][0, p, :]), color=paw_colors[p], linewidth=2)
-ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x']-280, color='black')
-ax.set_title('light on stance')
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-# swing
-fig, ax = plt.subplots()
+plt.plot(laser_signal_session.loc[laser_signal_session['trial']==trial, 'time'], laser_signal_session.loc[laser_signal_session['trial']==trial, 'signal'], color='black')
+#swing
+sw_led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+plt.figure()
 for r in range(np.shape(sw_led_trials)[1]):
-    rectangle = plt.Rectangle((timestamps_session[trial-1][sw_led_trials[0, r]], -400), timestamps_session[trial-1][sw_led_trials[1, r]]-timestamps_session[trial-1][sw_led_trials[0, r]], 800, fc='grey', alpha=0.3)
+    rectangle = plt.Rectangle((timestamps_session[trial-1][sw_led_trials[0, r]], 0), timestamps_session[trial-1][sw_led_trials[1, r]]-timestamps_session[trial-1][sw_led_trials[0, r]], 1, fc='grey', alpha=0.3)
     plt.gca().add_patch(rectangle)
-ax.plot(timestamps_session[trial-1], final_tracks_trials[trial-1][0, p, :]-np.nanmean(final_tracks_trials[trial-1][0, p, :]), color=paw_colors[p], linewidth=2)
-ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x']-280, color='black')
-ax.set_title('light on stance')
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
+plt.plot(laser_signal_session.loc[laser_signal_session['trial']==trial, 'time'], laser_signal_session.loc[laser_signal_session['trial']==trial, 'signal'], color='black')
+
+# PERIODS WITH LIGHT ON
+trial = 3
+event = 'stance'
+online_bool = 0
+st_th = np.array([100, 110, 75, 85, 50])
+sw_th = np.array([50, 40, 60, 55, 50])
+otrack_class.plot_led_on_paws_frames(timestamps_session, st_led_on, sw_led_on, final_tracks_trials, otracks, st_th[trial-1], sw_th[trial-1], trial, event, online_bool)
