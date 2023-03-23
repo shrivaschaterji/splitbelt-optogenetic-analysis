@@ -33,14 +33,22 @@ final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 [tracks_hits_st, tracks_hits_sw, otrack_st_hits, otrack_sw_hits] = otrack_class.get_hits_swst_online(trials, otracks_st, otracks_sw, offtracks_st, offtracks_sw)
 latency_st = []
 for trial in trials:
-    diff_otrack_offtrack = tracks_hits_st.loc[tracks_hits_st['trial'] == trial, 'otrack_times']-tracks_hits_st.loc[tracks_hits_st['trial'] == trial, 'offtrack_times']
-    diff_otrack_offtrack_peak_idx = find_peaks(-diff_otrack_offtrack)[0]
-    latency_st.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx[0]]*1000)
+    # Select current trial 
+    current_trial_st = tracks_hits_st.loc[tracks_hits_st['trial'] == trial]
+    # Select start of stance period based on the 4 frames condition
+    onset_ind = np.where(np.diff(current_trial_st['otrack_frames'])>4)[0]+1
+    # Compute difference between online and offline start of stance
+    diff_otrack_offtrack = np.array(current_trial_st['otrack_times'])[onset_ind] - np.array(current_trial_st['offtrack_times'])[onset_ind]
+    latency_st.append(np.array(diff_otrack_offtrack)*1000)
 latency_sw = []
 for trial in trials:
-    diff_otrack_offtrack = tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial, 'otrack_times']-tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial, 'offtrack_times']
-    diff_otrack_offtrack_peak_idx = find_peaks(-diff_otrack_offtrack)[0]
-    latency_sw.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx[0]]*1000)
+    # Select current trial
+    current_trial_sw = tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial]
+    # Select start of swing period based on the 4 frames condition
+    onset_ind = np.where(np.diff(current_trial_sw['otrack_frames'])>4)[0]+1
+    # Compute difference between online and offline start of swing
+    diff_otrack_offtrack = np.array(current_trial_sw['otrack_times'])[onset_ind] - np.array(current_trial_sw['offtrack_times'])[onset_ind]
+    latency_sw.append(np.array(diff_otrack_offtrack)*1000)
 # latency plot
 fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
 for count_t, trial in enumerate(trials):
