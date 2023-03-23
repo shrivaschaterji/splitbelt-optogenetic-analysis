@@ -29,19 +29,18 @@ trials = otrack_class.get_trials()
 # READ OFFLINE PAW EXCURSIONS
 final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 
-'''
 # LATENCY OF OTRACK IN RELATION TO OFFTRACK
 [tracks_hits_st, tracks_hits_sw, otrack_st_hits, otrack_sw_hits] = otrack_class.get_hits_swst_online(trials, otracks_st, otracks_sw, offtracks_st, offtracks_sw)
 latency_st = []
 for trial in trials:
     diff_otrack_offtrack = tracks_hits_st.loc[tracks_hits_st['trial'] == trial, 'otrack_times']-tracks_hits_st.loc[tracks_hits_st['trial'] == trial, 'offtrack_times']
     diff_otrack_offtrack_peak_idx = find_peaks(-diff_otrack_offtrack)[0]
-    latency_st.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx]*1000)
+    latency_st.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx[0]]*1000)
 latency_sw = []
 for trial in trials:
     diff_otrack_offtrack = tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial, 'otrack_times']-tracks_hits_sw.loc[tracks_hits_sw['trial'] == trial, 'offtrack_times']
     diff_otrack_offtrack_peak_idx = find_peaks(-diff_otrack_offtrack)[0]
-    latency_sw.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx]*1000)
+    latency_sw.append(np.array(diff_otrack_offtrack)[diff_otrack_offtrack_peak_idx[0]]*1000)
 # latency plot
 fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
 for count_t, trial in enumerate(trials):
@@ -96,7 +95,6 @@ if not os.path.exists(otrack_class.path + 'plots'):
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'frames_bad_detected.png'))
 
 # LATENCY OF LIGHT IN RELATION TO OTRACK
-
 latency_light_st = np.load(os.path.join(otrack_class.path, 'processed files', 'latency_light_st.npy'), allow_pickle=True)
 latency_light_sw = np.load(os.path.join(otrack_class.path, 'processed files', 'latency_light_sw.npy'), allow_pickle=True)
 fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
@@ -112,7 +110,6 @@ for count_t, trial in enumerate(trials):
 if not os.path.exists(otrack_class.path + 'plots'):
     os.mkdir(otrack_class.path + 'plots')
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'latency_otrack_ledon.png'))
-'''
 
 # OVERLAP OF SYNCH SIGNAL LASER WITH LED ON FROM VIDEO
 trial = 1
