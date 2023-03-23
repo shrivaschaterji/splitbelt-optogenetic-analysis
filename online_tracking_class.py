@@ -922,15 +922,15 @@ class otrack_class:
             st_led[0] = 0
         if sw_led[0]>15:
             sw_led[0] = 0
-        st_led_on_all = np.where(np.diff(st_led) > 5)[0] #find when the left light turned on (idx)
+        st_led_on_all = np.where(np.diff(st_led) > 5)[0]+1 #find when the left light turned on (idx)
         st_led_on = np.array(self.remove_consecutive_numbers(st_led_on_all)) #sometimes it takes a bit to turn on so get only the first value (weird but there's different intensities at times)
-        sw_led_on_all = np.where(np.diff(sw_led) > 5)[0] #find when the right light turned on (idx)
+        sw_led_on_all = np.where(np.diff(sw_led) > 5)[0]+1 #find when the right light turned on (idx)
         sw_led_on = np.array(self.remove_consecutive_numbers(sw_led_on_all)) #sometimes it takes a bit to turn on so get only the first value
         st_led_on_time = np.array(timestamps_session[trial-1])[st_led_on] #find when the left light turned on
         sw_led_on_time = np.array(timestamps_session[trial-1])[sw_led_on] #find when the right light turned on
-        st_led_off_all = np.where(-np.diff(st_led) > 5)[0] #find when the left light turned off (idx)
+        st_led_off_all = np.where(-np.diff(st_led) > 5)[0]+1 #find when the left light turned off (idx)
         st_led_off = np.array(self.remove_consecutive_numbers(st_led_off_all)) #sometimes it takes a bit to turn off so get only the first value
-        sw_led_off_all = np.where(-np.diff(sw_led) > 5)[0] #find when the right light turned off (idx)
+        sw_led_off_all = np.where(-np.diff(sw_led) > 5)[0]+1 #find when the right light turned off (idx)
         sw_led_off = np.array(self.remove_consecutive_numbers(sw_led_off_all)) #sometimes it takes a bit to turn off so get only the first value
         if len(st_led_on) != len(st_led_off):
             st_led_off = np.append(st_led_off, frameNr-1) #if trial ends with light on add the last frame, do -1 because python starts at 0
@@ -942,13 +942,13 @@ class otrack_class:
         otrack_sw_trial = otracks_sw.loc[otracks_sw['trial'] == trial]
         latency_trial_st = np.zeros(len(otrack_st_trial['time']))
         latency_trial_st[:] = np.nan
-        otrack_st_beg_times = np.array(otrack_st_trial['time'])[np.where(np.diff(otrack_st_trial['frames']) > 4)[0]]  # subsampling of 4th frame to do otrack
+        otrack_st_beg_times = np.array(otrack_st_trial['time'])[np.where(np.diff(otrack_st_trial['frames']) > 4)[0]+1]  # subsampling of 4th frame to do otrack
         for count_t, t in enumerate(otrack_st_beg_times):
             time_diff = st_led_on_time - t  # measure the time difference between otrack time and light turning on for stance
             latency_trial_st[count_t] = np.min(np.abs(time_diff)) * 1000
         latency_trial_sw = np.zeros(len(otrack_sw_trial['time']))
         latency_trial_sw[:] = np.nan
-        otrack_sw_beg_times = np.array(otrack_sw_trial['time'])[np.where(np.diff(otrack_sw_trial['frames']) > 4)[0]]  # subsampling of 4th frame to do otrack
+        otrack_sw_beg_times = np.array(otrack_sw_trial['time'])[np.where(np.diff(otrack_sw_trial['frames']) > 4)[0]+1]  # subsampling of 4th frame to do otrack
         for count_t, t in enumerate(otrack_sw_beg_times):
             time_diff = sw_led_on_time - t #measure the time difference between otrack time and light turning on for swing
             latency_trial_sw[count_t] = np.min(np.abs(time_diff)) * 1000
