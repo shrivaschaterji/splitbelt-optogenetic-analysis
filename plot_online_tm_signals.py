@@ -59,14 +59,15 @@ for trial in trials:
     diff_otrack_offtrack = np.array(current_trial_sw['otrack_times'])[onset_ind] - np.array(current_trial_sw['offtrack_times'])[onset_ind]
     latency_sw.append(np.array(diff_otrack_offtrack)*1000)
 # latency plot
-fig, ax = plt.subplots(2, len(trials), figsize=(20, 10), tight_layout=True)
+plt.rcParams['font.size'] = 18
+fig, ax = plt.subplots(2, len(trials), figsize=(20, 20), tight_layout=True)
 for count_t, trial in enumerate(trials):
-    ax[0, count_t].hist(latency_st[count_t], bins=100, color='black')
+    ax[0, count_t].hist(latency_st[count_t], bins=100,  range=(-10, 300), color='black')
     ax[0, count_t].set_title('stance latency trial '+str(trial))
     ax[0, count_t].spines['right'].set_visible(False)
     ax[0, count_t].spines['top'].set_visible(False)
 for count_t, trial in enumerate(trials):
-    ax[1, count_t].hist(latency_sw[count_t], bins=100, color='black')
+    ax[1, count_t].hist(latency_sw[count_t], bins=100,  range=(-10, 800), color='black')
     ax[1, count_t].set_title('swing latency trial '+str(trial))
     ax[1, count_t].spines['right'].set_visible(False)
     ax[1, count_t].spines['top'].set_visible(False)
