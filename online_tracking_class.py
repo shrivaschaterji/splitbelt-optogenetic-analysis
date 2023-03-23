@@ -422,14 +422,15 @@ class otrack_class:
             final_tracks_trials.append(final_tracks)
         return final_tracks_trials
 
-    def get_offtrack_event_data(self, paw, loco, animal, session):
+    def get_offtrack_event_data(self, paw, loco, animal, session, timestamps_session):
         """Use the locomotion class to get the stance and swing points from
         the post-hoc tracking. FULL NETWORK (BOTH VIEWS)
         Input:
         paw: 'FR' or 'FL'
         loco: locomotion class
         animal: (str)
-        session: (int)"""
+        session: (int)
+        timestamps_session: list of timestamps for each trial"""
         if paw == 'FR':
             p = 0
         if paw == 'FL':
@@ -464,17 +465,17 @@ class otrack_class:
         offtracks_sw_posx = []
         offtracks_st_posy = []
         offtracks_sw_posy = []
-        for f in files_ordered:
+        for count_t, f in enumerate(files_ordered):
             path_split = f.split(self.delim)
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0) #read h5 using the full network features
             [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)  # swing and stance detection, exclusion of strides
             #get lists for dataframe
-            offtracks_st_time.extend(np.array(st_strides_mat[p][:, 0, 0] / 1000)) #stance onset time in seconds
-            offtracks_st_off_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000)) #stance offset time in seconds, same as swing onset
-            offtracks_sw_time.extend(np.array(sw_pts_mat[p][:, 0, 0] / 1000)) #swing onset time in seconds
-            offtracks_sw_off_time.extend(np.append(np.array(st_strides_mat[p][1:, 0, 0] / 1000), 0)) #swing offset time in seconds, same as stride offset or the next stride stance onset
+            offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
+            offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
+            offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
+            offtracks_sw_off_time.extend(np.append(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][1:, 0, -1]))], 0)) #swing offset time in seconds, same as stride offset or the next stride stance onset
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
             offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
             offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #swing onset idx
@@ -808,15 +809,6 @@ class otrack_class:
          otracks_sw: dataframe with the otrack swing data
          offtracks_st: dataframe with the offtrack stance data
          offtracks_sw: dataframe with the offtrack swing data"""
-
-        vidObj = VideoReader(filename, ctx=cpu(0))  # read the video
-        frames_total = len(vidObj)
-        st_led = []
-        sw_led = []
-        for frameNr in range(frames_total):
-            frame = vidObj[frameNr]
-            frame_np = frame.asnumpy()
-
         if not os.path.exists(self.path + 'videos with tracks'):
             os.mkdir(self.path + 'videos with tracks')
         mp4_files = glob.glob(self.path + '*.mp4') #gets all mp4 filenames
@@ -843,54 +835,46 @@ class otrack_class:
             frame = vidObj[frameNr]
             frame_np = frame.asnumpy()
             if frameNr in np.int64(offtracks_st.loc[offtracks_st['trial'] == trial, 'frames']): #if the offtrack stance was detected on this frame
-                if cap0:
-                    st_x_off = np.array(
-                        offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'x']) #get the x position for stance
-                    st_y_off = np.array(
-                        offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'y']) #get the x position for swing
-                    if np.all([~np.isnan(st_x_off), ~np.isnan(st_y_off)]) and len(st_x_off) > 0 and len(st_y_off) > 0: #if the value is not nan or empty
-                        frame_offtracks_st = cv2.circle(frame_np, (np.int64(st_x_off)[0], np.int64(st_y_off)[0]),
-                                                        radius=11, color=paw_color_st, thickness=2) #plot large radius on this position overlayed on this frame
-                        out.write(frame_offtracks_st)
+                st_x_off = np.array(
+                    offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'x']) #get the x position for stance
+                st_y_off = np.array(
+                    offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'y']) #get the x position for swing
+                if np.all([~np.isnan(st_x_off), ~np.isnan(st_y_off)]) and len(st_x_off) > 0 and len(st_y_off) > 0: #if the value is not nan or empty
+                    frame_offtracks_st = cv2.circle(frame_np, (np.int64(st_x_off)[0], np.int64(st_y_off)[0]),
+                                                    radius=11, color=paw_color_st, thickness=2) #plot large radius on this position overlayed on this frame
+                    out.write(frame_offtracks_st)
             #same for swing offtrack
             if frameNr in np.int64(offtracks_sw.loc[offtracks_sw['trial'] == trial, 'frames']):
-                cap1, frame1 = vidObj.read()
-                if cap1:
-                    sw_x_off = np.array(
-                        offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'x'])
-                    sw_y_off = np.array(
-                        offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'y'])
-                    if np.all([~np.isnan(sw_x_off), ~np.isnan(sw_y_off)]) and len(sw_x_off) > 0 and len(sw_y_off) > 0:
-                        frame_offtracks_sw = cv2.circle(frame_np, (np.int64(sw_x_off)[0], np.int64(sw_y_off)[0]),
-                                                        radius=11, color=paw_color_sw, thickness=2)
-                        out.write(frame_offtracks_sw)
+                sw_x_off = np.array(
+                    offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'x'])
+                sw_y_off = np.array(
+                    offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'y'])
+                if np.all([~np.isnan(sw_x_off), ~np.isnan(sw_y_off)]) and len(sw_x_off) > 0 and len(sw_y_off) > 0:
+                    frame_offtracks_sw = cv2.circle(frame_np, (np.int64(sw_x_off)[0], np.int64(sw_y_off)[0]),
+                                                    radius=11, color=paw_color_sw, thickness=2)
+                    out.write(frame_offtracks_sw)
             # same for stance otrack
             if frameNr in np.int64(otracks_st.loc[otracks_st['trial'] == trial, 'frames']):
-                cap2, frame2 = vidObj.read()
-                if cap2:
-                    st_x_on = np.array(
-                        otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'x'])
-                    st_y_on = np.array(
-                        otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'y'])
-                    if np.all([~np.isnan(st_x_on), ~np.isnan(st_y_on)]):
-                        frame_otracks_st = cv2.circle(frame_np, (np.int64(st_x_on)[0], np.int64(st_y_on)[0]), radius=5,
-                                                      color=paw_color_st, thickness=5)
-                        out.write(frame_otracks_st)
+                st_x_on = np.array(
+                    otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'x'])
+                st_y_on = np.array(
+                    otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'y'])
+                if np.all([~np.isnan(st_x_on), ~np.isnan(st_y_on)]):
+                    frame_otracks_st = cv2.circle(frame_np, (np.int64(st_x_on)[0], np.int64(st_y_on)[0]), radius=5,
+                                                  color=paw_color_st, thickness=5)
+                    out.write(frame_otracks_st)
             # same for swing otrack
             if frameNr in np.int64(otracks_sw.loc[otracks_sw['trial'] == trial, 'frames']):
-                cap3, frame3 = vidObj.read()
-                if cap3:
-                    sw_x_on = np.array(
-                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'x'])
-                    sw_y_on = np.array(
-                        otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'y'])
-                    if np.all([~np.isnan(sw_x_on), ~np.isnan(sw_y_on)]):
-                        frame_otracks_sw = cv2.circle(frame_np, (np.int64(sw_x_on)[0], np.int64(sw_y_on)[0]), radius=5,
-                                                      color=paw_color_sw, thickness=5)
-                        out.write(frame_otracks_sw)
+                sw_x_on = np.array(
+                    otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'x'])
+                sw_y_on = np.array(
+                    otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'y'])
+                if np.all([~np.isnan(sw_x_on), ~np.isnan(sw_y_on)]):
+                    frame_otracks_sw = cv2.circle(frame_np, (np.int64(sw_x_on)[0], np.int64(sw_y_on)[0]), radius=5,
+                                                  color=paw_color_sw, thickness=5)
+                    out.write(frame_otracks_sw)
             #if theres nothing detected write the original frame
             out.write(frame_np)
-        vidObj.release()
         out.release()
 
     def measure_light_on_videos(self, trial, timestamps_session, otracks_st, otracks_sw):
@@ -1002,6 +986,31 @@ class otrack_class:
         np.save(os.path.join(self.path, 'processed files', 'latency_light_sw.npy'), np.array(latency_light_sw, dtype=object), allow_pickle=True)
         return latency_light_st, latency_light_sw, st_led_on, sw_led_on
 
+    def get_laser_on(self, laser_signal_session):
+        """Get in a dataframe format for each trial the time the laser was on and off from the synchronizer.
+        Save as csv
+        Input:
+            laser_signal_session: (csv)"""
+        if not os.path.exists(self.path + 'processed files'):
+            os.mkdir(self.path + 'processed files')
+        laser_time_on = []
+        laser_time_off = []
+        laser_trial = []
+        for count_t, trial in enumerate(self.trials):
+            laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'])
+            laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'])
+            laser_signal_onset = laser_time[np.where(np.diff(laser_signal) > 0)[0]]
+            laser_signal_offset = laser_time[np.where(np.diff(laser_signal) < 0)[0]]
+            laser_time_on.extend(laser_signal_onset)
+            laser_time_off.extend(laser_signal_offset)
+            laser_trial.extend(np.repeat(trial, len(laser_signal_offset)))
+        laser_on = pd.DataFrame(
+            {'time_on': laser_time_on, 'time_off': laser_time_off, 'trial': laser_trial})
+        if not os.path.exists(self.path + 'processed files'):  # save csv
+            os.mkdir(self.path + 'processed files')
+        laser_on.to_csv(os.path.join(self.path, 'processed files', 'laser_on.csv'), sep=',', index=False)
+        return laser_on
+
     @staticmethod
     def remove_consecutive_numbers(list_original):
         """Function that takes a list and removes any consecutive numbers, keeping the first one only
@@ -1034,9 +1043,8 @@ class otrack_class:
             os.path.join(self.path, 'processed files', 'st_led_on.csv'))
         sw_led_on = pd.read_csv(
             os.path.join(self.path, 'processed files', 'sw_led_on.csv'))
-        # timestamps_session = np.load(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), allow_pickle=True)
-        # return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on
-        return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, st_led_on, sw_led_on
+        timestamps_session = np.load(os.path.join(self.path, 'processed files', 'timestamps_session.npy'), allow_pickle=True)
+        return otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on
 
     def plot_led_on_paws(self, timestamps_session, st_led_on, sw_led_on, final_tracks_trials, otracks, st_th, sw_th, trial, event, online_bool):
         """Plot when LED was on paw excursions, either online or offline
@@ -1061,7 +1069,7 @@ class otrack_class:
             scale_max = 250
             scale_min = 0
         st_led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
-        otrack_trial_x = np.array(otracks.loc[otracks['trial'] == trial, 'x'] - 280)
+        otrack_trial_x = np.array(otracks.loc[otracks['trial'] == trial, 'x'])
         otrack_trial_time = np.array(otracks.loc[otracks['trial'] == trial, 'time'])
         otrack_threshold_st = self.remove_consecutive_numbers(np.where(otrack_trial_x > st_th)[0])
         otrack_threshold_sw = self.remove_consecutive_numbers(np.where(otrack_trial_x < sw_th)[0])
@@ -1103,7 +1111,7 @@ class otrack_class:
                         final_tracks_trials[trial - 1][0, p, :] - np.nanmean(final_tracks_trials[trial - 1][0, p, :]),
                         color=paw_colors[p], linewidth=2)
             if online_bool == 1:
-                ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'] - 280,
+                ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'],
                         color='black')
                 for t in otrack_threshold_sw:
                     ax.scatter(otrack_trial_time[t], otrack_trial_x[t], s=10, color='red')
@@ -1197,3 +1205,131 @@ class otrack_class:
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
         return
+
+    def plot_led_synchronizer_signals(self, trial, event, st_led_on, sw_led_on, laser_signal_session, timestamps_session, plot_data):
+        """Plot times of LED on and LED signal gone to the synchronizer
+        Inputs:
+        trial: int
+        event: (str) stance or swing
+        st_led_on: csv with times of stance LED on
+        sw_led_on: csv with times of stance LED on
+        laser_signal_session: times of LED ON measured in the synchronizer
+        timestamps_session: (list) with timestamps for each trial
+        """
+        laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'])
+        laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'])
+        laser_signal_onset = laser_time[np.where(np.diff(laser_signal) > 0)[0]]
+        laser_signal_offset = laser_time[np.where(np.diff(laser_signal) < 0 )[0]]
+        signal_time_diff_onset = []
+        signal_time_diff_offset = []
+        if event == 'stance':
+            # stance
+            st_led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
+            event_signal_onset = timestamps_session[trial - 1][st_led_trials[0, :]]
+            event_signal_offset = timestamps_session[trial - 1][st_led_trials[1, :]]
+            plt.figure()
+            for r in range(np.shape(st_led_trials)[1]):
+                diff_onset = timestamps_session[trial - 1][st_led_trials[0, r]]-laser_signal_onset
+                diff_offset = timestamps_session[trial - 1][st_led_trials[1, r]] - laser_signal_offset
+                signal_time_diff_onset.append(diff_onset[np.argmin(np.abs(diff_onset))])
+                signal_time_diff_offset.append(diff_offset[np.argmin(np.abs(diff_offset))])
+                rectangle = plt.Rectangle((timestamps_session[trial - 1][st_led_trials[0, r]], 0),
+                                          timestamps_session[trial - 1][st_led_trials[1, r]] -
+                                          timestamps_session[trial - 1][st_led_trials[0, r]], 1, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            plt.plot(laser_time, laser_signal, color='black')
+        if event == 'swing':
+            # swing
+            sw_led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+            event_signal_onset = timestamps_session[trial - 1][sw_led_trials[0, :]]
+            event_signal_offset = timestamps_session[trial - 1][sw_led_trials[1, :]]
+            plt.figure()
+            for r in range(np.shape(sw_led_trials)[1]):
+                diff_onset = timestamps_session[trial - 1][sw_led_trials[0, r]]-laser_signal_onset
+                diff_offset = timestamps_session[trial - 1][sw_led_trials[1, r]] - laser_signal_offset
+                signal_time_diff_onset.append(diff_onset[np.argmin(np.abs(diff_onset))])
+                signal_time_diff_offset.append(diff_offset[np.argmin(np.abs(diff_offset))])
+                rectangle = plt.Rectangle((timestamps_session[trial - 1][sw_led_trials[0, r]], 0),
+                                          timestamps_session[trial - 1][sw_led_trials[1, r]] -
+                                          timestamps_session[trial - 1][sw_led_trials[0, r]], 1, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            plt.plot(laser_time, laser_signal, color='black')
+        signal_time_diff_onset_full = np.vstack((event_signal_onset, signal_time_diff_onset))
+        signal_time_diff_offset_full = np.vstack((event_signal_offset, signal_time_diff_offset))
+        return [signal_time_diff_onset_full, signal_time_diff_offset_full]
+
+    def get_hit_light(self, trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
+        """Gets the hits of when light was either in stance or swing. Gets also when
+        the hit was incomplete (started before or ended after)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            st_led_on: dataframe with stance led on
+            sw_led_on: dataframe with swing led on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = st_led_on.loc[st_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+        full_hits = 0
+        incomplete_hits = 0
+        full_hits_st = []
+        incomplete_hits_st = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            after_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                     & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                     & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                     & (offtrack_trial['time_off'].iloc[t] < light_trial['time_off']))[0]
+            if len(full_hit_idx) > 0:
+                full_hits += 1
+                full_hits_st.extend(full_hit_idx)
+            if len(before_hit_idx) > 0:
+                incomplete_hits += 1
+                incomplete_hits_st.extend(before_hit_idx)
+            if len(after_hit_idx) > 0:
+                incomplete_hits += 1
+                incomplete_hits_st.extend(after_hit_idx)
+        misses = len(light_trial) - full_hits - incomplete_hits
+        if plot_data:
+            paw_colors = ['red', 'blue', 'magenta', 'cyan']
+            p = 0
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in full_hits_st:
+                rectangle = plt.Rectangle((timestamps_session[trial - 1][led_trials[0, r]], -400),
+                                          timestamps_session[trial - 1][led_trials[1, r]] -
+                                          timestamps_session[trial - 1][led_trials[0, r]], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+                plt.gca().add_patch(rectangle)
+            mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
+            ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.set_title('full hit - light on ' + event + ' trial ' + str(trial))
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in incomplete_hits_st:
+                rectangle = plt.Rectangle((led_trials[0, r], -400),
+                                          led_trials[1, r] -
+                                          led_trials[0, r], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            ax.plot(final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.set_title('incomplete hit - light on ' + event + ' trial ' + str(trial))
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return full_hits, incomplete_hits, misses

@@ -112,7 +112,7 @@ class loco_class:
                     cumulative_idx.append(cumulative_idx[-1] + 1)
             param_all.extend(param)
             if count_t > 0:  # cumulative time
-                param_all_time.extend(param_time + param_all_time[-1])
+                param_all_time.extend(param_time + 60*(t-1))
             else:
                 param_all_time.extend(param_time)
         if remove_nan:

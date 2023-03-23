@@ -5,8 +5,8 @@ Created on Tue Feb  7 16:59:15 2023
 """
 import os
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\alice\\Dropbox (Personal)\\CareyLab\\materialAnaG\\threshold_test_20032023\\'#'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\tests 200323\\thresholds\\'
-subdir = ''   #'hrpaw\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\'
+subdir = '220323 hr thresholds\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
 animal = 'MC16946HR'
@@ -27,15 +27,18 @@ trials = otrack_class.get_trials()
 otracks = otrack_class.get_otrack_excursion_data(timestamps_session)
 [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session)
 
-# # READ OFFLINE DLC TRACKS
-[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
+# READ OFFLINE DLC TRACKS
+[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session, timestamps_session)
+
+# READ OFFLINE PAW EXCURSIONS
+final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 
 # LATENCY OF LIGHT IN RELATION TO OTRACK
 [latency_light_st, latency_light_sw, st_led_on, sw_led_on] = otrack_class.get_led_information_trials(trials, timestamps_session, otracks_st, otracks_sw)
 
-# READ MP4 AND OVERLAY OFFLINE AND ONLINE DLC TRACKS
-for t in trials:
-    otrack_class.overlay_tracks_video(t, paw_otrack, offtracks_st, offtracks_sw, otracks_st, otracks_sw)
+# # READ MP4 AND OVERLAY OFFLINE AND ONLINE DLC TRACKS
+# for t in trials:
+#     otrack_class.overlay_tracks_video(t, paw_otrack, final_tracks, offtracks_st, offtracks_sw, otracks_st, otracks_sw)
 
 # READ OFFLINE DLC TRACKS
 [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session)
