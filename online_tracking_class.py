@@ -470,16 +470,17 @@ class otrack_class:
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0) #read h5 using the full network features
-            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)  # swing and stance detection, exclusion of strides
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # swing and stance detection, exclusion of strides
             #get lists for dataframe
             offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
             offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
             offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
-            offtracks_sw_off_time.extend(np.append(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][1:, 1, -1]))], 0)) #swing offset time in seconds, same as stride offset or the next stride stance onset
+            #TODO look for the next stance
+            offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 1, -1]))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
             offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
             offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #swing onset idx
-            offtracks_sw_off_frames.extend(np.append(np.array(st_strides_mat[p][1:, 1, -1]), 0)) #swing offset idx
+            offtracks_sw_off_frames.extend(np.array(st_strides_mat[p][:, 1, -1])) #swing offset idx
             offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial) #trial number
             offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial) #trial number
             offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])]) #paw x position for stance onset
@@ -1316,10 +1317,11 @@ class otrack_class:
                                           timestamps_session[trial - 1][led_trials[1, r]] -
                                           timestamps_session[trial - 1][led_trials[0, r]], 800, fc='grey', alpha=0.3)
                 plt.gca().add_patch(rectangle)
-                plt.gca().add_patch(rectangle)
             mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
             ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
                     color=paw_colors[p], linewidth=2)
+            ax.scatter(offtrack_trial['time'], offtrack_trial['x'] - mean_excursion, s=20, color='black')
+            ax.scatter(offtrack_trial['time_off'], offtrack_trial['x'] - mean_excursion, s=20, color='black')
             ax.set_title('full hit - light on ' + event + ' trial ' + str(trial))
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
