@@ -1001,6 +1001,8 @@ class otrack_class:
             laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'])
             laser_signal_onset = laser_time[np.where(np.diff(laser_signal) > 0)[0]]
             laser_signal_offset = laser_time[np.where(np.diff(laser_signal) < 0)[0]]
+            if len(laser_signal_offset)<len(laser_signal_onset):
+                laser_signal_offset = np.append(laser_signal_offset, 0)
             laser_time_on.extend(laser_signal_onset)
             laser_time_off.extend(laser_signal_offset)
             laser_trial.extend(np.repeat(trial, len(laser_signal_offset)))
