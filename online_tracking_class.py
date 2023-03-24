@@ -475,11 +475,11 @@ class otrack_class:
             offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
             offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
             offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
-            offtracks_sw_off_time.extend(np.append(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][1:, 0, -1]))], 0)) #swing offset time in seconds, same as stride offset or the next stride stance onset
+            offtracks_sw_off_time.extend(np.append(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][1:, 1, -1]))], 0)) #swing offset time in seconds, same as stride offset or the next stride stance onset
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
             offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
             offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #swing onset idx
-            offtracks_sw_off_frames.extend(np.append(np.array(st_strides_mat[p][1:, 0, -1]), 0)) #swing offset idx
+            offtracks_sw_off_frames.extend(np.append(np.array(st_strides_mat[p][1:, 1, -1]), 0)) #swing offset idx
             offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial) #trial number
             offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial) #trial number
             offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])]) #paw x position for stance onset
