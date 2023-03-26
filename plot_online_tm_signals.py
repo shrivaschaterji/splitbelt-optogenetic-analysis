@@ -1,14 +1,11 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
-from decord import VideoReader
-from decord import cpu
 
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\'
-subdir = '220323 hr thresholds\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Online Tracking Treadmill\\240323 test thresholds\\'
+subdir = 'hr\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
 animal = 'MC16946HR'
@@ -205,7 +202,7 @@ plt.savefig(os.path.join(otrack_class.path, 'plots', 'light_on_accuracy_swing.pn
 #ACCURACY OF OTRACK
 th_st = np.array([190, 200, 205, 210, 215])
 th_sw = np.array([70, 60, 55, 50, 45])
-for count_t, t in enumerate(trials):
+for count_t, trial in enumerate(trials):
     fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
     ax.plot(otracks.loc[otracks['trial']==trial, 'time'], otracks.loc[otracks['trial']==trial, 'x'], color='black')
     ax.scatter(otracks_st.loc[otracks_st['trial']==trial, 'time'], otracks_st.loc[otracks_st['trial']==trial, 'x'], color='blue')
@@ -218,4 +215,22 @@ for count_t, t in enumerate(trials):
     ax.spines['top'].set_visible(False)
     if not os.path.exists(otrack_class.path + 'plots'):
         os.mkdir(otrack_class.path + 'plots')
-    plt.savefig(os.path.join(otrack_class.path, 'plots', 'otrack_file_delays_trial' + str(t) + '.png'))
+    plt.savefig(os.path.join(otrack_class.path, 'plots', 'otrack_file_delays_trial' + str(trial) + '.png'))
+
+#STIMULATION DURATION
+plt.rcParams['font.size'] = 14
+fig, ax = plt.subplots(2, len(trials), figsize=(20, 10), tight_layout=True)
+for count_t, trial in enumerate(trials):
+    ax[0, count_t].hist((st_led_on.loc[st_led_on['trial']==trial, 'time_off']-st_led_on.loc[st_led_on['trial']==trial, 'time_on'])*1000, range=(0, 500), bins=100, color='black')
+    ax[0, count_t].set_title('(ms) stance led duration trial '+str(trial))
+    ax[0, count_t].spines['right'].set_visible(False)
+    ax[0, count_t].spines['top'].set_visible(False)
+for count_t, trial in enumerate(trials):
+    ax[1, count_t].hist((sw_led_on.loc[sw_led_on['trial']==trial, 'time_off']-sw_led_on.loc[sw_led_on['trial']==trial, 'time_on'])*1000, range=(0, 500), bins=100, color='black')
+    ax[1, count_t].set_title('(ms) swing led duration trial '+str(trial))
+    ax[1, count_t].spines['right'].set_visible(False)
+    ax[1, count_t].spines['top'].set_visible(False)
+if not os.path.exists(otrack_class.path + 'plots'):
+    os.mkdir(otrack_class.path + 'plots')
+plt.savefig(os.path.join(otrack_class.path, 'plots', 'stim_duration.png'))
+

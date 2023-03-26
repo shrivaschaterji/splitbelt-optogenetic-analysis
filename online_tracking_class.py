@@ -475,7 +475,6 @@ class otrack_class:
             offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
             offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
             offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
-            #TODO look for the next stance
             offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 1, -1]))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
             offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
@@ -1320,8 +1319,6 @@ class otrack_class:
             mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
             ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
                     color=paw_colors[p], linewidth=2)
-            ax.scatter(offtrack_trial['time'], offtrack_trial['x'] - mean_excursion, s=20, color='black')
-            ax.scatter(offtrack_trial['time_off'], offtrack_trial['x'] - mean_excursion, s=20, color='black')
             ax.set_title('full hit - light on ' + event + ' trial ' + str(trial))
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
