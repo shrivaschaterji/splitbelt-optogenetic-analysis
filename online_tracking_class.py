@@ -118,7 +118,6 @@ class otrack_class:
             timestamps_session.append(cam_timestamps)
             frame_counter = np.array(metadata.iloc[:, 3] - metadata.iloc[
                 0, 3])  # get the camera frame counter subtracting the first as the 0
-            print('total frame counter ' + str(frame_counter[-1]+1))
             frame_counter_vec = np.arange(0, len(frame_counter)+1)
             frame_counter_diff = np.diff(frame_counter) #check for missing frames
             missing_frames_idx_start = frame_counter[np.where(np.diff(frame_counter) > 1)[0]]
@@ -208,8 +207,6 @@ class otrack_class:
                 plt.plot(sync_timestamps_p3/1000, sync_signal_p3)
                 plt.title('Laser trial sync data for trial ' + str(self.trials[t]))
                 plt.xlabel('Time (ms)')
-            print('#sync pulses '+str(len(timestamps_p1)))
-            print('#frames ' + str(len(frames_kept[self.trials_idx[t]])))
             camera_timestamps_in = timestamps_p1[frames_kept[self.trials_idx[t]]] / 1000
             timestamps_session.append(camera_timestamps_in)
             frame_counter_session.append(frames_kept[self.trials_idx[t]])
@@ -1261,6 +1258,82 @@ class otrack_class:
         signal_time_diff_offset_full = np.vstack((event_signal_offset, signal_time_diff_offset))
         return [signal_time_diff_onset_full, signal_time_diff_offset_full]
 
+    def get_hit_laser_synch(self, trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, plot_data):
+        """Gets the hits of when laser sync was on. Gets also when
+        the hit was incomplete (started before or ended after)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            laser_on: dataframe with laser synch on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = laser_on.loc[laser_on['trial'] == trial]
+            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = laser_on.loc[laser_on['trial'] == trial]
+            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
+        full_hits = 0
+        incomplete_hits = 0
+        full_hits_st = []
+        incomplete_hits_st = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            after_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                     & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                     & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                     & (offtrack_trial['time_off'].iloc[t] < light_trial['time_off']))[0]
+            if len(full_hit_idx) > 0:
+                full_hits += 1
+                full_hits_st.extend(full_hit_idx)
+            if len(before_hit_idx) > 0:
+                incomplete_hits += 1
+                incomplete_hits_st.extend(before_hit_idx)
+            # if len(after_hit_idx) > 0:
+            #     incomplete_hits += 1
+            #     incomplete_hits_st.extend(after_hit_idx)
+        misses = len(light_trial) - full_hits - incomplete_hits
+        if plot_data:
+            paw_colors = ['red', 'blue', 'magenta', 'cyan']
+            p = 0
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in full_hits_st:
+                rectangle = plt.Rectangle((timestamps_session[trial - 1][led_trials[0, r]], -400),
+                                          timestamps_session[trial - 1][led_trials[1, r]] -
+                                          timestamps_session[trial - 1][led_trials[0, r]], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
+            ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.scatter(offtrack_trial['time'], offtrack_trial['x'] - mean_excursion, s=20, color='black')
+            ax.scatter(offtrack_trial['time_off'], offtrack_trial['x'] - mean_excursion, s=20, color='black')
+            ax.set_title('full hit - light on ' + event + ' trial ' + str(trial))
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in incomplete_hits_st:
+                rectangle = plt.Rectangle((led_trials[0, r], -400),
+                                          led_trials[1, r] -
+                                          led_trials[0, r], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            ax.plot(final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.set_title('incomplete hit - light on ' + event + ' trial ' + str(trial))
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return full_hits, incomplete_hits, misses
+
     def get_hit_light(self, trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
         """Gets the hits of when light was either in stance or swing. Gets also when
         the hit was incomplete (started before or ended after)
@@ -1304,9 +1377,9 @@ class otrack_class:
             if len(before_hit_idx) > 0:
                 incomplete_hits += 1
                 incomplete_hits_st.extend(before_hit_idx)
-            if len(after_hit_idx) > 0:
-                incomplete_hits += 1
-                incomplete_hits_st.extend(after_hit_idx)
+            # if len(after_hit_idx) > 0:
+            #     incomplete_hits += 1
+            #     incomplete_hits_st.extend(after_hit_idx)
         misses = len(light_trial) - full_hits - incomplete_hits
         if plot_data:
             paw_colors = ['red', 'blue', 'magenta', 'cyan']

@@ -42,6 +42,7 @@ class loco_class:
         self.sr_F = 30
         self.my_dpi = 96 #resolution for plotting
         self.floor = 268*self.pixel_to_mm
+        self.trial_time = 60 #seconds
 
     @staticmethod
     def inpaint_nans(A):
@@ -54,8 +55,7 @@ class loco_class:
         A[np.isnan(A)] = np.interp(x, xp, fp)
         return A
 
-    @staticmethod
-    def param_continuous_sym(param_trials, st_strides_trials, trials, p1, p2, sym, remove_nan):
+    def param_continuous_sym(self, param_trials, st_strides_trials, trials, p1, p2, sym, remove_nan):
         """Compute a parameter across all trials and correspondent time, if wanted compute symmetry using another paw
         Inputs:
         param_trials. list with the param values for each trial all strides
@@ -84,6 +84,7 @@ class loco_class:
         param_all = []
         param_all_time = []
         cumulative_idx = []
+        cumulative_trial = []
         for count_t, t in enumerate(trials):
             trial_index = np.where(trials == t)[0][0]
             sl_p1 = param_trials[trial_index][p1_idx]
@@ -110,9 +111,10 @@ class loco_class:
                     cumulative_idx.append(1)
                 else:
                     cumulative_idx.append(cumulative_idx[-1] + 1)
+                cumulative_trial.append(t)
             param_all.extend(param)
             if count_t > 0:  # cumulative time
-                param_all_time.extend(param_time + 60*(t-1))
+                param_all_time.extend(param_time + self.trial_time*(t-1))
             else:
                 param_all_time.extend(param_time)
         if remove_nan:
@@ -123,7 +125,7 @@ class loco_class:
             param_all_notnan = np.array(param_all)
             param_all_time_notnan = np.array(param_all_time)
             cumulative_idx_array = np.array(cumulative_idx)
-        return cumulative_idx_array, param_all_time_notnan, param_all_notnan
+        return cumulative_idx_array, cumulative_trial, param_all_time_notnan, param_all_notnan
 
     def get_session_id(self):
         session = int(self.path.split(self.delim)[-2].split()[-2][1:])
