@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Online Tracking Treadmill\\240323 test thresholds\\'
-subdir = 'hr\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\'
+subdir = '040423 mobile network crop bottom tests\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16946HR'
+animal = 'MC16946'
 session = 1
 plot_data = 0
 import online_tracking_class
@@ -33,7 +33,7 @@ final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session, timestamps_session)
 
 # PROCESS SYNCHRONIZER LASER SIGNALS
-laser_on = otrack_class.get_laser_on(laser_signal_session)
+laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
 # LATENCY OF OTRACK IN RELATION TO OFFTRACK
 [tracks_hits_st, tracks_hits_sw, otrack_st_hits, otrack_sw_hits] = otrack_class.get_hits_swst_online(trials, otracks_st, otracks_sw, offtracks_st, offtracks_sw)
@@ -156,7 +156,7 @@ otrack_class.plot_led_on_paws(timestamps_session, st_led_on, sw_led_on, final_tr
 
 # ACCURACY OF LIGHT ON
 event = 'stance'
-plot_data = 1
+plot_data = 0
 led_st_hits = np.zeros(len(trials))
 led_st_incomplete = np.zeros(len(trials))
 led_st_misses = np.zeros(len(trials))
@@ -176,6 +176,37 @@ ax.spines['top'].set_visible(False)
 if not os.path.exists(otrack_class.path + 'plots'):
     os.mkdir(otrack_class.path + 'plots')
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'light_on_accuracy_stance.png'))
+
+# LASER LIGHT ON TRACKS
+laser_event = 'stance'
+laser_hits = np.zeros(len(trials))
+laser_incomplete = np.zeros(len(trials))
+laser_misses = np.zeros(len(trials))
+for count_t, trial in enumerate(trials):
+    [full_hits, incomplete_hits, misses] = otrack_class.get_hit_laser_synch(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 1)
+    laser_hits[count_t] = full_hits
+    laser_incomplete[count_t] = incomplete_hits
+    laser_misses[count_t] = misses
+# plot summaries
+fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
+ax.bar(trials, laser_hits, color='green')
+ax.bar(trials, laser_incomplete, bottom = laser_hits, color='orange')
+ax.bar(trials, laser_misses, bottom = laser_hits + laser_incomplete, color='red')
+ax.set_title(laser_event + ' misses')
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+if not os.path.exists(otrack_class.path + 'plots'):
+    os.mkdir(otrack_class.path + 'plots')
+plt.savefig(os.path.join(otrack_class.path, 'plots', 'laser_on_accuracy_' + laser_event + '.png'))
+fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
+ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
+ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
+ax.set_title(laser_event + ' accuracy')
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+if not os.path.exists(otrack_class.path + 'plots'):
+    os.mkdir(otrack_class.path + 'plots')
+plt.savefig(os.path.join(otrack_class.path, 'plots', 'laser_on_accuracy_' + laser_event + '_summary.png'))
 
 event='swing'
 plot_data = 1
@@ -198,10 +229,19 @@ ax.spines['top'].set_visible(False)
 if not os.path.exists(otrack_class.path + 'plots'):
     os.mkdir(otrack_class.path + 'plots')
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'light_on_accuracy_swing.png'))
+fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
+ax.plot(trials, (led_sw_hits/(led_sw_hits+led_sw_misses+led_sw_incomplete))*100, '-o', color='green')
+ax.plot(trials, (led_sw_incomplete/(led_sw_hits+led_sw_misses+led_sw_incomplete))*100, '-o', color='orange')
+ax.set_title('swing accuracy')
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+if not os.path.exists(otrack_class.path + 'plots'):
+    os.mkdir(otrack_class.path + 'plots')
+plt.savefig(os.path.join(otrack_class.path, 'plots', 'light_on_accuracy_swing_summary.png'))
 
 #ACCURACY OF OTRACK
-th_st = np.array([190, 200, 205, 210, 215])
-th_sw = np.array([70, 60, 55, 50, 45])
+th_st = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200])
+th_sw = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40])
 for count_t, trial in enumerate(trials):
     fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
     ax.plot(otracks.loc[otracks['trial']==trial, 'time'], otracks.loc[otracks['trial']==trial, 'x'], color='black')
@@ -218,18 +258,10 @@ for count_t, trial in enumerate(trials):
     plt.savefig(os.path.join(otrack_class.path, 'plots', 'otrack_file_delays_trial' + str(trial) + '.png'))
 
 #STIMULATION DURATION
-plt.rcParams['font.size'] = 14
-fig, ax = plt.subplots(2, len(trials), figsize=(20, 10), tight_layout=True)
-for count_t, trial in enumerate(trials):
-    ax[0, count_t].hist((st_led_on.loc[st_led_on['trial']==trial, 'time_off']-st_led_on.loc[st_led_on['trial']==trial, 'time_on'])*1000, range=(0, 500), bins=100, color='black')
-    ax[0, count_t].set_title('(ms) stance led duration trial '+str(trial))
-    ax[0, count_t].spines['right'].set_visible(False)
-    ax[0, count_t].spines['top'].set_visible(False)
-for count_t, trial in enumerate(trials):
-    ax[1, count_t].hist((sw_led_on.loc[sw_led_on['trial']==trial, 'time_off']-sw_led_on.loc[sw_led_on['trial']==trial, 'time_on'])*1000, range=(0, 500), bins=100, color='black')
-    ax[1, count_t].set_title('(ms) swing led duration trial '+str(trial))
-    ax[1, count_t].spines['right'].set_visible(False)
-    ax[1, count_t].spines['top'].set_visible(False)
+import seaborn as sns
+fig, axes = plt.subplots(2, 1, figsize=(20, 10), tight_layout=True)
+sns.boxplot(y = (laser_on['time_off']-laser_on['time_on'])*1000, x = 'trial', data = laser_on, ax = axes[0], showfliers=False)
+sns.boxplot(y = (sw_led_on['time_off']-sw_led_on['time_on'])*1000, x = 'trial', data = sw_led_on, ax = axes[1], showfliers=False)
 if not os.path.exists(otrack_class.path + 'plots'):
     os.mkdir(otrack_class.path + 'plots')
 plt.savefig(os.path.join(otrack_class.path, 'plots', 'stim_duration.png'))

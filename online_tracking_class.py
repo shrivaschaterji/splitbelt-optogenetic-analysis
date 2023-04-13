@@ -251,6 +251,13 @@ class otrack_class:
         for trial, f in enumerate(files_ordered):
             otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'y', 'st', 'sw'])
             otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
+            len_timestamps_trial = len(timestamps_session[self.trials_idx[trial]])
+            if otracks_frame_counter[-1] >= len_timestamps_trial:
+                frames_not_valid = np.where(otracks_frame_counter > len_timestamps_trial-1)[0]
+                frames_valid = np.setdiff1d(np.arange(0, len(otracks_frame_counter)), frames_not_valid)
+                otracks_frame_counter = otracks_frame_counter[frames_valid]
+                otracks = otracks.iloc[frames_valid, :]
+                print('otracks trial ' + str(trial + 1) + ' has more ' + len(frames_valid) + ' frames than video')
             otracks_timestamps = np.array(timestamps_session[self.trials_idx[trial]])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
@@ -302,9 +309,16 @@ class otrack_class:
         otracks_sw_posy = []
         for trial, f in enumerate(files_ordered):
             otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'y', 'st', 'sw'])
+            otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
+            len_timestamps_trial = len(timestamps_session[self.trials_idx[trial]])
+            if otracks_frame_counter[-1] >= len_timestamps_trial:
+                frames_not_valid = np.where(otracks_frame_counter > len_timestamps_trial-1)[0]
+                frames_valid = np.setdiff1d(np.arange(0, len(otracks_frame_counter)), frames_not_valid)
+                otracks_frame_counter = otracks_frame_counter[frames_valid]
+                otracks = otracks.iloc[frames_valid, :]
+                print('otracks trial ' + str(trial + 1) + ' has more ' + len(frames_valid) + ' frames than video')
             stance_frames = np.where(otracks.iloc[:, 3]==True)[0] #get all the otrack where it detected a stance (above the threshold set in bonsai)
             swing_frames = np.where(otracks.iloc[:, 4]==True)[0] #get all the otrack where it detected a swing (above the threshold set in bonsai)
-            otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
             otracks_timestamps = np.array(timestamps_session[self.trials_idx[trial]])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames]) #list of timestamps
@@ -796,19 +810,30 @@ class otrack_class:
                 np.setdiff1d(np.array(otracks_sw_trial['frames']), np.array(frames_sw)))
         return detected_frames_bad_st, detected_frames_bad_sw
 
-    def overlay_tracks_video(self, trial, paw_otrack, offtracks_st, offtracks_sw, otracks_st, otracks_sw):
-        """Function to overlay the post-hoc tracking (large circle) and the online
-         (small filled circle) tracking on the video
+    @staticmethod
+    def inpaint_nans(A):
+        """Interpolates NaNs in numpy arrays
+        Input: A (numpy array)"""
+        ok = ~np.isnan(A)
+        xp = ok.ravel().nonzero()[0]
+        fp = A[~np.isnan(A)]
+        x  = np.isnan(A).ravel().nonzero()[0]
+        A[np.isnan(A)] = np.interp(x, xp, fp)
+        return A
+
+    def overlay_tracks_video(self, trial, align, final_tracks_trials, laser_on, st_led_on, sw_led_on):
+        """Function to overlay when the light came (laser or LED) on the video
+        and on top of the FR paw
          Input:
          trial: int
-         paw_otrack: (str) FR or  FL
-         otracks_st: dataframe with the otrack stance data
-         otracks_sw: dataframe with the otrack swing data
-         offtracks_st: dataframe with the offtrack stance data
-         offtracks_sw: dataframe with the offtrack swing data"""
+         align: (str) laser, swing or stance - which signal to plot
+         final_tracks_trials: paw excursions for each trial in the session
+         laser_on: dataframe with the times where laser was on
+         st_led_on: dataframe with the times where LED stance was on
+         sw_led_on: dataframe with the times where LED swing was on"""
         if not os.path.exists(self.path + 'videos with tracks'):
             os.mkdir(self.path + 'videos with tracks')
-        mp4_files = glob.glob(self.path + '*.mp4') #gets all mp4 filenames
+        mp4_files = glob.glob(self.path + '*.mp4')  # gets all mp4 filenames
         frame_width = 1088
         frame_height = 420
         filename = []
@@ -816,62 +841,42 @@ class otrack_class:
             filename_split = f.split(self.delim)[-1]
             trial_nr = np.int64(filename_split.split('_')[-1][:-4])
             if trial_nr == trial:
-                filename = f #reads the mp4 corresponding to the trial you want to do the video
+                filename = f  # reads the mp4 corresponding to the trial you want to do the video
         vidObj = VideoReader(filename, ctx=cpu(0))  # read the video
         frames_total = len(vidObj)
-        #sets the specs of the output video
-        out = cv2.VideoWriter(os.path.join(self.path, 'videos with tracks', filename.split(self.delim)[-1][:-4] + 'tracks.mp4'), cv2.VideoWriter_fourcc(*'XVID'), self.sr,
+        # sets the specs of the output video
+        out = cv2.VideoWriter(os.path.join(self.path, 'videos with tracks',
+                                           filename.split(self.delim)[-1][:-4] + 'tracks.mp4'),
+                              cv2.VideoWriter_fourcc(*'XVID'), self.sr,
                               (frame_width, frame_height), True)
-        if paw_otrack == 'FR':
-            paw_color_st = (0, 0, 255) #red stance
-            paw_color_sw = (255, 0, 0) #blue swing
-        if paw_otrack == 'FL':
-            paw_color_st = (255, 0, 0)
-            paw_color_sw = (0, 0, 255)
+        paw_color = (0, 0, 255)  # red
+        if align == 'laser':
+            trials = laser_on['trial'].unique()
+            frames_on = np.array(laser_on.loc[laser_on['trial'] == trial, 'frames_on'])
+            frames_off = np.array(laser_on.loc[laser_on['trial'] == trial, 'frames_off'])
+        if align == 'stance':
+            trials = st_led_on['trial'].unique()
+            frames_on = np.array(st_led_on.loc[st_led_on['trial'] == trial, 'frames_on'])
+            frames_off = np.array(st_led_on.loc[st_led_on['trial'] == trial, 'frames_off'])
+        if align == 'swing':
+            trials = sw_led_on['trial'].unique()
+            frames_on = np.array(sw_led_on.loc[sw_led_on['trial'] == trial, 'frames_on'])
+            frames_off = np.array(sw_led_on.loc[sw_led_on['trial'] == trial, 'frames_off'])
+        frames_light_on = []
+        for count_f, f in enumerate(frames_on):
+            frames_light_on.extend(np.arange(frames_on[count_f], frames_off[count_f]))
+        paw_x = self.inpaint_nans(final_tracks_trials[self.trials_idx[np.where(trials == trial)[0][0]]][2, 0, :])
+        paw_z = self.inpaint_nans(final_tracks_trials[self.trials_idx[np.where(trials == trial)[0][0]]][3, 0, :])
         for frameNr in range(frames_total):
             frame = vidObj[frameNr]
             frame_np = frame.asnumpy()
-            if frameNr in np.int64(offtracks_st.loc[offtracks_st['trial'] == trial, 'frames']): #if the offtrack stance was detected on this frame
-                st_x_off = np.array(
-                    offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'x']) #get the x position for stance
-                st_y_off = np.array(
-                    offtracks_st.loc[(offtracks_st['trial'] == trial) & (offtracks_st['frames'] == frameNr), 'y']) #get the x position for swing
-                if np.all([~np.isnan(st_x_off), ~np.isnan(st_y_off)]) and len(st_x_off) > 0 and len(st_y_off) > 0: #if the value is not nan or empty
-                    frame_offtracks_st = cv2.circle(frame_np, (np.int64(st_x_off)[0], np.int64(st_y_off)[0]),
-                                                    radius=11, color=paw_color_st, thickness=2) #plot large radius on this position overlayed on this frame
-                    out.write(frame_offtracks_st)
-            #same for swing offtrack
-            if frameNr in np.int64(offtracks_sw.loc[offtracks_sw['trial'] == trial, 'frames']):
-                sw_x_off = np.array(
-                    offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'x'])
-                sw_y_off = np.array(
-                    offtracks_sw.loc[(offtracks_sw['trial'] == trial) & (offtracks_sw['frames'] == frameNr), 'y'])
-                if np.all([~np.isnan(sw_x_off), ~np.isnan(sw_y_off)]) and len(sw_x_off) > 0 and len(sw_y_off) > 0:
-                    frame_offtracks_sw = cv2.circle(frame_np, (np.int64(sw_x_off)[0], np.int64(sw_y_off)[0]),
-                                                    radius=11, color=paw_color_sw, thickness=2)
-                    out.write(frame_offtracks_sw)
-            # same for stance otrack
-            if frameNr in np.int64(otracks_st.loc[otracks_st['trial'] == trial, 'frames']):
-                st_x_on = np.array(
-                    otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'x'])
-                st_y_on = np.array(
-                    otracks_st.loc[(otracks_st['trial'] == trial) & (otracks_st['frames'] == frameNr), 'y'])
-                if np.all([~np.isnan(st_x_on), ~np.isnan(st_y_on)]):
-                    frame_otracks_st = cv2.circle(frame_np, (np.int64(st_x_on)[0], np.int64(st_y_on)[0]), radius=5,
-                                                  color=paw_color_st, thickness=5)
-                    out.write(frame_otracks_st)
-            # same for swing otrack
-            if frameNr in np.int64(otracks_sw.loc[otracks_sw['trial'] == trial, 'frames']):
-                sw_x_on = np.array(
-                    otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'x'])
-                sw_y_on = np.array(
-                    otracks_sw.loc[(otracks_sw['trial'] == trial) & (otracks_sw['frames'] == frameNr), 'y'])
-                if np.all([~np.isnan(sw_x_on), ~np.isnan(sw_y_on)]):
-                    frame_otracks_sw = cv2.circle(frame_np, (np.int64(sw_x_on)[0], np.int64(sw_y_on)[0]), radius=5,
-                                                  color=paw_color_sw, thickness=5)
-                    out.write(frame_otracks_sw)
-            #if theres nothing detected write the original frame
-            out.write(frame_np)
+            if frameNr in frames_light_on:
+                x_position = np.int64(paw_x[frameNr])
+                z_position = np.int64(paw_z[frameNr])
+                frame_light = cv2.circle(frame_np, (x_position, z_position), radius=5, color=paw_color, thickness=5)
+                out.write(frame_light)
+            if frameNr not in frames_light_on:
+                out.write(frame_np)
         out.release()
 
     def measure_light_on_videos(self, trial, timestamps_session, otracks_st, otracks_sw):
@@ -896,7 +901,9 @@ class otrack_class:
         for frameNr in range(frames_total):
             frame = vidObj[frameNr]
             frame_np = frame.asnumpy()
-            st_led.append(np.mean(frame_np[:60, 980:1050, :].flatten())) #get the mean intensity of the location where left LED is
+            # st_led.append(np.mean(frame_np[:60, 980:1050, :].flatten())) #get the mean intensity of the location where left LED is
+            st_led.append(np.mean(
+                frame_np[:60, 1050:, :].flatten()))  # get the mean intensity of the location where left LED is
             sw_led.append(np.mean(frame_np[:60, 1050:, :].flatten())) #get the mean intensity of the location where right LED is
         #if it starts on
         if st_led[0]>15:
@@ -983,16 +990,19 @@ class otrack_class:
         np.save(os.path.join(self.path, 'processed files', 'latency_light_sw.npy'), np.array(latency_light_sw, dtype=object), allow_pickle=True)
         return latency_light_st, latency_light_sw, st_led_on, sw_led_on
 
-    def get_laser_on(self, laser_signal_session):
+    def get_laser_on(self, laser_signal_session, timestamps_session):
         """Get in a dataframe format for each trial the time the laser was on and off from the synchronizer.
         Save as csv
         Input:
-            laser_signal_session: (csv)"""
+            laser_signal_session: (csv)
+            timestamps_session: list with the frame timestamps for each trial"""
         if not os.path.exists(self.path + 'processed files'):
             os.mkdir(self.path + 'processed files')
         laser_time_on = []
         laser_time_off = []
         laser_trial = []
+        frame_time_on_all = []
+        frame_time_off_all = []
         for count_t, trial in enumerate(self.trials):
             laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'])
             laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'])
@@ -1003,8 +1013,17 @@ class otrack_class:
             laser_time_on.extend(laser_signal_onset)
             laser_time_off.extend(laser_signal_offset)
             laser_trial.extend(np.repeat(trial, len(laser_signal_offset)))
+            frame_time_on = []
+            for i in laser_signal_onset:
+                frame_time_on.append(np.argmin(np.abs(i - timestamps_session[self.trials_idx[count_t]])))
+            frame_time_on_all.extend(frame_time_on)
+            frame_time_off = []
+            for j in laser_signal_offset:
+                frame_time_off.append(np.argmin(np.abs(j - timestamps_session[self.trials_idx[count_t]])))
+            frame_time_off_all.extend(frame_time_off)
         laser_on = pd.DataFrame(
-            {'time_on': laser_time_on, 'time_off': laser_time_off, 'trial': laser_trial})
+            {'time_on': laser_time_on, 'time_off': laser_time_off, 'frames_on': frame_time_on_all,
+             'frames_off': frame_time_off_all, 'trial': laser_trial})
         if not os.path.exists(self.path + 'processed files'):  # save csv
             os.mkdir(self.path + 'processed files')
         laser_on.to_csv(os.path.join(self.path, 'processed files', 'laser_on.csv'), sep=',', index=False)

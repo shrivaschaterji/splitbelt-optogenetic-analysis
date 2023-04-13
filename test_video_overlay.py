@@ -17,28 +17,24 @@ otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
 loco = locomotion_class.loco_class(path)
 trials = otrack_class.get_trials()
+
+# LOAD PROCESSED DATA
+[otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, st_led_on, sw_led_on] = otrack_class.load_processed_files()
+
 # READ CAMERA TIMESTAMPS AND FRAME COUNTER
 [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_class.get_session_metadata(plot_data)
 
 # READ SYNCHRONIZER SIGNALS
 [timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session, laser_trial_signal_session] = otrack_class.get_synchronizer_data(camera_frames_kept, plot_data)
 
-# READ ONLINE DLC TRACKS
-otracks = otrack_class.get_otrack_excursion_data(timestamps_session)
-[otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session)
-
-# READ OFFLINE DLC TRACKS
-[offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session, timestamps_session)
-
 # READ OFFLINE PAW EXCURSIONS
 final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
-
-# LATENCY OF LIGHT IN RELATION TO OTRACK
-[latency_light_st, latency_light_sw, st_led_on, sw_led_on] = otrack_class.get_led_information_trials(trials, timestamps_session, otracks_st, otracks_sw)
 
 # PROCESS SYNCHRONIZER LASER SIGNALS
 laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
-# OVERLAY WHEN LED SWING WAS ON
-for t in trials:
-    otrack_class.overlay_tracks_video(t, 'swing', final_tracks_trials, laser_on, st_led_on, sw_led_on)
+# OVERLAY WHEN LASER WAS ON
+# for t in trials:
+t = 1
+otrack_class.overlay_tracks_video(t, 'laser', final_tracks_trials, laser_on, st_led_on, sw_led_on)
+
