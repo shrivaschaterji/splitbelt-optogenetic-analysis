@@ -4,16 +4,16 @@ import os
 
 # Inputs
 laser_event = 'stance'
-single_animal_analysis = 1
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\120423 stance narrow threshold stim\\MC16851\\'
+single_animal_analysis = 0
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\14042023 splitS1 right fast nostim\\'
 animal = 'MC16851'
 session = 1
-Ntrials = 24
+Ntrials = 28
 stim_start = 9
-stim_duration = 8
+stim_duration = 10
 plot_rig_signals = 0
 print_plots = 1
-bs_bool = 0
+bs_bool = 1
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
@@ -52,7 +52,7 @@ if single_animal_analysis:
     final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 
     # PROCESS SYNCHRONIZER LASER SIGNALS
-    laser_on = otrack_class.get_laser_on(laser_signal_session)
+    laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
     # ACCURACY OF LIGHT ON
     laser_hits = np.zeros(len(trials))
@@ -111,7 +111,7 @@ if single_animal_analysis == 0:
         param_sym_bs = np.zeros(np.shape(param_sym))
         for p in range(np.shape(param_sym)[0]-1):
             for a in range(np.shape(param_sym)[1]):
-                bs_mean = np.nanmean(param_sym[p, a, :3])
+                bs_mean = np.nanmean(param_sym[p, a, :stim_start])
                 param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
     else:
         param_sym_bs = param_sym
@@ -143,32 +143,29 @@ if single_animal_analysis == 0:
     plt.close('all')
 
     # PLOT SL ANIMAL AVERAGE
-    p = 1 # step length
-    param_sym_bs_sl = np.zeros(np.shape(param_sym[p, :, :]))
-    for a in range(np.shape(param_sym)[1]):
-        bs_mean = np.nanmean(param_sym[p, a, :stim_start])
-        param_sym_bs_sl[a, :] = param_sym[p, a, :] - bs_mean
-    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym_bs_sl[:, :].flatten())), stim_duration,
-                              np.max(param_sym_bs_sl[:, :].flatten()) - np.min(param_sym_bs_sl[:, :].flatten()),
-                              fc='dimgrey', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    plt.hlines(0, 1, len(param_sym_bs_sl[a, :]), colors='grey', linestyles='--')
-    for a in range(np.shape(param_sym)[1]):
-        plt.plot(np.linspace(1, len(param_sym_bs_sl[a, :]), len(param_sym_bs_sl[a, :])), param_sym_bs_sl[a, :], color='darkgray', linewidth=1)
-    plt.plot(np.linspace(1, len(param_sym_bs_sl[0, :]), len(param_sym_bs_sl[0, :])), np.nanmean(param_sym_bs_sl, axis=0), color='black', linewidth=2)
-    ax.set_xlabel('Trial', fontsize=20)
-    ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
-    if p == 2:
-        plt.gca().invert_yaxis()
-    plt.xticks(fontsize=16)
-    plt.yticks(fontsize=16)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    if print_plots:
-        if not os.path.exists(path_save):
-            os.mkdir(path_save)
-        plt.savefig(path_save + param_sym_name[p] + '_sym_bs_average', dpi=128)
+    for p in range(np.shape(param_sym)[0] - 1):
+        param_sym_bs_ave = param_sym_bs[p, :, :]
+        fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+        rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym_bs_ave[:, :].flatten())), stim_duration,
+                                  np.max(param_sym_bs_ave[:, :].flatten()) - np.min(param_sym_bs_ave[:, :].flatten()),
+                                  fc='dimgrey', alpha=0.3)
+        plt.gca().add_patch(rectangle)
+        plt.hlines(0, 1, len(param_sym_bs_ave[a, :]), colors='grey', linestyles='--')
+        for a in range(np.shape(param_sym_bs_ave)[0]):
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], color='darkgray', linewidth=1)
+        plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color='black', linewidth=2)
+        ax.set_xlabel('Trial', fontsize=20)
+        ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+        if p == 2:
+            plt.gca().invert_yaxis()
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        if print_plots:
+            if not os.path.exists(path_save):
+                os.mkdir(path_save)
+            plt.savefig(path_save + param_sym_name[p] + '_sym_bs_average', dpi=128)
     plt.close('all')
 
     # PLOT STANCE SPEED

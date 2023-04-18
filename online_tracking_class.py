@@ -257,7 +257,7 @@ class otrack_class:
                 frames_valid = np.setdiff1d(np.arange(0, len(otracks_frame_counter)), frames_not_valid)
                 otracks_frame_counter = otracks_frame_counter[frames_valid]
                 otracks = otracks.iloc[frames_valid, :]
-                print('otracks trial ' + str(trial + 1) + ' has more ' + len(frames_valid) + ' frames than video')
+                print('otracks trial ' + str(trial + 1) + ' has more ' + str(len(frames_not_valid)) + ' frames than video')
             otracks_timestamps = np.array(timestamps_session[self.trials_idx[trial]])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
@@ -316,7 +316,7 @@ class otrack_class:
                 frames_valid = np.setdiff1d(np.arange(0, len(otracks_frame_counter)), frames_not_valid)
                 otracks_frame_counter = otracks_frame_counter[frames_valid]
                 otracks = otracks.iloc[frames_valid, :]
-                print('otracks trial ' + str(trial + 1) + ' has more ' + len(frames_valid) + ' frames than video')
+                print('otracks trial ' + str(trial + 1) + ' has more ' + str(len(frames_not_valid)) + ' frames than video')
             stance_frames = np.where(otracks.iloc[:, 3]==True)[0] #get all the otrack where it detected a stance (above the threshold set in bonsai)
             swing_frames = np.where(otracks.iloc[:, 4]==True)[0] #get all the otrack where it detected a swing (above the threshold set in bonsai)
             otracks_timestamps = np.array(timestamps_session[self.trials_idx[trial]])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
