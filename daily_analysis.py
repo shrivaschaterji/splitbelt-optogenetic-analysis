@@ -5,20 +5,22 @@ import os
 # Inputs
 laser_event = 'stance'
 single_animal_analysis = 0
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\14042023 splitS1 right fast nostim\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\'
 animal = 'MC16851'
 session = 1
 Ntrials = 28
-stim_start = 9
-stim_duration = 10
+stim_start = 5
+stim_duration = 14
 plot_rig_signals = 0
 print_plots = 1
 bs_bool = 1
+control_bool = 1
+control_ses = 'right'
+control_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
 loco = locomotion_class.loco_class(path)
-trials = otrack_class.get_trials()
 path_save = path + 'grouped output\\'
 if not os.path.exists(path + 'grouped output'):
     os.mkdir(path + 'grouped output')
@@ -35,6 +37,7 @@ for a in range(len(animal_session_list)):
     session_list.append(animal_session_list[a][1])
 
 if single_animal_analysis:
+    trials = otrack_class.get_trials()
     # READ CAMERA TIMESTAMPS AND FRAME COUNTER
     [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_class.get_session_metadata(plot_rig_signals)
 
@@ -111,12 +114,16 @@ if single_animal_analysis == 0:
         param_sym_bs = np.zeros(np.shape(param_sym))
         for p in range(np.shape(param_sym)[0]-1):
             for a in range(np.shape(param_sym)[1]):
-                bs_mean = np.nanmean(param_sym[p, a, :stim_start])
+                if stim_start == 9:
+                    bs_mean = np.nanmean(param_sym[p, a, :stim_start-1])
+                if stim_start == 5:
+                    bs_mean = np.nanmean(param_sym[p, a, stim_start-1:8])
                 param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
     else:
         param_sym_bs = param_sym
 
-    # PLOT GAIT PARAMETERS
+    # PLOT GAIT PARAMETERS WITH CONTROL WITHOUT MC16846
+    param_sym_bs_plot = param_sym_bs[:, 1:, :]
     for p in range(np.shape(param_sym)[0] - 1):
         fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
         rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym_bs[p, :, :].flatten())), stim_duration,
@@ -142,7 +149,7 @@ if single_animal_analysis == 0:
             plt.savefig(path_save + param_sym_name[p] + '_sym_bs', dpi=128)
     plt.close('all')
 
-    # PLOT SL ANIMAL AVERAGE
+    # PLOT ANIMAL AVERAGE
     for p in range(np.shape(param_sym)[0] - 1):
         param_sym_bs_ave = param_sym_bs[p, :, :]
         fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
@@ -168,6 +175,39 @@ if single_animal_analysis == 0:
             plt.savefig(path_save + param_sym_name[p] + '_sym_bs_average', dpi=128)
     plt.close('all')
 
+    if control_bool:
+        param_sym_bs_plot = param_sym_bs[:, 1:, :]
+        param_sym_bs_control = np.load(control_path + 'split_' + control_ses + '_fast_control_params_sym_bs_noMC16846.npy')
+        for p in range(np.shape(param_sym)[0] - 1):
+            param_sym_bs_ave = param_sym_bs_plot[p, :, :]
+            fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+            rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym_bs_ave[:, :].flatten())), stim_duration,
+                                      np.max(param_sym_bs_ave[:, :].flatten()) - np.min(
+                                          param_sym_bs_ave[:, :].flatten()),
+                                      fc='dimgrey', alpha=0.3)
+            plt.gca().add_patch(rectangle)
+            plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
+            for a in range(np.shape(param_sym_bs_ave)[0]):
+                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])),
+                         param_sym_bs_ave[a, :], color='darkgray', linewidth=1)
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
+                     np.nanmean(param_sym_bs_ave, axis=0), color='orange', linewidth=2)
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
+                     np.nanmean(param_sym_bs_control[p, :, :], axis=0), color='black', linewidth=2)
+            ax.set_xlabel('Trial', fontsize=20)
+            ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+            if p == 2:
+                plt.gca().invert_yaxis()
+            plt.xticks(fontsize=16)
+            plt.yticks(fontsize=16)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            if print_plots:
+                if not os.path.exists(path_save):
+                    os.mkdir(path_save)
+                plt.savefig(path_save + param_sym_name[p] + '_sym_bs_average_with_control', dpi=128)
+        plt.close('all')
+
     # PLOT STANCE SPEED
     for a in range(np.shape(stance_speed)[1]):
         data = stance_speed[:, a, :]
@@ -191,7 +231,7 @@ if single_animal_analysis == 0:
     plt.close('all')
 
     # CONTINUOUS STEP LENGTH WITH LASER ON
-    trials = np.arange(1, 25)
+    trials = np.arange(1, 28)
     for count_animal, animal in enumerate(animal_list):
         param_sl = []
         for count_trial, f in enumerate(filelist):
