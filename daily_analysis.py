@@ -5,7 +5,7 @@ import os
 # Inputs
 laser_event = 'stance'
 single_animal_analysis = 0
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\'
+paths = ['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
 animal = 'MC16851'
 session = 1
 Ntrials = 28
@@ -17,73 +17,79 @@ bs_bool = 1
 control_bool = 1
 control_ses = 'right'
 control_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
-import online_tracking_class
-otrack_class = online_tracking_class.otrack_class(path)
-import locomotion_class
-loco = locomotion_class.loco_class(path)
-path_save = path + 'grouped output\\'
-if not os.path.exists(path + 'grouped output'):
-    os.mkdir(path + 'grouped output')
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
+import online_tracking_class
+import locomotion_class
+otrack_classes =  []
+locos = []
+paths_save = []
+for path in paths:
+    otrack_classes.append(online_tracking_class.otrack_class(path))
+    locos.append(locomotion_class.loco_class(path))
+    paths_save.append(path + 'grouped output\\')
+    if not os.path.exists(path + 'grouped output'):
+        os.mkdir(path + 'grouped output')
 
-# GET THE NUMBER OF ANIMALS AND THE SESSION ID
-animal_session_list = loco.animals_within_session()
-animal_list = []
-for a in range(len(animal_session_list)):
-    animal_list.append(animal_session_list[a][0])
-session_list = []
-for a in range(len(animal_session_list)):
-    session_list.append(animal_session_list[a][1])
 
-if single_animal_analysis:
-    trials = otrack_class.get_trials()
-    # READ CAMERA TIMESTAMPS AND FRAME COUNTER
-    [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_class.get_session_metadata(plot_rig_signals)
+    # GET THE NUMBER OF ANIMALS AND THE SESSION ID
+    animal_session_list = locos[path].animals_within_session()
+    animal_list = []
+    for a in range(len(animal_session_list)):
+        animal_list.append(animal_session_list[a][0])
+    session_list = []
+    for a in range(len(animal_session_list)):
+        session_list.append(animal_session_list[a][1])
 
-    # READ SYNCHRONIZER SIGNALS
-    [timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session, laser_trial_signal_session] = otrack_class.get_synchronizer_data(camera_frames_kept, plot_rig_signals)
+    # Run the single animal analysis for each of the sessions in paths
+    if single_animal_analysis:
+        trials = otrack_classes[path].get_trials()
+        # READ CAMERA TIMESTAMPS AND FRAME COUNTER
+        [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_classes[path].get_session_metadata(plot_rig_signals)
 
-    # READ ONLINE DLC TRACKS
-    otracks = otrack_class.get_otrack_excursion_data(timestamps_session)
-    [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session)
+        # READ SYNCHRONIZER SIGNALS
+        [timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session, laser_trial_signal_session] = otrack_classes[path].get_synchronizer_data(camera_frames_kept, plot_rig_signals)
 
-    # READ OFFLINE DLC TRACKS
-    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session, timestamps_session)
+        # READ ONLINE DLC TRACKS
+        otracks = otrack_classes[path].get_otrack_excursion_data(timestamps_session)
+        [otracks_st, otracks_sw] = otrack_classes[path].get_otrack_event_data(timestamps_session)
 
-    # READ OFFLINE PAW EXCURSIONS
-    final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
+        # READ OFFLINE DLC TRACKS
+        [offtracks_st, offtracks_sw] = otrack_classes[path].get_offtrack_event_data(paw_otrack, locos[path], animal, session, timestamps_session)
 
-    # PROCESS SYNCHRONIZER LASER SIGNALS
-    laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
+        # READ OFFLINE PAW EXCURSIONS
+        final_tracks_trials = otrack_classes[path].get_offtrack_paws(locos[path], animal, session)
 
-    # ACCURACY OF LIGHT ON
-    laser_hits = np.zeros(len(trials))
-    laser_incomplete = np.zeros(len(trials))
-    laser_misses = np.zeros(len(trials))
-    for count_t, trial in enumerate(trials):
-        [full_hits, incomplete_hits, misses] = otrack_class.get_hit_laser_synch(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
-        laser_hits[count_t] = full_hits
-        laser_incomplete[count_t] = incomplete_hits
-        laser_misses[count_t] = misses
-    # plot summaries
-    fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-    ax.bar(trials, laser_hits, color='green')
-    ax.bar(trials, laser_incomplete, bottom = laser_hits, color='orange')
-    ax.bar(trials, laser_misses, bottom = laser_hits + laser_incomplete, color='red')
-    ax.set_title(laser_event + ' misses')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(path_save, 'laser_on_accuracy_' + laser_event + '.png'))
-    fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-    rectangle = plt.Rectangle((stim_start - 0.5, 0), stim_duration, 50, fc='dimgrey', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
-    ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
-    ax.set_title(laser_event + ' accuracy')
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(path_save, 'laser_on_accuracy_values_' + laser_event + '.png'))
+        # PROCESS SYNCHRONIZER LASER SIGNALS
+        laser_on = otrack_classes[path].get_laser_on(laser_signal_session, timestamps_session)
+
+        # ACCURACY OF LIGHT ON
+        laser_hits = np.zeros(len(trials))
+        laser_incomplete = np.zeros(len(trials))
+        laser_misses = np.zeros(len(trials))
+        for count_t, trial in enumerate(trials):
+            [full_hits, incomplete_hits, misses] = otrack_classes[path].get_hit_laser_synch(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
+            laser_hits[count_t] = full_hits
+            laser_incomplete[count_t] = incomplete_hits
+            laser_misses[count_t] = misses
+        # plot summaries
+        fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
+        ax.bar(trials, laser_hits, color='green')
+        ax.bar(trials, laser_incomplete, bottom = laser_hits, color='orange')
+        ax.bar(trials, laser_misses, bottom = laser_hits + laser_incomplete, color='red')
+        ax.set_title(laser_event + ' misses')
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.savefig(os.path.join(paths_save[path], 'laser_on_accuracy_' + laser_event + '.png'))
+        fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
+        rectangle = plt.Rectangle((stim_start - 0.5, 0), stim_duration, 50, fc='dimgrey', alpha=0.3)
+        plt.gca().add_patch(rectangle)
+        ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
+        ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
+        ax.set_title(laser_event + ' accuracy')
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.savefig(os.path.join(paths_save[path], 'laser_on_accuracy_values_' + laser_event + '.png'))
 
 if single_animal_analysis == 0:
     # GAIT PARAMETERS ACROSS TRIALS
