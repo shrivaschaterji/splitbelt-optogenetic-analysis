@@ -247,9 +247,10 @@ class otrack_class:
         otracks_frames = []
         otracks_trials = []
         otracks_posx = []
-        otracks_posy = []
+        otracks_st = []
+        otracks_sw = []
         for trial, f in enumerate(files_ordered):
-            otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'y', 'st', 'sw'])
+            otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'st', 'sw'])
             otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
             len_timestamps_trial = len(timestamps_session[self.trials_idx[trial]])
             if otracks_frame_counter[-1] >= len_timestamps_trial:
@@ -265,12 +266,14 @@ class otrack_class:
             otracks_trials.extend(
                 np.array(np.ones(len(otracks_frame_counter)) * (self.trials[trial])))  # list of trial value
             otracks_posx.extend(
-                np.array(otracks.iloc[:, 2]))  # list of otrack paw x position when in stance
-            otracks_posy.extend(
-                np.array(otracks.iloc[:, 3]))  # list of otrack paw y position when in stance
+                np.array(otracks.iloc[:, 2]))  # list of otrack paw x position
+            otracks_st.extend(
+                np.array(otracks.iloc[:, 3]))  # list of otrack when in stance
+            otracks_sw.extend(
+                np.array(otracks.iloc[:, 4]))  # list of otrack when in swing
         # creating the dataframe
         otracks = pd.DataFrame({'time': otracks_time, 'frames': otracks_frames, 'trial': otracks_trials,
-                                   'x': otracks_posx, 'y': otracks_posy})
+                                   'x': otracks_posx, 'st_on': otracks_st, 'sw_on': otracks_sw})
         if not os.path.exists(self.path + 'processed files'):  # saving the csv
             os.mkdir(self.path + 'processed files')
         otracks.to_csv(
@@ -1224,7 +1227,8 @@ class otrack_class:
             ax.spines['top'].set_visible(False)
         return
 
-    def plot_led_synchronizer_signals(self, trial, event, st_led_on, sw_led_on, laser_signal_session, timestamps_session, plot_data):
+    @staticmethod
+    def plot_led_synchronizer_signals(trial, event, st_led_on, sw_led_on, laser_signal_session, timestamps_session, plot_data):
         """Plot times of LED on and LED signal gone to the synchronizer
         Inputs:
         trial: int
@@ -1233,6 +1237,7 @@ class otrack_class:
         sw_led_on: csv with times of stance LED on
         laser_signal_session: times of LED ON measured in the synchronizer
         timestamps_session: (list) with timestamps for each trial
+        plot_data: boolean
         """
         laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'])
         laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'])
@@ -1276,7 +1281,8 @@ class otrack_class:
         signal_time_diff_offset_full = np.vstack((event_signal_offset, signal_time_diff_offset))
         return [signal_time_diff_onset_full, signal_time_diff_offset_full]
 
-    def get_hit_laser_synch(self, trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, plot_data):
+    @staticmethod
+    def get_hit_laser_synch(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, plot_data):
         """Gets the hits of when laser sync was on. Gets also when
         the hit was incomplete (started before or ended after)
         Inputs:
@@ -1286,7 +1292,8 @@ class otrack_class:
             offtracks_sw: dataframe with offline tracks for swing
             laser_on: dataframe with laser synch on
             final_tracks_trials: paw excursions
-            timestamps_session: list of timestamps for each trial"""
+            timestamps_session: list of timestamps for each trial
+            plot_data: boolean"""
         if event == 'stance':
             offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             light_trial = laser_on.loc[laser_on['trial'] == trial]
@@ -1318,9 +1325,6 @@ class otrack_class:
             if len(before_hit_idx) > 0:
                 incomplete_hits += 1
                 incomplete_hits_st.extend(before_hit_idx)
-            # if len(after_hit_idx) > 0:
-            #     incomplete_hits += 1
-            #     incomplete_hits_st.extend(after_hit_idx)
         misses = len(light_trial) - full_hits - incomplete_hits
         if plot_data:
             paw_colors = ['red', 'blue', 'magenta', 'cyan']
@@ -1352,7 +1356,8 @@ class otrack_class:
             ax.spines['top'].set_visible(False)
         return full_hits, incomplete_hits, misses
 
-    def get_hit_light(self, trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
+    @staticmethod
+    def get_hit_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
         """Gets the hits of when light was either in stance or swing. Gets also when
         the hit was incomplete (started before or ended after)
         Inputs:
@@ -1363,7 +1368,8 @@ class otrack_class:
             st_led_on: dataframe with stance led on
             sw_led_on: dataframe with swing led on
             final_tracks_trials: paw excursions
-            timestamps_session: list of timestamps for each trial"""
+            timestamps_session: list of timestamps for each trial
+            plot_data: boolean"""
         if event == 'stance':
             offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             light_trial = st_led_on.loc[st_led_on['trial'] == trial]
@@ -1395,9 +1401,6 @@ class otrack_class:
             if len(before_hit_idx) > 0:
                 incomplete_hits += 1
                 incomplete_hits_st.extend(before_hit_idx)
-            # if len(after_hit_idx) > 0:
-            #     incomplete_hits += 1
-            #     incomplete_hits_st.extend(after_hit_idx)
         misses = len(light_trial) - full_hits - incomplete_hits
         if plot_data:
             paw_colors = ['red', 'blue', 'magenta', 'cyan']
@@ -1426,3 +1429,375 @@ class otrack_class:
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
         return full_hits, incomplete_hits, misses
+
+    @staticmethod
+    def accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, plot_data):
+        """Gets the accuracy of laser presentations (true positive, false positive, true negative, false negative)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            laser_on: dataframe with laser synch on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial
+            plot_data: boolean"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = laser_on.loc[laser_on['trial'] == trial]
+            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
+            offtrack_trial_otherperiod = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = laser_on.loc[laser_on['trial'] == trial]
+            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
+            offtrack_trial_otherperiod = offtracks_st.loc[offtracks_st['trial'] == trial]
+        nr_presentations = np.shape(offtracks_st.loc[offtracks_st['trial'] == trial])[0] + np.shape(offtracks_sw.loc[offtracks_sw['trial'] == trial])[0]
+        full_hits = 0
+        incomplete_hits = 0
+        full_hits_st = []
+        incomplete_hits_st = []
+        all = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            if len(full_hit_idx) > 0:
+                full_hits += 1
+                full_hits_st.extend(full_hit_idx)
+                all.extend(full_hit_idx)
+            if len(before_hit_idx) > 0:
+                incomplete_hits += 1
+                incomplete_hits_st.extend(before_hit_idx)
+                all.extend(before_hit_idx)
+        all_other = []
+        for t in range(len(offtrack_trial_otherperiod['time'])):
+            full_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
+                                    & (offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[0]
+            incomplete_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
+                                          & (offtrack_trial_otherperiod['time'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[
+                0]
+            if len(full_hit_idx) > 0:
+                all_other.extend(full_hit_idx)
+            if len(incomplete_hit_idx) > 0:
+                all_other.extend(incomplete_hit_idx)
+        # definitions of accuracy for an aimed stance
+        # false positive is the number of times light hit correctly swing
+        fp_trial = len(all_other) / nr_presentations
+        # true positive is the number of times light hit correctly stance
+        tp_trial = (full_hits + incomplete_hits) / nr_presentations
+        # false negative is the number of times a stance was detected and there was no light there
+        fn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)) / nr_presentations
+        # true negative is the number of times a swing was detected and light was not there
+        tn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other))/ nr_presentations
+        accuracy_trial = (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other)))/ nr_presentations
+        precision_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(all_other))
+        recall_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)))
+        f1_trial = 2 * ((precision_trial*recall_trial)/(precision_trial+recall_trial))
+        if plot_data:
+            paw_colors = ['red', 'blue', 'magenta', 'cyan']
+            p = 0
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in range(np.shape(led_trials)[1]):
+                rectangle = plt.Rectangle((led_trials[0, r], -400),
+                                          led_trials[1, r] - led_trials[0, r], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
+            ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
+
+    @staticmethod
+    def accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
+        """Gets the accuracy of LED presentations (true positive, false positive, true negative, false negative)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            st_led_on: dataframe with stance led on
+            sw_led_on: dataframe with swing led on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial
+            plot_data: boolean"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = st_led_on.loc[st_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
+            offtrack_trial_otherperiod = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+            offtrack_trial_otherperiod = offtracks_st.loc[offtracks_st['trial'] == trial]
+        nr_presentations = np.shape(offtracks_st.loc[offtracks_st['trial'] == trial])[0] + np.shape(offtracks_sw.loc[offtracks_sw['trial'] == trial])[0]
+        full_hits = 0
+        incomplete_hits = 0
+        full_hits_st = []
+        incomplete_hits_st = []
+        all = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            if len(full_hit_idx) > 0:
+                full_hits += 1
+                full_hits_st.extend(full_hit_idx)
+                all.extend(full_hit_idx)
+            if len(before_hit_idx) > 0:
+                incomplete_hits += 1
+                incomplete_hits_st.extend(before_hit_idx)
+                all.extend(before_hit_idx)
+        all_other = []
+        for t in range(len(offtrack_trial_otherperiod['time'])):
+            full_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
+                                    & (offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[0]
+            incomplete_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
+                                          & (offtrack_trial_otherperiod['time'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[
+                0]
+            if len(full_hit_idx) > 0:
+                all_other.extend(full_hit_idx)
+            if len(incomplete_hit_idx) > 0:
+                all_other.extend(incomplete_hit_idx)
+        # definitions of accuracy for an aimed stance
+        # false positive is the number of times light hit correctly swing
+        fp_trial = len(all_other) / nr_presentations
+        # true positive is the number of times light hit correctly stance
+        tp_trial = (full_hits + incomplete_hits) / nr_presentations
+        # false negative is the number of times a stance was detected and there was no light there
+        fn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)) / nr_presentations
+        # true negative is the number of times a swing was detected and light was not there
+        tn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other))/ nr_presentations
+        accuracy_trial = (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other)))/ nr_presentations
+        precision_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(all_other))
+        recall_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)))
+        f1_trial = 2 * ((precision_trial*recall_trial)/(precision_trial+recall_trial))
+        if plot_data:
+            paw_colors = ['red', 'blue', 'magenta', 'cyan']
+            p = 0
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in range(np.shape(led_trials)[1]):
+                rectangle = plt.Rectangle((led_trials[0, r], -400),
+                                          led_trials[1, r] - led_trials[0, r], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
+            ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
+
+    @staticmethod
+    def laser_presentation_phase(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session):
+        """
+        Inputs: From all the times the laser was on it checks when the laser onset and offset happened in relation to either
+        the stance or swing duration
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            st_led_on: dataframe with stance led on
+            sw_led_on: dataframe with swing led on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = laser_on.loc[laser_on['trial'] == trial]
+            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = laser_on.loc[laser_on['trial'] == trial]
+            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
+        light_onset_phase = []
+        light_offset_phase = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            stride_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
+            light_onset_arr = np.array(light_trial['time_on'])
+            light_offset_arr = np.array(light_trial['time_off'])
+            if len(full_hit_idx) > 0:
+                light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t]) / stride_duration)
+            if len(before_hit_idx) > 0:
+                light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]) / stride_duration)
+        return light_onset_phase, light_offset_phase
+
+    @staticmethod
+    def light_presentation_phase(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session):
+        """
+        Inputs: From all the times the LED was on it checks when the laser onset and offset happened in relation to either
+        the stance or swing duration
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            st_led_on: dataframe with stance led on
+            sw_led_on: dataframe with swing led on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = st_led_on.loc[st_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
+        light_onset_phase = []
+        light_offset_phase = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            stride_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
+            light_onset_arr = np.array(light_trial['time_on'])
+            light_offset_arr = np.array(light_trial['time_off'])
+            if len(full_hit_idx) > 0:
+                light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t]) / stride_duration)
+            if len(before_hit_idx) > 0:
+                light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]) / stride_duration)
+        return light_onset_phase, light_offset_phase
+
+    def accuracy_scores_otrack(self, otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw):
+        """Function to compute accuracy, precision, recall and F1 scores for when the
+        online tracking paw subtraction crosses the threshold.
+        Inputs:
+            otracks: dataframe with online tracking data
+            otracks_st: dataframe with online tracking data when st was reached
+            otracks_sw: dataframe with online tracking data when sw was reached
+            offtracks_st: dataframe with offline tracking data when stance occurred
+            offtracks_sw: dataframe with offline tracking data when swing occurred"""
+        accuracy_st = np.zeros(len(self.trials))
+        fn_st = np.zeros(len(self.trials))
+        tn_st = np.zeros(len(self.trials))
+        fp_st = np.zeros(len(self.trials))
+        tp_st = np.zeros(len(self.trials))
+        precision_st = np.zeros(len(self.trials))
+        recall_st = np.zeros(len(self.trials))
+        f1_st = np.zeros(len(self.trials))
+        accuracy_sw = np.zeros(len(self.trials))
+        fn_sw = np.zeros(len(self.trials))
+        tn_sw = np.zeros(len(self.trials))
+        fp_sw = np.zeros(len(self.trials))
+        tp_sw = np.zeros(len(self.trials))
+        precision_sw = np.zeros(len(self.trials))
+        recall_sw = np.zeros(len(self.trials))
+        f1_sw = np.zeros(len(self.trials))
+        for count_t, t in enumerate(self.trials):
+            # stance accuracy
+            frames_otrack_st = np.array(otracks_st.loc[otracks_st['trial'] == t, 'frames'])
+            otrack_st_off = otracks.loc[otracks['trial'] == t].iloc[
+                np.where(otracks.loc[otracks['trial'] == t, 'st_on'] == 0)[0]]
+            frames_otrack_st_off = np.array(otrack_st_off['frames'])
+            otracks_trial_length = len(otracks.loc[otracks['trial'] == t])
+            tp_st_trial = []
+            fp_st_trial = []
+            tn_st_trial = []
+            fn_st_trial = []
+            for count_i, i in enumerate(frames_otrack_st):
+                tp_st_idx = np.where((i > np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames'])) & (
+                            i < np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames_off'])))[
+                    0]  # true positive
+                fp_st_idx = np.where((i > np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames'])) & (
+                            i < np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames_off'])))[
+                    0]  # false positive
+                if len(tp_st_idx) > 0:
+                    tp_st_trial.append(otracks_st.iloc[count_i, 1])
+                if len(fp_st_idx) > 0:
+                    fp_st_trial.append(otracks_st.iloc[count_i, 1])
+            for count_j, j in enumerate(frames_otrack_st_off):
+                fn_st_idx = np.where((j > np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames'])) & (
+                            j < np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames_off'])))[
+                    0]  # false negative
+                tn_st_idx = np.where((j > np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames'])) & (
+                            j < np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames_off'])))[
+                    0]  # true negative
+                if len(tn_st_idx) > 0:
+                    tn_st_trial.append(otrack_st_off.iloc[count_j, 1])
+                if len(fn_st_idx) > 0:
+                    fn_st_trial.append(otrack_st_off.iloc[count_j, 1])
+            accuracy_st[count_t] = (len(tp_st_trial) + len(tn_st_trial)) / (
+                        len(tp_st_trial) + len(fp_st_trial) + len(tn_st_trial) + len(fn_st_trial))
+            fn_st[count_t] = len(fn_st_trial) / (len(tp_st_trial) + len(fp_st_trial) + len(tn_st_trial) + len(fn_st_trial))
+            tn_st[count_t] = len(tn_st_trial) / (len(tp_st_trial) + len(fp_st_trial) + len(tn_st_trial) + len(fn_st_trial))
+            fp_st[count_t] = len(fp_st_trial) / (
+                        len(tp_st_trial) + len(fp_st_trial) + len(tn_st_trial) + len(fn_st_trial))
+            tp_st[count_t] = len(tp_st_trial) / (
+                        len(tp_st_trial) + len(fp_st_trial) + len(tn_st_trial) + len(fn_st_trial))
+            precision_st[count_t] = len(tp_st_trial) / (len(tp_st_trial) + len(fp_st_trial))
+            recall_st[count_t] = len(tp_st_trial) / (len(tp_st_trial) + len(fn_st_trial))
+            f1_st[count_t] = 2 * ((precision_st[count_t] * recall_st[count_t]) / (precision_st[count_t] + recall_st[count_t]))
+            # swing accuracy
+            frames_otrack_sw = np.array(otracks_sw.loc[otracks_sw['trial'] == t, 'frames'])
+            otrack_sw_off = otracks.loc[otracks['trial'] == t].iloc[
+                np.where(otracks.loc[otracks['trial'] == t, 'sw_on'] == 0)[0]]
+            frames_otrack_sw_off = np.array(otrack_sw_off['frames'])
+            tp_sw_trial = []
+            fp_sw_trial = []
+            tn_sw_trial = []
+            fn_sw_trial = []
+            for count_i, i in enumerate(frames_otrack_sw):
+                fp_sw_idx = np.where((i > np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames'])) & (
+                            i < np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames_off'])))[0]
+                tp_sw_idx = np.where((i > np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames'])) & (
+                            i < np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames_off'])))[0]
+                if len(tp_sw_idx) > 0:
+                    tp_sw_trial.append(otracks_sw.iloc[count_i, 1])
+                if len(fp_sw_idx) > 0:
+                    fp_sw_trial.append(otracks_sw.iloc[count_i, 1])
+            for count_j, j in enumerate(frames_otrack_sw_off):
+                tn_sw_idx = np.where((j > np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames'])) & (
+                            j < np.array(offtracks_st.loc[offtracks_st['trial'] == t, 'frames_off'])))[0]
+                fn_sw_idx = np.where((j > np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames'])) & (
+                            j < np.array(offtracks_sw.loc[offtracks_sw['trial'] == t, 'frames_off'])))[0]
+                if len(tn_sw_idx) > 0:
+                    tn_sw_trial.append(otrack_sw_off.iloc[count_j, 1])
+                if len(fn_sw_idx) > 0:
+                    fn_sw_trial.append(otrack_sw_off.iloc[count_j, 1])
+            accuracy_sw[count_t] = (len(tp_sw_trial) + len(tn_sw_trial)) / (
+                        len(tp_sw_trial) + len(fp_sw_trial) + len(tn_sw_trial) + len(fn_sw_trial))
+            fn_sw[count_t] = len(fn_sw_trial) / (len(tp_sw_trial) + len(fp_sw_trial) + len(tn_sw_trial) + len(fn_sw_trial))
+            tn_sw[count_t] = len(tn_sw_trial) / (len(tp_sw_trial) + len(fp_sw_trial) + len(tn_sw_trial) + len(fn_sw_trial))
+            fp_sw[count_t] = len(fp_sw_trial) / (
+                        len(tp_sw_trial) + len(fp_sw_trial) + len(tn_sw_trial) + len(fn_sw_trial))
+            tp_sw[count_t] = len(tp_sw_trial) / (
+                        len(tp_sw_trial) + len(fp_sw_trial) + len(tn_sw_trial) + len(fn_sw_trial))
+            precision_sw[count_t] = len(tp_sw_trial) / (len(tp_sw_trial) + len(fp_sw_trial))
+            recall_sw[count_t] = len(tp_sw_trial) / (len(tp_sw_trial) + len(fn_sw_trial))
+            f1_sw[count_t] = 2 * ((precision_sw[count_t] * recall_sw[count_t]) / (precision_sw[count_t] + recall_sw[count_t]))
+        return accuracy_st, accuracy_sw, precision_st, precision_sw, recall_st, recall_sw, f1_st, f1_st, fn_st, fn_sw, tn_st, tn_sw, fp_st, fp_sw, tp_st, tp_sw

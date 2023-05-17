@@ -3,20 +3,20 @@ import matplotlib.pyplot as plt
 import os
 
 # Inputs
-laser_event = 'stance'
-single_animal_analysis = 0
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\'
+laser_event = 'swing'
+single_animal_analysis = 1
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\24042023 split right fast swing large stim\\MC16851\\'
 animal = 'MC16851'
-session = 1
+session = 7
 Ntrials = 28
-stim_start = 5
+stim_start = 4
 stim_duration = 14
 plot_rig_signals = 0
 print_plots = 1
-bs_bool = 1
-control_bool = 1
-control_ses = 'right'
-control_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
+bs_bool = 0
+control_bool = 0
+control_ses = 'left'
+control_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
@@ -57,33 +57,51 @@ if single_animal_analysis:
     # PROCESS SYNCHRONIZER LASER SIGNALS
     laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
-    # ACCURACY OF LIGHT ON
-    laser_hits = np.zeros(len(trials))
-    laser_incomplete = np.zeros(len(trials))
-    laser_misses = np.zeros(len(trials))
+    # LASER ACCURACY
+    tp_laser = np.zeros(len(trials))
+    fp_laser = np.zeros(len(trials))
+    tn_laser = np.zeros(len(trials))
+    fn_laser = np.zeros(len(trials))
+    precision_laser = np.zeros(len(trials))
+    recall_laser = np.zeros(len(trials))
+    f1_laser = np.zeros(len(trials))
     for count_t, trial in enumerate(trials):
-        [full_hits, incomplete_hits, misses] = otrack_class.get_hit_laser_synch(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
-        laser_hits[count_t] = full_hits
-        laser_incomplete[count_t] = incomplete_hits
-        laser_misses[count_t] = misses
-    # plot summaries
-    fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-    ax.bar(trials, laser_hits, color='green')
-    ax.bar(trials, laser_incomplete, bottom = laser_hits, color='orange')
-    ax.bar(trials, laser_misses, bottom = laser_hits + laser_incomplete, color='red')
-    ax.set_title(laser_event + ' misses')
+        [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
+        tp_laser[count_t] = tp_trial
+        fp_laser[count_t] = fp_trial
+        tn_laser[count_t] = tn_trial
+        fn_laser[count_t] = fn_trial
+        precision_laser[count_t] = precision_trial
+        recall_laser[count_t] = recall_trial
+        f1_laser[count_t] = f1_trial
+    fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
+    for count_t, trial in enumerate(trials):
+        ax.bar(trial, tp_laser[count_t], color='green')
+        ax.bar(trial, tn_laser[count_t], bottom=tp_laser[count_t], color='darkgreen')
+        ax.bar(trial, fp_laser[count_t], bottom=(tp_laser[count_t] + tn_laser[count_t]), color='red')
+        ax.bar(trial, fn_laser[count_t], bottom=(tp_laser[count_t] + tn_laser[count_t] + fp_laser[count_t]), color='crimson')
+    ax.legend(['true positive', 'true negative', 'false positive', 'false negative'], frameon=False, fontsize=12)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(path_save, 'laser_on_accuracy_' + laser_event + '.png'))
-    fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-    rectangle = plt.Rectangle((stim_start - 0.5, 0), stim_duration, 50, fc='dimgrey', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
-    ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
-    ax.set_title(laser_event + ' accuracy')
+    plt.savefig(path_save + animal + '_laser_performance.png')
+    fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
+    for count_t, trial in enumerate(trials):
+        ax.bar(trial, f1_laser[count_t], color='darkgrey')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(path_save, 'laser_on_accuracy_values_' + laser_event + '.png'))
+    plt.savefig(path_save + animal + '_laser_performance_f1.png')
+    fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
+    for count_t, trial in enumerate(trials):
+        ax.bar(trial, tp_laser[count_t]+tn_laser[count_t], color='darkgrey')
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.savefig(path_save + animal + '_laser_performance_accuracy.png')
 
 if single_animal_analysis == 0:
     # GAIT PARAMETERS ACROSS TRIALS
@@ -122,8 +140,7 @@ if single_animal_analysis == 0:
     else:
         param_sym_bs = param_sym
 
-    # PLOT GAIT PARAMETERS WITH CONTROL WITHOUT MC16846
-    param_sym_bs_plot = param_sym_bs[:, 1:, :]
+    # PLOT GAIT PARAMETERS - BASELINE SUBTRACTED
     for p in range(np.shape(param_sym)[0] - 1):
         fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
         rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym_bs[p, :, :].flatten())), stim_duration,
@@ -149,15 +166,42 @@ if single_animal_analysis == 0:
             plt.savefig(path_save + param_sym_name[p] + '_sym_bs', dpi=128)
     plt.close('all')
 
+    # PLOT GAIT PARAMETERS - NOT-BASELINE SUBTRACTED
+    for p in range(np.shape(param_sym)[0] - 1):
+        fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+        rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym[p, :, :].flatten())), stim_duration,
+                                  np.max(param_sym[p, :, :].flatten()) - np.min(param_sym[p, :, :].flatten()),
+                                  fc='dimgrey', alpha=0.3)
+        plt.gca().add_patch(rectangle)
+        plt.hlines(0, 1, len(param_sym[p, a, :]), colors='grey', linestyles='--')
+        for a in range(np.shape(param_sym)[1]):
+            plt.plot(np.linspace(1, len(param_sym[p, a, :]), len(param_sym[p, a, :])), param_sym[p, a, :],
+                     label=animal_list[a], linewidth=2)
+        ax.set_xlabel('Trial', fontsize=20)
+        ax.legend(frameon=False)
+        ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+        if p == 2:
+            plt.gca().invert_yaxis()
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        if print_plots:
+            if not os.path.exists(path_save):
+                os.mkdir(path_save)
+            plt.savefig(path_save + param_sym_name[p] + '_sym', dpi=128)
+    plt.close('all')
+
     # PLOT ANIMAL AVERAGE
     for p in range(np.shape(param_sym)[0] - 1):
+        # param_sym_bs_ave = param_sym_bs[p, np.array([0, 2, 3, 4]), :]
         param_sym_bs_ave = param_sym_bs[p, :, :]
         fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
         rectangle = plt.Rectangle((stim_start - 0.5, np.min(param_sym_bs_ave[:, :].flatten())), stim_duration,
                                   np.max(param_sym_bs_ave[:, :].flatten()) - np.min(param_sym_bs_ave[:, :].flatten()),
                                   fc='dimgrey', alpha=0.3)
         plt.gca().add_patch(rectangle)
-        plt.hlines(0, 1, len(param_sym_bs_ave[a, :]), colors='grey', linestyles='--')
+        plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
         for a in range(np.shape(param_sym_bs_ave)[0]):
             plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], color='darkgray', linewidth=1)
         plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color='black', linewidth=2)
@@ -176,7 +220,7 @@ if single_animal_analysis == 0:
     plt.close('all')
 
     if control_bool:
-        param_sym_bs_plot = param_sym_bs[:, 1:, :]
+        param_sym_bs_plot = param_sym_bs[:, :, :]
         param_sym_bs_control = np.load(control_path + 'split_' + control_ses + '_fast_control_params_sym_bs_noMC16846.npy')
         for p in range(np.shape(param_sym)[0] - 1):
             param_sym_bs_ave = param_sym_bs_plot[p, :, :]
