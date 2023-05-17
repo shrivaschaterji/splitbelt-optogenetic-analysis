@@ -7,6 +7,8 @@ laser_event = 'swing'
 single_animal_analysis = 1
 path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\24042023 split right fast swing large stim\\MC16851\\'
 animal = 'MC16851'
+th_st = 100
+th_sw = 100
 session = 7
 Ntrials = 28
 stim_start = 4
@@ -102,6 +104,25 @@ if single_animal_analysis:
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     plt.savefig(path_save + animal + '_laser_performance_accuracy.png')
+
+    # SETUP ACCURACY
+    st_correct_setup = np.zeros(len(trials))
+    sw_correct_setup = np.zeros(len(trials))
+    for count_t, trial in enumerate(trials):
+        [st_correct_trial, sw_correct_trial] = otrack_class.setup_accuracy(otracks, otracks_st, otracks_sw, th_st, th_sw, 0)
+        st_correct_setup[count_t] = st_correct_trial
+        sw_correct_setup[count_t] = st_correct_trial
+    fig, ax = plt.subplots(2, 1, tight_layout=True, figsize=(10, 10))
+    ax = ax.ravel()
+    ax[0].bar(trials, st_correct_setup, color='orange')
+    ax[0].tick_params(axis='both', which='major', labelsize=14)
+    ax[0].spines['right'].set_visible(False)
+    ax[0].spines['top'].set_visible(False)
+    ax[1].bar(trials, sw_correct_setup, color='green')
+    ax[1].tick_params(axis='both', which='major', labelsize=14)
+    ax[1].spines['right'].set_visible(False)
+    ax[1].spines['top'].set_visible(False)
+    plt.savefig(path_save + animal + '_setup_accuracy.png')
 
 if single_animal_analysis == 0:
     # GAIT PARAMETERS ACROSS TRIALS

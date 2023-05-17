@@ -35,6 +35,56 @@ final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 # PROCESS SYNCHRONIZER LASER SIGNALS
 laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
+# SETUP ACCURACY
+th_st_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200])
+th_sw_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40])
+st_correct_setup = np.zeros(len(trials))
+sw_correct_setup = np.zeros(len(trials))
+for count_t, trial in enumerate(trials):
+    th_st = th_st_all[count_t]
+    th_sw = th_sw_all[count_t]
+    [st_correct_trial, sw_correct_trial] = otrack_class.setup_accuracy(otracks, otracks_st, otracks_sw, th_st, th_sw, 0)
+    st_correct_setup[count_t] = st_correct_trial
+    sw_correct_setup[count_t] = st_correct_trial
+
+fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
+rectangle1 = plt.Rectangle((10.5, 0), 2, 110, fc='dimgrey', alpha=0.3)
+rectangle2 = plt.Rectangle((22.5, 0), 2, 110, fc='dimgrey', alpha=0.3)
+plt.gca().add_patch(rectangle1)
+plt.gca().add_patch(rectangle2)
+ax.bar(trials, st_correct_setup, color='orange')
+ax.tick_params(axis='both', which='major', labelsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig('C:\\Users\\Ana\\Desktop\\setup_accuracy_st.png')
+fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
+rectangle1 = plt.Rectangle((10.5, 0), 2, 110, fc='dimgrey', alpha=0.3)
+rectangle2 = plt.Rectangle((22.5, 0), 2, 110, fc='dimgrey', alpha=0.3)
+plt.gca().add_patch(rectangle1)
+plt.gca().add_patch(rectangle2)
+ax.bar(trials, sw_correct_setup, color='green')
+ax.tick_params(axis='both', which='major', labelsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig('C:\\Users\\Ana\\Desktop\\setup_accuracy_sw.png')
+
+# OTRACK EXAMPLE
+th_st = 200
+th_sw = 40
+trial = 18
+fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
+ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial']==trial, 'x'], color='black')
+ax.scatter(otracks_st.loc[otracks_st['trial'] == trial, 'time'], otracks_st.loc[otracks_st['trial'] == trial, 'x'],
+           color='orange')
+ax.scatter(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'], otracks_sw.loc[otracks_sw['trial'] == trial, 'x'],
+           color='green')
+ax.axhline(th_st, color='orange')
+ax.axhline(th_sw, color='green')
+ax.set_title('trial' + str(trial))
+ax.set_ylim([-100, 300])
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+
 # OTRACK ACCURACY
 [accuracy_st, accuracy_sw, precision_st, precision_sw, recall_st, recall_sw, f1_st,
  f1_sw, fn_st, fn_sw, tn_st, tn_sw, fp_st, fp_sw, tp_st, tp_sw] = otrack_class.accuracy_scores_otrack(otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw)

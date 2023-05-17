@@ -1801,3 +1801,34 @@ class otrack_class:
             recall_sw[count_t] = len(tp_sw_trial) / (len(tp_sw_trial) + len(fn_sw_trial))
             f1_sw[count_t] = 2 * ((precision_sw[count_t] * recall_sw[count_t]) / (precision_sw[count_t] + recall_sw[count_t]))
         return accuracy_st, accuracy_sw, precision_st, precision_sw, recall_st, recall_sw, f1_st, f1_st, fn_st, fn_sw, tn_st, tn_sw, fp_st, fp_sw, tp_st, tp_sw
+
+    @staticmethod
+    def setup_accuracy(otracks, otracks_st, otracks_sw, th_st, th_sw, plot_data):
+        """Function to compute setup-accuracy (how many times in the online tracking it
+        crossed a threshold and it was detected as such)..
+        Inputs:
+            otracks: dataframe with online tracking data
+            otracks_st: dataframe with online tracking data when st was reached
+            otracks_sw: dataframe with online tracking data when sw was reached
+            th_st: threshold for stance (int)
+            th_sw: threshold for swing (int)
+            plot_data: boolean"""
+        st_correct_trial = (len(otracks_st.loc[otracks_st['trial'] == trial, 'x']) / len(
+            np.where(otracks.loc[otracks['trial'] == trial, 'x'] >= th_st)[0])) * 100
+        sw_correct_trial = (len(otracks_sw.loc[otracks_sw['trial'] == trial, 'x']) / len(
+            np.where(otracks.loc[otracks['trial'] == trial, 'x'] >= th_sw)[0])) * 100
+        if plot_data:
+            fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
+            ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'],
+                    color='black')
+            ax.scatter(otracks_st.loc[otracks_st['trial'] == trial, 'time'],
+                       otracks_st.loc[otracks_st['trial'] == trial, 'x'], color='orange')
+            ax.scatter(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'],
+                       otracks_sw.loc[otracks_sw['trial'] == trial, 'x'], color='green')
+            ax.axhline(th_st, color='orange')
+            ax.axhline(th_sw, color='green')
+            ax.set_title('trial' + str(trial))
+            ax.set_ylim([-100, 300])
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return st_correct_trial, sw_correct_trial
