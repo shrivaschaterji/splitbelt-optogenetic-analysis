@@ -1623,11 +1623,9 @@ class otrack_class:
         if event == 'stance':
             offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             light_trial = laser_on.loc[laser_on['trial'] == trial]
-            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
         if event == 'swing':
             offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
             light_trial = laser_on.loc[laser_on['trial'] == trial]
-            led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
         light_onset_phase = []
         light_offset_phase = []
         for t in range(len(offtrack_trial['time'])):
@@ -1666,11 +1664,9 @@ class otrack_class:
         if event == 'stance':
             offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             light_trial = st_led_on.loc[st_led_on['trial'] == trial]
-            led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
         if event == 'swing':
             offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
             light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
-            led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
         light_onset_phase = []
         light_offset_phase = []
         for t in range(len(offtrack_trial['time'])):
