@@ -43,9 +43,9 @@ sw_correct_setup = np.zeros(len(trials))
 for count_t, trial in enumerate(trials):
     th_st = th_st_all[count_t]
     th_sw = th_sw_all[count_t]
-    [st_correct_trial, sw_correct_trial] = otrack_class.setup_accuracy(otracks, otracks_st, otracks_sw, th_st, th_sw, 0)
+    [st_correct_trial, sw_correct_trial] = otrack_class.setup_accuracy(trial, otracks, otracks_st, otracks_sw, th_st, th_sw, 1)
     st_correct_setup[count_t] = st_correct_trial
-    sw_correct_setup[count_t] = st_correct_trial
+    sw_correct_setup[count_t] = sw_correct_trial
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
 rectangle1 = plt.Rectangle((10.5, 0), 2, 110, fc='dimgrey', alpha=0.3)

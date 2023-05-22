@@ -1803,9 +1803,9 @@ class otrack_class:
         return accuracy_st, accuracy_sw, precision_st, precision_sw, recall_st, recall_sw, f1_st, f1_st, fn_st, fn_sw, tn_st, tn_sw, fp_st, fp_sw, tp_st, tp_sw
 
     @staticmethod
-    def setup_accuracy(otracks, otracks_st, otracks_sw, th_st, th_sw, plot_data):
+    def setup_accuracy(trial, otracks, otracks_st, otracks_sw, th_st, th_sw, plot_data):
         """Function to compute setup-accuracy (how many times in the online tracking it
-        crossed a threshold and it was detected as such)..
+        crossed a threshold and it was detected as such).
         Inputs:
             otracks: dataframe with online tracking data
             otracks_st: dataframe with online tracking data when st was reached
@@ -1813,10 +1813,11 @@ class otrack_class:
             th_st: threshold for stance (int)
             th_sw: threshold for swing (int)
             plot_data: boolean"""
-        st_correct_trial = (len(otracks_st.loc[otracks_st['trial'] == trial, 'x']) / len(
+        #IS NOT COUNTING IT CORRECTLY
+        st_correct_trial = (len(np.where(otracks_st.loc[otracks_st['trial'] == trial, 'x'] >= th_st)[0]) / len(
             np.where(otracks.loc[otracks['trial'] == trial, 'x'] >= th_st)[0])) * 100
-        sw_correct_trial = (len(otracks_sw.loc[otracks_sw['trial'] == trial, 'x']) / len(
-            np.where(otracks.loc[otracks['trial'] == trial, 'x'] >= th_sw)[0])) * 100
+        sw_correct_trial = (len(np.where(otracks_sw.loc[otracks_sw['trial'] == trial, 'x'] <= th_sw)[0]) / len(
+            np.where(otracks.loc[otracks['trial'] == trial, 'x'] <= th_sw)[0])) * 100
         if plot_data:
             fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
             ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'],
