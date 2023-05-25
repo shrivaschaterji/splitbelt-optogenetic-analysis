@@ -81,16 +81,17 @@ for path in paths:
         ax.set_title(laser_event + ' misses')
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        plt.savefig(os.path.join(paths_save[path], 'laser_on_accuracy_' + laser_event + '.png'))
+        plt.savefig(os.path.join(paths_save[path_index], 'laser_on_accuracy_' + laser_event + '.png'))
         fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-        rectangle = plt.Rectangle((stim_start - 0.5, 0), stim_duration, 50, fc='dimgrey', alpha=0.3)
+        rectangle = plt.Rectangle((split_start - 0.5, 0), split_duration, 50, fc=colors[path_index], alpha=0.3)
         plt.gca().add_patch(rectangle)
         ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
         ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
         ax.set_title(laser_event + ' accuracy')
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        plt.savefig(os.path.join(paths_save[path], 'laser_on_accuracy_values_' + laser_event + '.png'))
+        plt.savefig(os.path.join(paths_save[path_index], 'laser_on_accuracy_values_' + laser_event + '.png'))
+    
 
     if single_animal_analysis == 0:
         # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
