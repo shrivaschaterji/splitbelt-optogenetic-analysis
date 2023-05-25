@@ -13,7 +13,6 @@ stim_duration = 14
 plot_rig_signals = 0
 print_plots = 1
 bs_bool = 1
-control_bool = 1
 control_ses = 'right'
 control_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
@@ -190,9 +189,10 @@ for path in paths:
             #    param_sym_multi[path][p] = param_sym_bs_ave
         plt.close('all')
 
-        if control_bool:
+        if len(control_path)>0:
             param_sym_bs_plot = param_sym_bs[:, 2:, :]
-            param_sym_bs_control = np.load(control_path + 'split_' + control_ses + '_fast_control_params_sym_bs_noMC16846.npy')
+            if len(control_path)>0:
+                param_sym_bs_control = np.load(control_path[0] + 'split_' + control_ses + '_fast_control_params_sym_bs_noMC16846.npy')
             for p in range(np.shape(param_sym)[0] - 1):   
                 param_sym_bs_ave = param_sym_bs_plot[p, :, :]
                 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
