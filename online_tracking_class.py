@@ -13,6 +13,7 @@ import cv2
 import glob
 from decord import VideoReader
 from decord import cpu
+np.warnings.filterwarnings('ignore')
 
 class otrack_class:
     def __init__(self, path):
@@ -484,7 +485,7 @@ class otrack_class:
             filename_split = path_split[-1].split('_')
             trial = int(filename_split[7][:-3])
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0) #read h5 using the full network features
-            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # swing and stance detection, exclusion of strides
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)  # swing and stance detection, exclusion of strides
             #get lists for dataframe
             offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
             offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
@@ -906,7 +907,7 @@ class otrack_class:
             frame_np = frame.asnumpy()
             # st_led.append(np.mean(frame_np[:60, 980:1050, :].flatten())) #get the mean intensity of the location where left LED is
             st_led.append(np.mean(
-                frame_np[:60, 1050:, :].flatten()))  # get the mean intensity of the location where left LED is
+                frame_np[:60, 1050:, :].flatten()))  # get the mean intensity of the location where right LED is
             sw_led.append(np.mean(frame_np[:60, 1050:, :].flatten())) #get the mean intensity of the location where right LED is
         #if it starts on
         if st_led[0]>15:
@@ -924,8 +925,12 @@ class otrack_class:
         sw_led_off_all = np.where(-np.diff(sw_led) > 5)[0]+1 #find when the right light turned off (idx)
         sw_led_off = np.array(self.remove_consecutive_numbers(sw_led_off_all)) #sometimes it takes a bit to turn off so get only the first value
         if len(st_led_on) != len(st_led_off):
+            if len(st_led_on) == len(st_led_off)+2: #rare case
+                st_led_on = st_led_on[:-1]
             st_led_off = np.append(st_led_off, frameNr-1) #if trial ends with light on add the last frame, do -1 because python starts at 0
         if len(sw_led_on) != len(sw_led_off):
+            if len(sw_led_on) == len(sw_led_off)+2: #rare case
+                sw_led_on = sw_led_on[:-1]
             sw_led_off = np.append(sw_led_off, frameNr-1) #if trial ends with light on add the last frame, do -1 because python starts at 0
         st_led_frames = np.vstack((st_led_on, st_led_off)) #concatenate
         sw_led_frames = np.vstack((sw_led_on, sw_led_off))
@@ -1601,7 +1606,7 @@ class otrack_class:
                                           led_trials[1, r] - led_trials[0, r], 800, fc='grey', alpha=0.3)
                 plt.gca().add_patch(rectangle)
             mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
-            ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+            ax.plot(final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
                     color=paw_colors[p], linewidth=2)
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
@@ -1809,7 +1814,6 @@ class otrack_class:
             th_st: threshold for stance (int)
             th_sw: threshold for swing (int)
             plot_data: boolean"""
-        #IS NOT COUNTING IT CORRECTLY
         st_correct_trial = (len(np.where(otracks_st.loc[otracks_st['trial'] == trial, 'x'] >= th_st)[0]) / len(
             np.where(otracks.loc[otracks['trial'] == trial, 'x'] >= th_st)[0])) * 100
         sw_correct_trial = (len(np.where(otracks_sw.loc[otracks_sw['trial'] == trial, 'x'] <= th_sw)[0]) / len(
@@ -1829,3 +1833,100 @@ class otrack_class:
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
         return st_correct_trial, sw_correct_trial
+
+    def cross_threshold_delays(self, otracks, otracks_st, otracks_sw, th_st, th_sw, plot_data):
+        """Function to compute setup-accuracy (how many times in the online tracking it
+        crossed a threshold and it was detected as such).
+        Inputs:
+            otracks: dataframe with online tracking data
+            otracks_st: dataframe with online tracking data when st was reached
+            otracks_sw: dataframe with online tracking data when sw was reached
+            th_st: threshold for stance (list)
+            th_sw: threshold for swing (list)
+            plot_data: boolean"""
+        st_threshold_cross_latency = []
+        sw_threshold_cross_latency = []
+        th_cross_st_duration = []
+        th_cross_sw_duration = []
+        # measure difference since x crossed the threshold and it detected true
+        for count_t, trial in enumerate(self.trials):
+            print(trial)
+            otracks_trial = otracks.loc[otracks['trial'] == trial]
+            otracks_st_trial = otracks_st.loc[otracks_st['trial'] == trial]
+            otracks_sw_trial = otracks_sw.loc[otracks_sw['trial'] == trial]
+            if otracks_trial.iloc[0, 0] == 0: #bug fix
+                otracks_trial = otracks_trial.iloc[1:, :]
+            if otracks_st_trial.iloc[0, 0] == 0: #bug fix
+                otracks_st_trial = otracks_st_trial.iloc[1:, :]
+            if otracks_sw_trial.iloc[0, 0] == 0: #bug fix
+                otracks_sw_trial = otracks_sw_trial.iloc[1:, :]
+            otracks_trial_time = np.array(otracks_trial['time'])
+            # getting the time duration that x crossed the threshold for threshold stance and threshold swing
+            th_cross_st_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) >= th_st[count_t])[0]]
+            th_cross_st_on_time = np.insert(th_cross_st_time[np.where(np.diff(th_cross_st_time) > 0.013)[0]], 0, th_cross_st_time[0])
+            th_cross_st_off_time = th_cross_st_time[np.where(np.diff(th_cross_st_time) > 0.013)[0]-1]
+            plt.plot(otracks_trial['time'], otracks_trial['x'], color='black')
+            plt.axhline(y = 100, color='darkgray', zorder=0, linewidth=3)
+            for i in range(len(th_cross_st_on_time)):
+                plt.axvline(x = th_cross_st_on_time[i], color='orange')
+                plt.axvline(x=th_cross_st_off_time[i], color='green')
+
+            # if len(th_cross_st_on_time) > len(th_cross_st_off_time):
+            #    th_cross_st_on_time = th_cross_st_on_time[:-1]
+            # if len(th_cross_st_on_time) < len(th_cross_st_off_time):
+            #     th_cross_st_off_time = th_cross_st_off_time[:-1]
+            # th_cross_st_duration.append(th_cross_st_off_time-th_cross_st_on_time)
+            th_cross_sw_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) < th_sw[count_t])[0]]
+            th_cross_sw_on_time = np.insert(th_cross_sw_time[np.where(np.diff(th_cross_sw_time) > 0.013)[0]], 0, th_cross_sw_time[0])
+            th_cross_sw_off_time = th_cross_sw_time[np.where(np.diff(th_cross_sw_time) > 0.013)[0]-1]
+            # if len(th_cross_sw_on_time) > len(th_cross_sw_off_time):
+            #    th_cross_sw_on_time = th_cross_sw_on_time[:-1]
+            # if len(th_cross_sw_on_time) < len(th_cross_sw_off_time):
+            #     th_cross_sw_off_time = th_cross_sw_off_time[:-1]
+            # th_cross_sw_duration.append(th_cross_sw_off_time-th_cross_sw_on_time)
+
+            # get times where threshold was crossed and times where it got detected
+            otracks_st_trial_time = np.array(otracks_st_trial['time'])
+            st_th_cross_st_on_time_true = np.insert(otracks_st_trial_time[np.where(np.diff(otracks_st_trial_time) > 0.013)[0]], 0, otracks_st_trial_time[0])
+            st_th_cross_st_off_time_true = otracks_st_trial_time[np.where(np.diff(otracks_st_trial_time) > 0.013)[0]-1]
+
+
+
+            if len(st_th_cross_st_on_time_true) > len(th_cross_st_on_time):
+                st_th_cross_st_on_time_true = st_th_cross_st_on_time_true[:-1]
+            if len(st_th_cross_st_on_time_true) < len(th_cross_st_on_time):
+                st_th_cross_st_on_time_true = th_cross_st_on_time[:-1]
+            #st_threshold_cross_latency.append(st_th_cross_st_on_time_true-th_cross_st_on_time)
+            otracks_sw_trial_time = np.array(otracks_sw_trial['time'])
+            sw_th_cross_sw_on_time_true = np.insert(otracks_sw_trial_time[np.where(np.diff(otracks_sw_trial_time) > 0.013)[0]], 0, otracks_sw_trial_time[0])
+            if len(sw_th_cross_sw_on_time_true) > len(th_cross_sw_on_time):
+                sw_th_cross_sw_on_time_true = sw_th_cross_sw_on_time_true[:-1]
+            if len(sw_th_cross_sw_on_time_true) < len(th_cross_sw_on_time):
+                sw_th_cross_sw_on_time_true = th_cross_sw_on_time[:-1]
+            #sw_threshold_cross_latency.append(sw_th_cross_sw_on_time_true-th_cross_sw_on_time)
+        if plot_data:
+            fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
+            for count_t, trial in enumerate(self.trials):
+                ax.scatter(np.repeat(trial, len(st_threshold_cross_latency[count_t])) + np.random.uniform(low=0, high=0.5,
+                                                                                           size=len(st_threshold_cross_latency[count_t])),
+                           st_threshold_cross_latency[count_t]*1000, color='orange')
+            ax.set_xlabel('Trials', fontsize=14)
+            ax.set_ylabel('Time from threshold cross\nand threshold detected (ms)', fontsize=14)
+            ax.set_title('Stance threshold', fontsize=14)
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
+            for count_t, trial in enumerate(self.trials):
+                ax.scatter(np.repeat(trial, len(sw_threshold_cross_latency[count_t])) + np.random.uniform(low=0, high=0.5,
+                                                                                           size=len(sw_threshold_cross_latency[count_t])),
+                           sw_threshold_cross_latency[count_t]*1000, color='green')
+            ax.set_xlabel('Trials', fontsize=14)
+            ax.set_ylabel('Time from threshold cross\nand threshold detected (ms)', fontsize=14)
+            ax.set_title('Swing threshold', fontsize=14)
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return st_threshold_cross_latency, sw_threshold_cross_latency
