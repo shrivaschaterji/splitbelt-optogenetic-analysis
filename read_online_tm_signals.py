@@ -5,11 +5,11 @@ Created on Tue Feb  7 16:59:15 2023
 """
 import os
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\'
-subdir = '040423 mobile network crop bottom tests\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\02062023 fr-hr threshold test\\25percent\\'
+subdir = 'MC18089\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16946'
+animal = 'MC18089'
 session = 1
 plot_data = 0
 import online_tracking_class

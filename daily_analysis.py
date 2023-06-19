@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import os
 
 # Inputs
-laser_event = 'swing'
+laser_event = 'stance'
 single_animal_analysis = 1
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\24042023 split right fast swing large stim\\MC16851\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\02062023 fr-hr threshold test\\75percent\\'
 animal = 'MC16851'
 th_st = 100
 th_sw = 100

@@ -1,14 +1,15 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+np.warnings.filterwarnings('ignore')
 
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\'
-subdir = '040423 mobile network crop bottom tests\\'
+path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\02062023 fr-hr threshold test\\75percent\\'
+subdir = 'MC18089\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
-animal = 'MC16946'
+animal = 'MC18089'
 session = 1
 plot_data = 0
 import online_tracking_class
@@ -35,8 +36,14 @@ final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 # PROCESS SYNCHRONIZER LASER SIGNALS
 laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
-trial = 1
-#measure difference since the first time it was on and laser on
+# SOFTWARE threshold cross latency
+th_st_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200])
+th_sw_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40])
+[st_threshold_cross_latency, sw_threshold_cross_latency] = otrack_class.cross_threshold_delays(otracks, otracks_st, otracks_sw, th_st_all, th_sw_all, 1)
+# TODO relate this to the stance or swing duration - or the time it stayed above the threshold
+
+trial = 5
+# measure difference since the first time it was on and laser on
 otracks_st_frames_trial = np.array(otracks_st.loc[otracks_st['trial']==trial, 'frames'])
 st_on_otrack_trial = np.where(np.diff(otracks_st_frames_trial)>4)[0]+1
 st_on_otrack_trial_all = np.insert(st_on_otrack_trial, 0, 0)
@@ -49,16 +56,19 @@ ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['tri
 ax.scatter(otracks_st.loc[otracks_st['trial'] == trial, 'time'],
            otracks_st.loc[otracks_st['trial'] == trial, 'x'], color='orange', s=100)
 for i in st_on_otrack_trial_all:
-    ax.scatter(otracks_st.loc[otracks_st['trial'] == trial, 'time'][i],
-               otracks_st.loc[otracks_st['trial'] == trial, 'x'][i], color='red', s=40)
+    ax.scatter(np.array(otracks_st.loc[otracks_st['trial'] == trial, 'time'])[i],
+               np.array(otracks_st.loc[otracks_st['trial'] == trial, 'x'])[i], color='red', s=40)
 fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
+ax.scatter(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'],
+        color='black')
 ax.plot(otracks.loc[otracks['trial'] == trial, 'time'], otracks.loc[otracks['trial'] == trial, 'x'],
         color='black')
 ax.scatter(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'],
            otracks_sw.loc[otracks_sw['trial'] == trial, 'x'], color='green', s=100)
+
 for i in sw_on_otrack_trial_all:
-    ax.scatter(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'][i],
-               otracks_sw.loc[otracks_sw['trial'] == trial, 'x'][i], color='red', s=40)
+    ax.scatter(np.array(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'])[i],
+               np.array(otracks_sw.loc[otracks_sw['trial'] == trial, 'x'])[i], color='red', s=40)
 st_on_otrack_trial_all_time = np.array(otracks_st.loc[otracks_st['trial'] == trial, 'time'])[st_on_otrack_trial_all]
 sw_on_otrack_trial_all_time = np.array(otracks_sw.loc[otracks_sw['trial'] == trial, 'time'])[sw_on_otrack_trial_all]
 time_laser_on = laser_on.loc[laser_on['trial'] == trial]['time_on']
@@ -67,18 +77,17 @@ otrack_laser_st_latency = np.zeros(len(st_on_otrack_trial_all_time))
 laser_st_idx_match = np.zeros(len(st_on_otrack_trial_all_time))
 for count_i, i in enumerate(st_on_otrack_trial_all_time):
     laser_st_idx_match[count_i] = np.argmin(np.abs(i-time_laser_on)) #TODO this finds closest peak not the next one
-    otrack_laser_st_latency[count_i] = i-time_laser_on[np.int64(laser_st_idx_match[count_i])]
+    otrack_laser_st_latency[count_i] = i-np.array(time_laser_on)[np.int64(laser_st_idx_match[count_i])]
 otrack_laser_sw_latency = np.zeros(len(sw_on_otrack_trial_all_time))
 laser_sw_idx_match = np.zeros(len(sw_on_otrack_trial_all_time))
 for count_j, j in enumerate(sw_on_otrack_trial_all_time):
     laser_sw_idx_match[count_j] = np.argmin(np.abs(j-time_led_on)) #TODO this finds closest peak not the next one
-    otrack_laser_sw_latency[count_j] = j-time_led_on[np.int64(laser_sw_idx_match[count_j])]
+    otrack_laser_sw_latency[count_j] = j-np.array(time_led_on)[np.int64(laser_sw_idx_match[count_j])]
 plt.figure()
-plt.scatter(st_on_otrack_trial_all_time[np.int64(laser_st_idx_match)], otrack_laser_st_latency, color='orange')
-plt.scatter(sw_on_otrack_trial_all_time[np.int64(laser_sw_idx_match)], otrack_laser_sw_latency, color='green')
+plt.scatter(st_on_otrack_trial_all_time[np.int64(laser_st_idx_match)], otrack_laser_st_latency*1000, color='orange')
+plt.scatter(sw_on_otrack_trial_all_time[np.int64(laser_sw_idx_match)], otrack_laser_sw_latency*1000, color='green')
 
 # measure difference across time between peak otrack and st offline - same for through otrack and sw offline
-trial = 2
 from scipy.signal import find_peaks
 otrack_x = otracks.loc[otracks['trial'] == trial, 'x']
 otrack_time = np.array(otracks.loc[otracks['trial'] == trial, 'time'])
@@ -99,8 +108,8 @@ for count_j, j in enumerate(throughs_time):
     sw_idx_match[count_j] = np.argmin(np.abs(sw_time - j))
     throughs_diff[count_j] = j - sw_time[np.int64(sw_idx_match[count_j])]
 plt.figure()
-plt.scatter(st_time[np.int64(st_idx_match)], peaks_diff, color='green')
-plt.scatter(sw_time[np.int64(sw_idx_match)], throughs_diff, color='orange')
+plt.scatter(st_time[np.int64(st_idx_match)], peaks_diff*1000, color='green')
+plt.scatter(sw_time[np.int64(sw_idx_match)], throughs_diff*1000, color='orange')
 
 p = 0
 led_trials = np.transpose(np.array(laser_on.loc[laser_on['trial'] == trial]))
@@ -119,7 +128,6 @@ ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] -
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 
-trial = 2
 p = 0
 led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
 fig, ax = plt.subplots(figsize=(10, 5), tight_layout=True)
@@ -330,41 +338,54 @@ ax.spines['top'].set_visible(False)
 # ax.spines['top'].set_visible(False)
 # plt.savefig('C:\\Users\\Ana\\Desktop\\otrack_misses_swing.png')
 #
-# # LASER ACCURACY
-# tp_st_laser = np.zeros(len(trials))
-# fp_st_laser = np.zeros(len(trials))
-# tn_st_laser = np.zeros(len(trials))
-# fn_st_laser = np.zeros(len(trials))
-# precision_st_laser = np.zeros(len(trials))
-# recall_st_laser = np.zeros(len(trials))
-# f1_st_laser = np.zeros(len(trials))
-# event = 'stance'
-# for count_t, trial in enumerate(trials):
-#     [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
-#     tp_st_laser[count_t] = tp_trial
-#     fp_st_laser[count_t] = fp_trial
-#     tn_st_laser[count_t] = tn_trial
-#     fn_st_laser[count_t] = fn_trial
-#     precision_st_laser[count_t] = precision_trial
-#     recall_st_laser[count_t] = recall_trial
-#     f1_st_laser[count_t] = f1_trial
-# tp_sw_laser = np.zeros(len(trials))
-# fp_sw_laser = np.zeros(len(trials))
-# tn_sw_laser = np.zeros(len(trials))
-# fn_sw_laser = np.zeros(len(trials))
-# precision_sw_laser = np.zeros(len(trials))
-# recall_sw_laser = np.zeros(len(trials))
-# f1_sw_laser = np.zeros(len(trials))
-# event = 'swing'
-# for count_t, trial in enumerate(trials):
-#     [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
-#     tp_sw_laser[count_t] = tp_trial
-#     fp_sw_laser[count_t] = fp_trial
-#     tn_sw_laser[count_t] = tn_trial
-#     fn_sw_laser[count_t] = fn_trial
-#     precision_sw_laser[count_t] = precision_trial
-#     recall_sw_laser[count_t] = recall_trial
-#     f1_sw_laser[count_t] = f1_trial
+# LASER ACCURACY
+tp_st_laser = np.zeros(len(trials))
+fp_st_laser = np.zeros(len(trials))
+tn_st_laser = np.zeros(len(trials))
+fn_st_laser = np.zeros(len(trials))
+precision_st_laser = np.zeros(len(trials))
+recall_st_laser = np.zeros(len(trials))
+f1_st_laser = np.zeros(len(trials))
+event = 'stance'
+for count_t, trial in enumerate(trials):
+    [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
+    tp_st_laser[count_t] = tp_trial
+    fp_st_laser[count_t] = fp_trial
+    tn_st_laser[count_t] = tn_trial
+    fn_st_laser[count_t] = fn_trial
+    precision_st_laser[count_t] = precision_trial
+    recall_st_laser[count_t] = recall_trial
+    f1_st_laser[count_t] = f1_trial
+tp_sw_laser = np.zeros(len(trials))
+fp_sw_laser = np.zeros(len(trials))
+tn_sw_laser = np.zeros(len(trials))
+fn_sw_laser = np.zeros(len(trials))
+precision_sw_laser = np.zeros(len(trials))
+recall_sw_laser = np.zeros(len(trials))
+f1_sw_laser = np.zeros(len(trials))
+event = 'swing'
+for count_t, trial in enumerate(trials):
+    [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
+    tp_sw_laser[count_t] = tp_trial
+    fp_sw_laser[count_t] = fp_trial
+    tn_sw_laser[count_t] = tn_trial
+    fn_sw_laser[count_t] = fn_trial
+    precision_sw_laser[count_t] = precision_trial
+    recall_sw_laser[count_t] = recall_trial
+    f1_sw_laser[count_t] = f1_trial
+
+fig, ax = plt.subplots(tight_layout=True, figsize=(10,7))
+ax.bar(1, np.nanmean(tp_st_laser[trials[2:4]-1]), color='green')
+ax.bar(1, np.nanmean(tn_st_laser[trials[2:4]-1]), bottom = np.nanmean(tp_st_laser[trials[2:4]-1]), color='darkgreen')
+ax.bar(1, np.nanmean(fp_st_laser[trials[2:4]-1]), bottom = np.nanmean(tp_st_laser[trials[2:4]-1]) + np.nanmean(tn_st_laser[trials[2:4]-1]), color='red')
+ax.bar(1, np.nanmean(fn_st_laser[trials[2:4]-1]), bottom = np.nanmean(tp_st_laser[trials[2:4]-1]) + np.nanmean(tn_st_laser[trials[2:4]-1]) + np.nanmean(fp_st_laser[trials[2:4]-1]), color='crimson')
+ax.legend(['true positive', 'true negative', 'false positive', 'false negative'], frameon=False, fontsize=12)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig('C:\\Users\\Ana\\Desktop\\laser_low_th_performance.png')
+
 # fig, ax = plt.subplots(tight_layout=True, figsize=(10,7))
 # ax.bar(1, np.nanmean(tp_st_laser[trials[:10]-1]), color='green')
 # ax.bar(1, np.nanmean(tn_st_laser[trials[:10]-1]), bottom = np.nanmean(tp_st_laser[trials[:10]-1]), color='darkgreen')
