@@ -255,3 +255,48 @@ for path in paths:
                 plt.savefig(paths_save[path_index] + animal_list[a] + '_stancespeed', dpi=96)
         plt.close('all')
     path_index = path_index+1
+# MULTI-SESSION PLOT
+if len(paths)>1:
+    for p in range(np.shape(param_sym)[0] - 1):
+        fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
+        min_rect = 0
+        max_rect = 0
+        path_index = 0
+        for path in paths:
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
+                            np.nanmean(param_sym_multi[path][p], axis = 0), color=colors[path_index], linewidth=2)
+            # Add SE of each session
+            ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
+                        np.nanmean(param_sym_multi[path][p], axis = 0)+np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
+                        np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
+                        facecolor=colors[path_index], alpha=0.5)
+            min_rect = min(min_rect,np.min(np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)))
+            max_rect = max(max_rect,np.max(np.nanmean(param_sym_multi[path][p], axis=0)+np.nanstd(param_sym_multi[path][p], axis = 0)))
+            path_index += 1
+        # Add mean control (if you have it)
+        if len(control_path)>0:
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
+                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2)
+        ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
+                        np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)+np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
+                        np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)-np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
+                        facecolor='black', alpha=0.5)
+        
+        ax_multi.legend()
+        rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
+                                            max_rect - min_rect,
+                                            fc='lightblue', alpha=0.3)
+        plt.gca().add_patch(rectangle)
+        plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
+        ax_multi.set_xlabel('Trial', fontsize=20)
+        ax_multi.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+        if p == 2:
+            plt.gca().invert_yaxis()
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        ax_multi.spines['right'].set_visible(False)
+        ax_multi.spines['top'].set_visible(False)
+        if print_plots:
+            if not os.path.exists(paths_save[0]):
+                os.mkdir(paths_save[0])
+            plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session', dpi=128)
