@@ -5,7 +5,7 @@ np.warnings.filterwarnings('ignore')
 
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
-path_main = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\02062023 fr-hr threshold test\\75percent\\'
+path_main = 'J:\\Data OPTO\\75percent\\'
 subdir = 'MC18089\\'
 path = os.path.join(path_main, subdir)
 main_dir = path.split('\\')[:-2]
@@ -39,8 +39,16 @@ laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 # SOFTWARE threshold cross latency
 th_st_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200])
 th_sw_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40])
-[st_threshold_cross_latency, sw_threshold_cross_latency] = otrack_class.cross_threshold_delays(otracks, otracks_st, otracks_sw, th_st_all, th_sw_all, 1)
-# TODO relate this to the stance or swing duration - or the time it stayed above the threshold
+[st_threshold_cross_latency, sw_threshold_cross_latency, th_cross_st_duration, th_cross_sw_duration] = otrack_class.cross_threshold_delays(otracks, otracks_st, otracks_sw, th_st_all, th_sw_all, 1)
+plt.figure()
+for count_t in range(len(trials)):
+    plt.scatter(th_cross_st_duration[count_t], st_threshold_cross_latency[count_t], color='black')
+plt.ylim([-0.5, 2])
+plt.figure()
+for count_t in range(len(trials)):
+    plt.scatter(np.arange(0, len(st_threshold_cross_latency[count_t])), st_threshold_cross_latency[count_t])
+plt.ylim([-0.5, 2])
+# TODO relate this to the stance or swing duration - or the time it stayed above the threshold, or time in the trial??
 
 trial = 5
 # measure difference since the first time it was on and laser on
