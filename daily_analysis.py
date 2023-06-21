@@ -3,18 +3,42 @@ import matplotlib.pyplot as plt
 import os
 
 # Inputs
-laser_event = 'stance'
+laser_event = 'swing'
 single_animal_analysis = 0
-# List of paths - it can have only one element
+# List of paths - it is possible to have only one element
+paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
+         'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\06062023 tied stance stim\\',
+         'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\07062023 tied swing stim\\']
+# ['E:\\090523 split right fast stance stim only split\\']
+#['E:\\tied trial stim\\','E:\\tied stance wide stim\\','E:\\tied swing wide stim\\']
+#['D:\\Ali\\19042023 split left fast trial stim\\']
+#['D:\\Ali\\tied belt stim trial\\','D:\\Ali\\tied belt stance wide stim\\','D:\\Ali\\tied belt swing wide stim\\']
+#paths = ['D:\\Ali\\19042023 split left fast trial stim\\', 'D:\\Ali\\21042023 split left fast stance large stim\\', 'D:\\Ali\\25042023 split left fast swing large stim\\']
+#paths = ['D:\\Ali\\18042023 split right fast trial stim\\', 'D:\\Ali\\20042023 split right fast stance large stim\\', 'D:\\Ali\\24042023 split right fast swing large stim\\']
+#['D:\\Ali\\25042023 split left fast swing large stim\\']
+#
+colors = ['purple', 'orange', 'green']      # stim on: trial stance swing
+#['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
+# ['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']
+#['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
+animal = 'MC16846'          #'MC16851'
 session = 1
 Ntrials = 28
-stim_start = 5
-stim_duration = 14
+stim_start = 9
+split_start = 9
+stim_duration = 10      #8
+split_duration = 10         #8
 plot_rig_signals = 0
 print_plots = 1
 bs_bool = 1
 control_ses = 'right'
-control_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
+control_path = []         # This should be a list; if empty, we have no control (e.g. in tied sessions)
+#'E:\\tied trial stim\\'
+#'D:\\Ali\\170423 split left ipsi fast control\\'
+#'D:\\Ali\\tied belt stim trial\\'
+#'D:\\Ali\\14042023 splitS1 right fast nostim\\'
+#'D:\\Ali\\170423 split left ipsi fast control\\'
+#['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']         #'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
 import online_tracking_class
