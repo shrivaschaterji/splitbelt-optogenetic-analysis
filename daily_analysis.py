@@ -334,3 +334,32 @@ if len(paths)>1:
             if not os.path.exists(paths_save[0]):
                 os.mkdir(paths_save[0])
             plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session', dpi=128)
+           
+        # Do bar plot of learning parameters
+        initial_error_mean = []
+        initial_error_std = []
+        after_effect_mean = []
+        after_effect_std = []
+        for path in paths:
+            initial_error_mean.append(np.nanmean(param_sym_multi[path][p][:,split_start:split_start+1]))
+            initial_error_std.append(np.nanmean(param_sym_multi[path][p][:,split_start:split_start+1]))
+            after_effect_mean.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration:split_start+split_duration+1]))
+            after_effect_std.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration:split_start+split_duration+1]))
+        fig_bar, ax_bar = plt.subplots(2,1)
+        ax_bar[0].bar(list(range(len(paths))), initial_error_mean,
+            yerr=initial_error_std,
+            align='center',
+            alpha=0.5,
+            ecolor='black',
+            capsize=10)
+        ax[0].set_xticklabels([''])
+        ax_bar[1].bar(list(range(len(paths))), after_effect_mean,
+            yerr=after_effect_std,
+            align='center',
+            alpha=0.5,
+            ecolor='black',
+            capsize=10)
+        if print_plots:
+            if not os.path.exists(paths_save[0]):
+                os.mkdir(paths_save[0])
+            plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session_barplot', dpi=96)
