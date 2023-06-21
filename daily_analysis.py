@@ -255,6 +255,40 @@ for path in paths:
                 plt.savefig(paths_save[path_index] + animal_list[a] + '_stancespeed', dpi=96)
         plt.close('all')
     path_index = path_index+1
+        
+'''
+        # CONTINUOUS STEP LENGTH WITH LASER ON
+        trials = np.arange(1, 28)
+        for count_animal, animal in enumerate(animal_list):
+            param_sl = []
+            session = int(session_list[count_animal])
+            filelist = locos[path_index].get_track_files(animal, session)
+            for count_trial, f in enumerate(filelist):
+                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
+                [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
+                paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
+                for count_p, param in enumerate(param_sym_name):
+                    param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, 'step_length')
+            param_sl.append(param_mat)
+            [stride_idx, trial_continuous, sl_time, sl_values] = locos[path_index].param_continuous_sym(param_sl, st_strides_trials, trials, 'FR', 'FL', 1, 1)
+            fig, ax = plt.subplots(tight_layout=True, figsize=(25,10))
+            sl_time_start = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]
+            sl_time_duration = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]+(locos[path_index].trial_time*stim_duration)
+            rectangle = plt.Rectangle((sl_time_start, np.nanmin(sl_values)), sl_time_duration-sl_time_start, np.nanmax(sl_values)+np.abs(np.nanmin(sl_values)), fc=colors[a], alpha=0.3)
+            plt.gca().add_patch(rectangle)
+            ax.plot(sl_time, sl_values, color='black')
+            ax.set_xlabel('time (s)')
+            ax.set_title('continuous step length')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            if print_plots:
+                if not os.path.exists(paths_save[path_index]):
+                    os.mkdir(paths_save[path_index])
+                plt.savefig(paths_save[path_index] + animal_list[a] + '_sl_sym_continuous', dpi=96)
+'''
+
+    
+
 # MULTI-SESSION PLOT
 if len(paths)>1:
     for p in range(np.shape(param_sym)[0] - 1):
