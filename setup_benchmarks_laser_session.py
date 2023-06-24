@@ -133,8 +133,6 @@ for count_a, animal in enumerate(animals):
     stim_offset_time_st.append(stim_offset_time_st_animal)
     stim_offset_time_sw.append(stim_offset_time_st_animal)
 
-#TODO add examples of laser presentations and offline tracking
-
 benchmark_accuracy = pd.DataFrame(
     {'condition': condition_id, 'animal': animal_id, 'trial': trial_id, 'accuracy_st': accuracy_st,
      'accuracy_sw': accuracy_sw, 'f1_score_st': f1_score_st, 'f1_score_sw': f1_score_sw})
