@@ -565,9 +565,9 @@ class loco_class:
             if param == 'swing_velocity':
                 param_mat.append((X_interp[p,st_strides_mat[p][:,1,4].astype(int)]-X_interp[p,sw_pts_mat[p][:,0,4].astype(int)])/(st_strides_mat[p][:,1,0]-sw_pts_mat[p][:,0,0]))
             if param == 'swinglength_rel':
-                param_mat.append(paws_rel[p][st_strides_mat[p][:,1,4].astype(int)]-paws_rel[p][st_strides_mat[p][:,0,4].astype(int)]) 
+                param_mat.append(paws_rel[p][st_strides_mat[p][:,1,4].astype(int)]-paws_rel[p][st_strides_mat[p][:,0,4].astype(int)])
             if param == 'stance_speed':
-                param_mat.append((sw_pts_mat[p][:,0,1]-st_strides_mat[p][:,0,1])/(sw_pts_mat[p][:,0,0]-st_strides_mat[p][:,0,0]))   
+                param_mat.append((st_strides_mat[p][:,0,1]-sw_pts_mat[p][:,0,1])/(sw_pts_mat[p][:,0,0]-st_strides_mat[p][:,0,0]))
             if param == 'stance_length':
                 param_mat.append(sw_pts_mat[p][:,0,1]-st_strides_mat[p][:,0,1])      
             if param == 'body_center_x_stride':
