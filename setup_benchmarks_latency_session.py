@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 paw_otrack = 'FR'
-path = 'J:\\Data OPTO\\75percent\\'
-th_st_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
-th_sw_all = np.array([100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100])
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\HR tests\\25percent\\'
+th_st_all = np.repeat(200, 10)
+th_sw_all = np.repeat(100, 10)
 animals = ['MC18089', 'MC18090']
 session = 1
 condition = path.split('\\')[-2]
@@ -107,117 +107,75 @@ def get_colors_plot(trial, color_speeds):
     return color_plot
 dot_size = 4
 
-# Latency between online tracking and threshold crossing
+# Latency summary
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_detect_on']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_detect_on']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
+for a in animals:
+    benchmark_data_st_animal = benchmark_data_st.loc[benchmark_data_st['animal'] == a]
+    for trial in trials:
+        latency_cross_true_st = benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_detect_on'] - \
+                                benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_cross_on']
+        latency_cross_laser_st = benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_laser_on'] - \
+                                 benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_cross_on']
+        if (trial % 2) == 0:
+            plot_scatter = ax.plot(np.array([1, 2]), np.array([np.nanmean(latency_cross_true_st), np.nanmean(latency_cross_laser_st)]), 'o-',
+                    color=get_colors_plot(trial, color_speeds), label='_nolegend_')
+        else:
+            plot_scatter = ax.plot(np.array([1, 2]), np.array([np.nanmean(latency_cross_true_st), np.nanmean(latency_cross_laser_st)]), 'o-',
+                    color=get_colors_plot(trial, color_speeds), label=str(trial))
 lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
 for i in range(len(color_speeds)-1):
     lgnd.legendHandles[i]._sizes = [30]
-ax.set_xlabel('Time (s)', fontsize=14)
+ax.set_xticks(np.array([1, 2]))
+ax.set_xticklabels(['latency threshold\n cross and detection', 'latency threshold\n cross and light on'], fontsize=10)
 ax.set_ylabel('Latency (s)', fontsize=14)
-ax.set_title('latency otrack true and threshold\ncrossing stance ' + condition, fontsize=16)
+ax.set_title('latency stance ' + condition, fontsize=16)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'latency_otracktrue_thcross_stance_' + condition), dpi=128)
+plt.savefig(os.path.join(path, 'plots', 'latency_summary_stance_' + condition), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_detect_on']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_detect_on']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
+for a in animals:
+    benchmark_data_sw_animal = benchmark_data_sw.loc[benchmark_data_sw['animal'] == a]
+    for trial in trials:
+        latency_cross_true_sw = benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_detect_on'] - \
+                                benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_cross_on']
+        latency_cross_laser_sw = benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_laser_on'] - \
+                                 benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_cross_on']
+        if (trial % 2) == 0:
+            plot_scatter = ax.plot(np.array([1, 2]), np.array([np.nanmean(latency_cross_true_sw), np.nanmean(latency_cross_laser_sw)]), 'o-',
+                    color=get_colors_plot(trial, color_speeds), label='_nolegend_')
+        else:
+            plot_scatter = ax.plot(np.array([1, 2]), np.array([np.nanmean(latency_cross_true_sw), np.nanmean(latency_cross_laser_sw)]), 'o-',
+                    color=get_colors_plot(trial, color_speeds), label=str(trial))
 lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
 for i in range(len(color_speeds)-1):
     lgnd.legendHandles[i]._sizes = [30]
-ax.set_xlabel('Time (s)', fontsize=14)
+ax.set_xticks(np.array([1, 2]))
+ax.set_xticklabels(['latency threshold\n cross and detection', 'latency threshold\n cross and light on'], fontsize=10)
 ax.set_ylabel('Latency (s)', fontsize=14)
-ax.set_title('latency otrack true and threshold\ncrossing swing ' + condition, fontsize=16)
+ax.set_title('latency swing ' + condition, fontsize=16)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'latency_otracktrue_thcross_swing_' + condition), dpi=128)
-
-# Latency between threshold crossing and laser start
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_laser_on']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_laser_on']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
-lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
-for i in range(len(color_speeds)-1):
-    lgnd.legendHandles[i]._sizes = [30]
-ax.set_xlabel('Time (s)', fontsize=14)
-ax.set_ylabel('Latency (s)', fontsize=14)
-ax.set_title('latency laser on and threshold\ncrossing stance ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'latency_laseron_thcross_stance_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_on']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_on']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_cross_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
-lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
-for i in range(len(color_speeds)-1):
-    lgnd.legendHandles[i]._sizes = [30]
-ax.set_xlabel('Time (s)', fontsize=14)
-ax.set_ylabel('Latency (s)', fontsize=14)
-ax.set_title('latency laser on and threshold\ncrossing swing ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'latency_laseron_thcross_swing_' + condition), dpi=128)
+plt.savefig(os.path.join(path, 'plots', 'latency_summary_swing_' + condition), dpi=128)
 
 # Stance/swing duration relation with the duration of threshold crossing
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_off']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_off'] -
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_off']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_cross_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_off'] -
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
+for a in animals:
+    benchmark_data_st_animal = benchmark_data_st.loc[benchmark_data_st['animal'] == a]
+    for trial in trials:
+        th_cross_duration_st = benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_cross_off'] - \
+                                benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_cross_on']
+        st_duration = benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_st_off'] - \
+                                 benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_st_on']
+        if (trial % 2) == 0:
+            plot_scatter = ax.scatter(np.nanmean(th_cross_duration_st), np.nanmean(st_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label='_nolegend_')
+        else:
+            plot_scatter = ax.scatter(np.nanmean(th_cross_duration_st), np.nanmean(st_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label=str(trial))
 lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
 for i in range(len(color_speeds)-1):
     lgnd.legendHandles[i]._sizes = [30]
@@ -230,19 +188,19 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'thcrossduration_stanceduration_' + condition), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_off']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_off'] -
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_off']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_off'] -
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
+for a in animals:
+    benchmark_data_sw_animal = benchmark_data_sw.loc[benchmark_data_sw['animal'] == a]
+    for trial in trials:
+        th_cross_duration_sw = benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_cross_off'] - \
+                                benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_cross_on']
+        sw_duration = benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_sw_off'] - \
+                                 benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_sw_on']
+        if (trial % 2) == 0:
+            plot_scatter = ax.scatter(np.nanmean(th_cross_duration_sw), np.nanmean(sw_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label='_nolegend_')
+        else:
+            plot_scatter = ax.scatter(np.nanmean(th_cross_duration_sw), np.nanmean(sw_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label=str(trial))
 lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
 for i in range(len(color_speeds)-1):
     lgnd.legendHandles[i]._sizes = [30]
@@ -257,19 +215,19 @@ plt.savefig(os.path.join(path, 'plots', 'thcrossduration_swingduration_' + condi
 
 # Stance/swing duration relation with the duration of laser presentation
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_laser_off']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_laser_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_off'] -
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_laser_off']-
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_laser_on'],
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_off'] -
-                benchmark_data_st.loc[benchmark_data_st['trial'] == trial, 'th_st_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
+for a in animals:
+    benchmark_data_st_animal = benchmark_data_st.loc[benchmark_data_st['animal'] == a]
+    for trial in trials:
+        laser_duration_st = benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_laser_off'] - \
+                                benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_laser_on']
+        st_duration = benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_st_off'] - \
+                                 benchmark_data_st_animal.loc[benchmark_data_st_animal['trial'] == trial, 'th_st_on']
+        if (trial % 2) == 0:
+            plot_scatter = ax.scatter(np.nanmean(laser_duration_st), np.nanmean(st_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label='_nolegend_')
+        else:
+            plot_scatter = ax.scatter(np.nanmean(laser_duration_st), np.nanmean(st_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label=str(trial))
 lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
 for i in range(len(color_speeds)-1):
     lgnd.legendHandles[i]._sizes = [30]
@@ -282,19 +240,19 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'laserduration_stanceduration_' + condition), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for trial in trials:
-    if (trial % 2) == 0:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_off']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_off'] -
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label='_nolegend_')
-    else:
-        plot_scatter = ax.scatter(benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_off']-
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_laser_on'],
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_off'] -
-                benchmark_data_sw.loc[benchmark_data_sw['trial'] == trial, 'th_sw_on'],
-                color=get_colors_plot(trial, color_speeds), s=dot_size, label=str(trial))
+for a in animals:
+    benchmark_data_sw_animal = benchmark_data_sw.loc[benchmark_data_sw['animal'] == a]
+    for trial in trials:
+        laser_duration_sw = benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_laser_off'] - \
+                                benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_laser_on']
+        sw_duration = benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_sw_off'] - \
+                                 benchmark_data_sw_animal.loc[benchmark_data_sw_animal['trial'] == trial, 'th_sw_on']
+        if (trial % 2) == 0:
+            plot_scatter = ax.scatter(np.nanmean(laser_duration_sw), np.nanmean(sw_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label='_nolegend_')
+        else:
+            plot_scatter = ax.scatter(np.nanmean(laser_duration_sw), np.nanmean(sw_duration),
+                    color=get_colors_plot(trial, color_speeds), s=60, label=str(trial))
 lgnd = ax.legend(['0.175', '0.275', '0.375', 'ipsi fast', 'left fast'], frameon=False, fontsize=12, loc='upper center', ncol=3)
 for i in range(len(color_speeds)-1):
     lgnd.legendHandles[i]._sizes = [30]

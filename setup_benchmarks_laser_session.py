@@ -6,7 +6,7 @@ np.warnings.filterwarnings('ignore')
 
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
-path = 'J:\\Data OPTO\\75percent\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\HR tests\\25percent\\'
 condition = path.split('\\')[-2]
 animals = ['MC18089', 'MC18090']
 colors_animals = ['black', 'blue']
@@ -21,8 +21,10 @@ loco = locomotion_class.loco_class(path)
 
 accuracy_st = []
 f1_score_st = []
+fn_st = []
 accuracy_sw = []
 f1_score_sw = []
+fn_sw = []
 animal_id = []
 trial_id = []
 condition_id = []
@@ -49,25 +51,31 @@ for count_a, animal in enumerate(animals):
     tp_st_laser = np.zeros(len(trials))
     tn_st_laser = np.zeros(len(trials))
     f1_st_laser = np.zeros(len(trials))
+    fn_st_laser = np.zeros(len(trials))
     event = 'stance'
     for count_t, trial in enumerate(trials):
         [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
         tp_st_laser[count_t] = tp_trial
         tn_st_laser[count_t] = tn_trial
         f1_st_laser[count_t] = f1_trial
+        fn_st_laser[count_t] = fn_trial
     accuracy_st.extend(tp_st_laser+tn_st_laser)
     f1_score_st.extend(f1_st_laser)
+    fn_st.extend(fn_st_laser)
     tp_sw_laser = np.zeros(len(trials))
     tn_sw_laser = np.zeros(len(trials))
     f1_sw_laser = np.zeros(len(trials))
+    fn_sw_laser = np.zeros(len(trials))
     event = 'swing'
     for count_t, trial in enumerate(trials):
         [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
         tp_sw_laser[count_t] = tp_trial
         tn_sw_laser[count_t] = tn_trial
         f1_sw_laser[count_t] = f1_trial
+        fn_sw_laser[count_t] = fn_trial
     accuracy_sw.extend(tp_sw_laser+tn_sw_laser)
     f1_score_sw.extend(f1_sw_laser)
+    fn_sw.extend(fn_sw_laser)
     trial_id.extend(trials)
     animal_id.extend(np.repeat(animal, len(trials)))
     condition_id.extend(np.repeat(condition, len(trials)))
@@ -135,7 +143,9 @@ for count_a, animal in enumerate(animals):
 
 benchmark_accuracy = pd.DataFrame(
     {'condition': condition_id, 'animal': animal_id, 'trial': trial_id, 'accuracy_st': accuracy_st,
-     'accuracy_sw': accuracy_sw, 'f1_score_st': f1_score_st, 'f1_score_sw': f1_score_sw})
+     'accuracy_sw': accuracy_sw, 'f1_score_st': f1_score_st, 'f1_score_sw': f1_score_sw, 'fn_st': fn_st,
+     'fn_sw': fn_sw})
+benchmark_accuracy.to_csv(os.path.join(otrack_class.path, 'processed files', 'benchmark_accuracy.csv'), sep=',', index=False)
 
 # STIMULATION ACCURACY MEASURES
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2))
@@ -203,6 +213,38 @@ plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'accuracy_sw_' + condition), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
+for count_a, animal in enumerate(animals):
+    fn_data = np.array(benchmark_accuracy.loc[benchmark_accuracy['animal'] == animal, 'fn_st'])
+    trials_ave = np.zeros(len(trials_reshape))
+    for i in range(len(trials_reshape)):
+        ax.scatter(np.ones(2)*trials_reshape[i, 0], fn_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
+        trials_ave[i] = np.nanmean(fn_data[trials_reshape[i, :]-1])
+    ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
+ax.set_xticks(trials_reshape[:, 0])
+ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
+ax.set_title('Stance false negatives ' + condition, fontsize=16)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(path, 'plots', 'fn_st_' + condition), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
+for count_a, animal in enumerate(animals):
+    fn_data = np.array(benchmark_accuracy.loc[benchmark_accuracy['animal'] == animal, 'fn_sw'])
+    trials_ave = np.zeros(len(trials_reshape))
+    for i in range(len(trials_reshape)):
+        ax.scatter(np.ones(2)*trials_reshape[i, 0], fn_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
+        trials_ave[i] = np.nanmean(fn_data[trials_reshape[i, :]-1])
+    ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
+ax.set_xticks(trials_reshape[:, 0])
+ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
+ax.set_title('Swing false negatives score ' + condition, fontsize=16)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(path, 'plots', 'fn_sw_' + condition), dpi=128)
 plt.close('all')
 
 # STIMULATION DURATION
