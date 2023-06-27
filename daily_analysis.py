@@ -392,7 +392,7 @@ if single_animal_analysis==0 and len(paths)>1:
             after_effect_std.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration:split_start+split_duration+1]))
         fig_bar, ax_bar = plt.subplots(2,1)
         ax_bar[0].bar(list(range(len(paths))), initial_error_mean,
-            yerr=initial_error_std,
+            yerr=[abs(ie) for ie in initial_error_std],
             align='center',
             alpha=0.5,
             ecolor='black',
