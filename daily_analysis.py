@@ -21,7 +21,7 @@ colors = ['purple', 'orange', 'green']      # stim on: trial stance swing
 #['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
 # ['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']
 #['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
-animal = 'MC16846'          #'MC16851'
+bs_bool = 1
 session = 1
 Ntrials = 28
 stim_start = 9
@@ -179,7 +179,10 @@ for path in paths:
             if print_plots:
                 if not os.path.exists(paths_save[path_index]):
                     os.mkdir(paths_save[path_index])
-                plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs', dpi=128)
+                if bs_bool:
+                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs', dpi=128)
+                else:
+                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs', dpi=128)
         plt.close('all')
 
     # PLOT ANIMAL AVERAGE FOR EACH SESSION
@@ -207,7 +210,10 @@ for path in paths:
             if print_plots:
                 if not os.path.exists(paths_save[path_index]):
                     os.mkdir(paths_save[path_index])
-                plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average', dpi=128)
+                if bs_bool:
+                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average', dpi=128)
+                else:
+                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs_average', dpi=128)
             # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot)
             #if len(paths)>1:
             #    param_sym_multi[path][p] = param_sym_bs_ave
@@ -251,7 +257,10 @@ for path in paths:
                 if print_plots:
                     if not os.path.exists(paths_save[path_index]):
                         os.mkdir(paths_save[path_index])
-                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average_with_control', dpi=128)
+                    if bs_bool:
+                        plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average_with_control', dpi=128)
+                    else:
+                        plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs_average_with_control', dpi=128)
                 if len(paths)>1:
                     param_sym_multi[path][p] = param_sym_bs_ave
                     
@@ -357,7 +366,10 @@ if len(paths)>1:
         if print_plots:
             if not os.path.exists(paths_save[0]):
                 os.mkdir(paths_save[0])
-            plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session', dpi=128)
+            if bs_bool:
+                plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session', dpi=128)
+            else:
+                plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_non_bs_average_with_control_multi_session', dpi=128)
            
         # Do bar plot of learning parameters
         initial_error_mean = []
