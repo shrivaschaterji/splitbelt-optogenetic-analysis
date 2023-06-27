@@ -4,14 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
-paw_colors = ['red', 'magenta', 'blue', 'cyan']
-paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\HR tests\\25percent\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\CM tests\\75percent\\'
 condition = path.split('\\')[-2]
-animals = ['MC18089', 'MC18090']
-colors_animals = ['black', 'blue']
+animals = ['MC18089', 'MC18090', 'MC18091']
+colors_animals = ['black', 'teal', 'orange']
 session = 1
-plot_data = 0
 if not os.path.exists(os.path.join(path, 'plots')):
     os.mkdir(os.path.join(path, 'plots'))
 import online_tracking_class
@@ -139,7 +136,7 @@ for count_a, animal in enumerate(animals):
     stim_offset_phase_st.append(stim_offset_phase_st_animal)
     stim_offset_phase_sw.append(stim_offset_phase_sw_animal)
     stim_offset_time_st.append(stim_offset_time_st_animal)
-    stim_offset_time_sw.append(stim_offset_time_st_animal)
+    stim_offset_time_sw.append(stim_offset_time_sw_animal)
 
 benchmark_accuracy = pd.DataFrame(
     {'condition': condition_id, 'animal': animal_id, 'trial': trial_id, 'accuracy_st': accuracy_st,
@@ -248,7 +245,7 @@ plt.savefig(os.path.join(path, 'plots', 'fn_sw_' + condition), dpi=128)
 plt.close('all')
 
 # STIMULATION DURATION
-xaxis = np.array([0, 1.5, 3, 4.5, 6])
+xaxis = np.array([0, 3, 6, 9, 12])
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
 for count_a in range(len(animals)):
     violin_parts = ax.violinplot(stim_duration_st[count_a], positions=xaxis+(0.5*count_a))

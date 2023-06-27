@@ -9,14 +9,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\HR tests\\25percent\\'
-th_st_all = np.repeat(200, 10)
-th_sw_all = np.repeat(100, 10)
-animals = ['MC18089', 'MC18090']
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\CM tests\\75percent\\'
+th_st_all = np.repeat(45, 10)
+th_sw_all = np.repeat(95, 10)
+animals = ['MC18089', 'MC18090', 'MC18091']
 session = 1
 condition = path.split('\\')[-2]
 main_dir = path.split('\\')[:-2]
-plot_data = 0
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
@@ -105,7 +104,6 @@ def get_colors_plot(trial, color_speeds):
     color_idx = np.where(trials_reshape==trial)[0]
     color_plot = color_speeds[color_idx[0]]
     return color_plot
-dot_size = 4
 
 # Latency summary
 fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
