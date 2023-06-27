@@ -5,6 +5,8 @@ import os
 # Inputs
 laser_event = 'swing'
 single_animal_analysis = 0
+included_animal_list = ['MC17319','MC17665']           # IDs of animals to be included in the multi animal analysis - if it is empty, all animals are included
+
 # List of paths - it is possible to have only one element
 paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
          'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\06062023 tied stance stim\\',
@@ -61,6 +63,9 @@ for path in paths:
     animal_list = []
     for a in range(len(animal_session_list)):
         animal_list.append(animal_session_list[a][0])
+    if len(included_animal_list) == 0:              # All animals included
+        included_animal_list = animal_list
+    included_animals_id = [animal_list.index(i) for i in included_animal_list]
     session_list = []
     for a in range(len(animal_session_list)):
         session_list.append(animal_session_list[a][1])
@@ -155,8 +160,8 @@ for path in paths:
         else:
             param_sym_bs = param_sym
 
-        # PLOT GAIT PARAMETERS WITH CONTROL WITHOUT MC16846
-        param_sym_bs_plot = param_sym_bs[:, 2:, :]
+        # PLOT GAIT PARAMETERS OF INCLUDED ANIMALS
+        param_sym_bs_plot = param_sym_bs[:, included_animals_id, :]
         for p in range(np.shape(param_sym)[0] - 1):
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
             rectangle = plt.Rectangle((split_start - 0.5, np.min(param_sym_bs[p, :, :].flatten())), split_duration,
@@ -189,7 +194,7 @@ for path in paths:
     param_sym_multi[path] = {}
     if single_animal_analysis == 0:
         for p in range(np.shape(param_sym)[0] - 1):
-            param_sym_bs_ave = param_sym_bs[p, :, :]
+            param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
             rectangle = plt.Rectangle((split_start - 0.5, np.min(param_sym_bs_ave[:, :].flatten())), split_duration,
                                         np.max(param_sym_bs_ave[:, :].flatten()) - np.min(param_sym_bs_ave[:, :].flatten()),
@@ -197,8 +202,9 @@ for path in paths:
             plt.gca().add_patch(rectangle)
             plt.hlines(0, 1, len(param_sym_bs_ave[a, :]), colors='grey', linestyles='--')
             for a in range(np.shape(param_sym_bs_ave)[0]):
-                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], color=colors[path_index], linewidth=1)
-            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=colors[path_index], linewidth=2)
+                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1)
+            ax.legend(frameon=False)
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=colors[path_index], linewidth=3)
             ax.set_xlabel('Trial', fontsize=20)
             ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
             if p == 2:
@@ -220,9 +226,12 @@ for path in paths:
         plt.close('all')
 
         if len(control_path)>0:
-            param_sym_bs_plot = param_sym_bs[:, 2:, :]
+            param_sym_bs_plot = param_sym_bs[:, included_animals_id, :]
             if len(control_path)>0:
-                param_sym_bs_control = np.load(control_path[0] + 'split_' + control_ses + '_fast_control_params_sym_bs_noMC16846.npy')
+                param_sym_bs_control = np.load(control_path[0] + control_filename)
+                # Select subgroup of included animals, if they are not all
+                if len(included_animal_list)>0:
+                    param_sym_bs_control = param_sym_bs_control[:, included_animals_id, :]
             for p in range(np.shape(param_sym)[0] - 1):   
                 param_sym_bs_ave = param_sym_bs_plot[p, :, :]
                 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
@@ -266,7 +275,7 @@ for path in paths:
                     
             plt.close('all')
 
-        # PLOT STANCE SPEED
+        # PLOT STANCE SPEED for ALL ANIMALS
         for a in range(np.shape(stance_speed)[1]):
             data = stance_speed[:, a, :]
             fig, ax = plt.subplots(figsize=(7,10), tight_layout=True)
