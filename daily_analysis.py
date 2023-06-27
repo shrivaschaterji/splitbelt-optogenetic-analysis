@@ -221,8 +221,8 @@ for path in paths:
                 else:
                     plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs_average', dpi=128)
             # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot)
-            #if len(paths)>1:
-            #    param_sym_multi[path][p] = param_sym_bs_ave
+            if len(paths)>1:
+                param_sym_multi[path][p] = param_sym_bs_ave
         plt.close('all')
 
         if len(control_path)>0:
@@ -332,7 +332,7 @@ for path in paths:
     
 
 # MULTI-SESSION PLOT
-if len(paths)>1:
+if single_animal_analysis==0 and len(paths)>1:
     for p in range(np.shape(param_sym)[0] - 1):
         fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
         min_rect = 0
@@ -353,10 +353,10 @@ if len(paths)>1:
         if len(control_path)>0:
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
                             np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2)
-        ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
-                        np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)+np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
-                        np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)-np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
-                        facecolor='black', alpha=0.5)
+            ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
+                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)+np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
+                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)-np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
+                            facecolor='black', alpha=0.5)
         
         ax_multi.legend()
         rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
