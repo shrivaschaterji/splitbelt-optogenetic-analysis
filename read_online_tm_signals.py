@@ -5,7 +5,7 @@ Created on Tue Feb  7 16:59:15 2023
 """
 import os
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\CM tests\\75percent\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\Tailbase tests\\75percent\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0

@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\CM tests\\75percent\\'
-th_st_all = np.repeat(45, 10)
-th_sw_all = np.repeat(95, 10)
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\Tailbase tests\\75percent\\'
+th_st_all = np.repeat(165, 10) 
+th_sw_all = np.repeat(215, 10)
 animals = ['MC18089', 'MC18090', 'MC18091']
 session = 1
 condition = path.split('\\')[-2]
