@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\Tailbase tests\\75percent\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests\\Tailbase tests\\50percent\\'
 condition = path.split('\\')[-2]
 animals = ['MC18089', 'MC18090', 'MC18091']
 colors_animals = ['black', 'teal', 'orange']

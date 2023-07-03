@@ -1307,7 +1307,7 @@ class otrack_class:
                                       & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
                                       & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
                                       & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
-            stride_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
+            loco_period_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
             light_onset_arr = np.array(light_trial['time_on'])
             light_offset_arr = np.array(light_trial['time_off'])
             if time_bool:
@@ -1323,11 +1323,14 @@ class otrack_class:
                         (light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
             else:
                 if len(full_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
-                    light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                    light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
                 if len(before_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
-                    light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                    print((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
+                    print(loco_period_duration)
+                    print((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
         return light_onset_phase, light_offset_phase
 
     @staticmethod
@@ -1359,7 +1362,7 @@ class otrack_class:
                                       & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
                                       & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
                                       & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
-            stride_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
+            loco_period_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
             light_onset_arr = np.array(light_trial['time_on'])
             light_offset_arr = np.array(light_trial['time_off'])
             if time_bool:
@@ -1371,11 +1374,11 @@ class otrack_class:
                     light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
             else:
                 if len(full_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
-                    light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                    light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
                 if len(before_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
-                    light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/stride_duration)
+                    light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
         return light_onset_phase, light_offset_phase
 
     def accuracy_scores_otrack(self, otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw):

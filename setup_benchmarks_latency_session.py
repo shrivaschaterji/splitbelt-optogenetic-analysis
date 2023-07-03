@@ -263,11 +263,3 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'laserduration_swingduration_' + condition), dpi=128)
 plt.close('all')
-
-# #obs: different fps in otrack trial, synchronizer, LED on measurements
-# # Sync sampling rate
-# [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_class.get_session_metadata(
-#     animal, 0)
-# [timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session,
-#  laser_trial_signal_session] = otrack_class.get_synchronizer_data(camera_frames_kept, animal, 0)
-# fps_sync = (len(trial_signal_session.loc[trial_signal_session['trial'] == 1, 'time'])-2)/trial_signal_session.loc[trial_signal_session['trial'] == 1, 'time'].iloc[-1]
