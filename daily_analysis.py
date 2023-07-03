@@ -5,7 +5,7 @@ import os
 # Inputs
 laser_event = 'swing'
 single_animal_analysis = 0
-included_animal_list = ['MC17319','MC17665']           # IDs of animals to be included in the multi animal analysis - if it is empty, all animals are included
+animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours, excluding 1,2,4
 
 # List of paths - it is possible to have only one element
 paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
@@ -19,7 +19,9 @@ paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05
 #paths = ['D:\\Ali\\18042023 split right fast trial stim\\', 'D:\\Ali\\20042023 split right fast stance large stim\\', 'D:\\Ali\\24042023 split right fast swing large stim\\']
 #['D:\\Ali\\25042023 split left fast swing large stim\\']
 #
-colors = ['purple', 'orange', 'green']      # stim on: trial stance swing
+experiment_colors = ['purple', 'orange', 'green']      # stim on: trial stance swing
+
+
 #['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
 # ['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']
 #['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
@@ -172,8 +174,8 @@ for path in paths:
                                     fc=colors[path_index], alpha=0.3)
             plt.gca().add_patch(rectangle)
             plt.hlines(0, 1, len(param_sym_bs[p, a, :]), colors='grey', linestyles='--')
-            for a in range(np.shape(param_sym)[1]):
-                plt.plot(np.linspace(1, len(param_sym_bs[p, a, :]), len(param_sym_bs[p, a, :])), param_sym_bs[p, a, :],
+            for a in range(np.shape(param_sym)[1]):         # Loop on all animals
+                plt.plot(np.linspace(1, len(param_sym_bs[p, a, :]), len(param_sym_bs[p, a, :])), param_sym_bs[p, a, :], color=animal_colors[a],
                         label=animal_list[a], linewidth=2)
             ax.set_xlabel('Trial', fontsize=20)
             ax.legend(frameon=False)
@@ -203,11 +205,11 @@ for path in paths:
                                         np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(param_sym_bs_ave[:, :].flatten()),
                                         fc=experiment_colors[path_index], alpha=0.3)
             plt.gca().add_patch(rectangle)
-            plt.hlines(0, 1, len(param_sym_bs_ave[a, :]), colors='grey', linestyles='--')
+            plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
             for a in range(np.shape(param_sym_bs_ave)[0]):
-                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1)
+                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1, color = animal_colors[included_animals_id[a]], label=animal_list[included_animals_id[a]])
             ax.legend(frameon=False)
-            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=colors[path_index], linewidth=3)
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors[path_index], linewidth=3)
             ax.set_xlabel('Trial', fontsize=20)
             ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
             if p == 2:
@@ -241,14 +243,14 @@ for path in paths:
                 rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
                                             np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(
                                                 param_sym_bs_ave[:, :].flatten()),
-                                            fc=colors[path_index], alpha=0.3)
+                                            fc=experiment_colors[path_index], alpha=0.3)
                 plt.gca().add_patch(rectangle)
                 plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
                 for a in range(np.shape(param_sym_bs_ave)[0]):
                     plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])),
-                                param_sym_bs_ave[a, :], color=colors[path_index], linewidth=1)
+                                param_sym_bs_ave[a, :], color=experiment_colors[path_index], linewidth=1)
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_bs_ave, axis=0), color=colors[path_index], linewidth=2)
+                            np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors[path_index], linewidth=2)
                 # Add control average
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
                             np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2)
@@ -282,7 +284,7 @@ for path in paths:
         for a in range(np.shape(stance_speed)[1]):
             data = stance_speed[:, a, :]
             fig, ax = plt.subplots(figsize=(7,10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start-0.5, -0.5), split_duration, 1, fc=colors[path_index],alpha=0.3)
+            rectangle = plt.Rectangle((split_start-0.5, -0.5), split_duration, 1, fc=experiment_colors[path_index],alpha=0.3)
             for p in range(4):
                 ax.axvline(x = split_start + 0.5, color='dimgray', linestyle='--')
                 ax.axvline(x = split_start + 0.5 + split_duration, color='dimgray', linestyle='--')
@@ -343,19 +345,19 @@ if single_animal_analysis==0 and len(paths)>1:
         path_index = 0
         for path in paths:
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_multi[path][p], axis = 0), color=colors[path_index], linewidth=2)
+                            np.nanmean(param_sym_multi[path][p], axis = 0), color=experiment_colors[path_index], linewidth=2)
             # Add SE of each session
             ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
                         np.nanmean(param_sym_multi[path][p], axis = 0)+np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
                         np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
-                        facecolor=colors[path_index], alpha=0.5)
+                        facecolor=experiment_colors[path_index], alpha=0.5)
             min_rect = min(min_rect,np.nanmin(np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)))
             max_rect = max(max_rect,np.nanmax(np.nanmean(param_sym_multi[path][p], axis=0)+np.nanstd(param_sym_multi[path][p], axis = 0)))
             path_index += 1
         # Add mean control (if you have it)
         if len(control_path)>0:
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2)
+                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2, label=str(path_index))
             ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
                             np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)+np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
                             np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)-np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
