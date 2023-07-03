@@ -314,8 +314,8 @@ for path in paths:
             fig, ax = plt.subplots(figsize=(7,10), tight_layout=True)
             rectangle = plt.Rectangle((split_start-0.5, -0.5), split_duration, 1, fc=experiment_colors[path_index],alpha=0.3)
             for p in range(4):
-                ax.axvline(x = split_start + 0.5, color='dimgray', linestyle='--')
-                ax.axvline(x = split_start + 0.5 + split_duration, color='dimgray', linestyle='--')
+                ax.axvline(x = split_start, color='dimgray', linestyle='--')
+                ax.axvline(x = split_start+ split_duration, color='dimgray', linestyle='--')
                 ax.plot(np.linspace(1,len(data[p,:]),len(data[p,:])), data[p,:], color = paw_colors[p], linewidth = 2)
                 ax.spines['right'].set_visible(False)
                 ax.spines['top'].set_visible(False)
