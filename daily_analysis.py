@@ -233,10 +233,38 @@ for path in paths:
         if len(control_path)>0:
             param_sym_bs_plot = param_sym_bs[:, included_animals_id, :]
             if len(control_path)>0:
-                param_sym_bs_control = np.load(control_path[0] + control_filename)
-                # Select subgroup of included animals, if they are not all
+                # Load control parameters if they have been computed and saved
+                if os.path.exists(control_path[0] + control_filename):
+                    control_param_sym_bs = np.load(control_path[0] + control_filename)
+                else:           # Compute control parameters and save them
+                    otrack_classes =  []
+                    locos = []
+                    paths_save = []
+                    param_sym_multi = {}
+                    path_index = 0
+                    for path in paths:
+                        control_otrack_class = online_tracking_class.otrack_class(control_path[0])
+                        control_loco = locomotion_class.loco_class(control_path[0])
+                                                                                                #paths_save.append(path + 'grouped output\\')
+                                                                                               # if not os.path.exists(path + 'grouped output'):
+                                                                                                  #  os.mkdir(path + 'grouped output')
+                        # GET THE NUMBER OF ANIMALS AND THE SESSION ID
+                        control_animal_session_list = control_loco.animals_within_session()
+                        control_animal_list = []
+                        for a in range(len(control_animal_session_list)):
+                            control_animal_list.append(control_animal_session_list[a][0])
+                        
+                        control_session_list = []
+                        for a in range(len(control_animal_session_list)):
+                            control_session_list.append(control_animal_session_list[a][1])
+                    control_param_sym_bs, control_stance_speed, control_st_strides_trials = control_loco.prepare_and_compute_gait_param(control_animal_list, Ntrials, param_sym_name, control_session_list, bs_bool, stim_start)
+
+                    with open(control_path[0] + control_filename, 'wb') as f:
+                        np.save(f, control_param_sym_bs)
+
                 if len(included_animal_list)>0:
-                    param_sym_bs_control = param_sym_bs_control[:, included_animals_id, :]
+                    control_param_sym_bs = control_param_sym_bs[:, included_animals_id, :]
+
             for p in range(np.shape(param_sym)[0] - 1):   
                 param_sym_bs_ave = param_sym_bs_plot[p, :, :]
                 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)  
@@ -253,11 +281,11 @@ for path in paths:
                             np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors[path_index], linewidth=2)
                 # Add control average
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2)
+                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='black', linewidth=2)
                 # Add control SE
                 ax.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
-                        np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)+np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
-                        np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)-np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
+                        np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)+np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(2), 
+                        np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(2), 
                         facecolor='black', alpha=0.5)
                 
                 ax.set_xlabel('Trial', fontsize=20)
@@ -357,10 +385,10 @@ if single_animal_analysis==0 and len(paths)>1:
         # Add mean control (if you have it)
         if len(control_path)>0:
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0), color='black', linewidth=2, label=str(path_index))
+                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='black', linewidth=2, label=str(path_index))
             ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
-                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)+np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
-                            np.nanmean(param_sym_bs_control[p, 1:, :], axis=0)-np.nanstd(param_sym_bs_control[p, 1:, :], axis=0)/np.sqrt(2), 
+                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)+np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(2), 
+                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(2), 
                             facecolor='black', alpha=0.5)
         
         ax_multi.legend()
