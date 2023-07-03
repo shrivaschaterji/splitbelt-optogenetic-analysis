@@ -627,6 +627,64 @@ class loco_class:
                 param_mat.append(phase_st_paw)
         return param_mat
 
+    def prepare_and_compute_gait_param(self, animal_list, Ntrials, param_sym_name, session_list, bs_bool, stim_start):   #bodycenter,final_tracks,paws_rel,st_strides_mat,sw_pts_mat,param):
+        """Get information on experiment and animals, prepare variables and compute gait parameters for all four paws
+        Input:  
+            animal_list (list): list of animals in the current session
+            Ntrials (int): number of trials
+            param_sym_name (list): list of names of parameters to compute
+            session_list (list)
+            bs_bool (bool): whether to subtract baseline (1) or not (0)
+            stim_start (int): trial where stimulation starts - used to compute baseline values (during tied unstimulated trials)
+            final_tracks (4x5xframes)
+            paws_rel (1xframes per paw)
+            st_strides_mat (stridesx2x5 per paw)
+            sw_pts_mat (stridesx1x5 per paw)
+            param - variable name (check outputs)
+        Outputs: 
+            param_sym_bs (np array - num_param x num_animals x num_trials): gait parameters for all animals and trials in the current session; baseline substracted if selected
+            stance_speed (np array - 4 x num_animals x num_trials): stance speed for each of the 4 paws, fo all animals and trials in the current session
+            st_strides_trials: 
+        """
+        param_sym = np.zeros((len(param_sym_name), len(animal_list), Ntrials))
+        param_sym[:] = np.NaN
+        stance_speed = np.zeros((4, len(animal_list), Ntrials))
+        stance_speed[:] = np.NaN
+        st_strides_trials = []
+        for count_animal, animal in enumerate(animal_list):
+            session = int(session_list[count_animal])
+            #TODO: check if this filelist needs to be emptied first!
+            filelist = self.get_track_files(animal, session)             # loco_object is locos[path_index]
+            for f in filelist:
+                count_trial = int(f.split('DLC')[0].split('_')[-1])-1      # Get trial number from file name, to spot any missing trial; parameters for remaining ones will stay to NaN
+                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = self.read_h5(f, 0.9, 0)
+                [st_strides_mat, sw_pts_mat] = self.get_sw_st_matrices(final_tracks, 1)
+                st_strides_trials.append(st_strides_mat)
+                paws_rel = self.get_paws_rel(final_tracks, 'X')
+                for count_p, param in enumerate(param_sym_name):
+                    param_mat = self.compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
+                    if param == 'stance_speed':
+                        for p in range(4):
+                            stance_speed[p, count_animal, count_trial] = np.nanmean(param_mat[p])
+                    elif param == 'step_length':
+                        param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0]) - np.nanmean(param_mat[2])
+                    else:
+                        param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])
+
+        # BASELINE SUBTRACTION OF GAIT PARAMETERS
+        if bs_bool:
+            param_sym_bs = np.zeros(np.shape(param_sym))
+            for p in range(np.shape(param_sym)[0]-1):
+                for a in range(np.shape(param_sym)[1]):
+                    if stim_start == 9:
+                        bs_mean = np.nanmean(param_sym[p, a, :stim_start-1])
+                    if stim_start == 5:
+                        bs_mean = np.nanmean(param_sym[p, a, stim_start-1:8])
+                    param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
+        else:
+            param_sym_bs = param_sym
+        return param_sym_bs, stance_speed, st_strides_trials
+        
     def animals_within_session(self):
         """See which animals and sessions are in the folder with tracks"""
         delim = self.path[-1]
