@@ -126,13 +126,16 @@ for path in paths:
         # GAIT PARAMETERS ACROSS TRIALS
         param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stance_speed']
         param_sym = np.zeros((len(param_sym_name), len(animal_list), Ntrials))
+        param_sym[:] = np.NaN
         stance_speed = np.zeros((4, len(animal_list), Ntrials))
+        stance_speed[:] = np.NaN
         st_strides_trials = []
         for count_animal, animal in enumerate(animal_list):
             session = int(session_list[count_animal])
             #TODO: check if this filelist needs to be emptied first!
             filelist = locos[path_index].get_track_files(animal, session)
-            for count_trial, f in enumerate(filelist):
+            for f in filelist:
+                count_trial = int(f.split('DLC')[0].split('_')[-1])-1      # Get trial number from file name, to spot any missing trial; parameters for remaining ones will stay to NaN
                 [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
                 [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
                 st_strides_trials.append(st_strides_mat)
@@ -196,9 +199,9 @@ for path in paths:
         for p in range(np.shape(param_sym)[0] - 1):
             param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start - 0.5, np.min(param_sym_bs_ave[:, :].flatten())), split_duration,
-                                        np.max(param_sym_bs_ave[:, :].flatten()) - np.min(param_sym_bs_ave[:, :].flatten()),
-                                        fc=colors[path_index], alpha=0.3)
+            rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
+                                        np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(param_sym_bs_ave[:, :].flatten()),
+                                        fc=experiment_colors[path_index], alpha=0.3)
             plt.gca().add_patch(rectangle)
             plt.hlines(0, 1, len(param_sym_bs_ave[a, :]), colors='grey', linestyles='--')
             for a in range(np.shape(param_sym_bs_ave)[0]):
@@ -234,9 +237,9 @@ for path in paths:
                     param_sym_bs_control = param_sym_bs_control[:, included_animals_id, :]
             for p in range(np.shape(param_sym)[0] - 1):   
                 param_sym_bs_ave = param_sym_bs_plot[p, :, :]
-                fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-                rectangle = plt.Rectangle((split_start - 0.5, np.min(param_sym_bs_ave[:, :].flatten())), split_duration,
-                                            np.max(param_sym_bs_ave[:, :].flatten()) - np.min(
+                fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)  
+                rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
+                                            np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(
                                                 param_sym_bs_ave[:, :].flatten()),
                                             fc=colors[path_index], alpha=0.3)
                 plt.gca().add_patch(rectangle)
@@ -346,8 +349,8 @@ if single_animal_analysis==0 and len(paths)>1:
                         np.nanmean(param_sym_multi[path][p], axis = 0)+np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
                         np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
                         facecolor=colors[path_index], alpha=0.5)
-            min_rect = min(min_rect,np.min(np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)))
-            max_rect = max(max_rect,np.max(np.nanmean(param_sym_multi[path][p], axis=0)+np.nanstd(param_sym_multi[path][p], axis = 0)))
+            min_rect = min(min_rect,np.nanmin(np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)))
+            max_rect = max(max_rect,np.nanmax(np.nanmean(param_sym_multi[path][p], axis=0)+np.nanstd(param_sym_multi[path][p], axis = 0)))
             path_index += 1
         # Add mean control (if you have it)
         if len(control_path)>0:
