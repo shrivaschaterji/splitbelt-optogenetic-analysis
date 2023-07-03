@@ -373,7 +373,7 @@ if single_animal_analysis==0 and len(paths)>1:
         path_index = 0
         for path in paths:
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_multi[path][p], axis = 0), color=experiment_colors[path_index], linewidth=2)
+                            np.nanmean(param_sym_multi[path][p], axis = 0), color=experiment_colors[path_index], linewidth=2, label=experiment_names[path_index])
             # Add SE of each session
             ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
                         np.nanmean(param_sym_multi[path][p], axis = 0)+np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(2), 
@@ -385,11 +385,13 @@ if single_animal_analysis==0 and len(paths)>1:
         # Add mean control (if you have it)
         if len(control_path)>0:
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='black', linewidth=2, label=str(path_index))
+                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='black', linewidth=2, label='control')
             ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
                             np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)+np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(2), 
                             np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(2), 
                             facecolor='black', alpha=0.5)
+            min_rect = min(min_rect,np.nanmin(np.nanmean(control_param_sym_bs[p], axis = 0)-np.nanstd(control_param_sym_bs[p], axis = 0)))
+            max_rect = max(max_rect,np.nanmax(np.nanmean(control_param_sym_bs[p], axis=0)+np.nanstd(control_param_sym_bs[p], axis = 0)))
         
         ax_multi.legend()
         rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
