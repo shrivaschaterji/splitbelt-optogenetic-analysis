@@ -11,9 +11,7 @@ speeds = ['0,175', '0,275', '0,375', 'right_fast', 'left_fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
 colors_networks = ['black', 'teal', 'orange']
-summary_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Benchmark plots\\'
-
-#TODO how is accuracy larger than 1?
+summary_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Benchmark plots\\Condition comparison\\'
 
 for idx_speed in range(len(speeds)):
     accuracy_measures_st = np.zeros((6, 4, len(conditions), len(networks)))
