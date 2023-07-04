@@ -268,17 +268,13 @@ for path in paths:
             for p in range(np.shape(param_sym)[0] - 1):   
                 param_sym_bs_ave = param_sym_bs_plot[p, :, :]
                 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)  
-                rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
-                                            np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(
-                                                param_sym_bs_ave[:, :].flatten()),
-                                            fc=experiment_colors[path_index], alpha=0.3)
-                plt.gca().add_patch(rectangle)
+                
                 plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
                 for a in range(np.shape(param_sym_bs_ave)[0]):
                     plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])),
-                                param_sym_bs_ave[a, :], color=experiment_colors[path_index], linewidth=1)
+                                param_sym_bs_ave[a, :], color=animal_colors[included_animals_id[a]], linewidth=1)
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors[path_index], linewidth=2)
+                            np.nanmean(param_sym_bs_ave, axis=0), color=animal_colors[included_animals_id[a]], linewidth=2)
                 # Add control average
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
                             np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='black', linewidth=2)
@@ -288,6 +284,11 @@ for path in paths:
                         np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
                         facecolor='black', alpha=0.5)
                 
+                rectangle = plt.Rectangle((split_start - 0.5, min(np.nanmin(param_sym_bs_ave[:, :].flatten()), np.nanmin(control_param_sym_bs[p,:, :].flatten()))), split_duration,
+                                            max(np.nanmax(param_sym_bs_ave[:, :].flatten()), np.nanmax(control_param_sym_bs[p,:, :].flatten())) - min(np.nanmin(
+                                                param_sym_bs_ave[:, :].flatten()),np.nanmin(control_param_sym_bs[p,:, :].flatten())),
+                                            fc=experiment_colors[path_index], alpha=0.3)
+                plt.gca().add_patch(rectangle)
                 ax.set_xlabel('Trial', fontsize=20)
                 ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
                 if p == 2:
