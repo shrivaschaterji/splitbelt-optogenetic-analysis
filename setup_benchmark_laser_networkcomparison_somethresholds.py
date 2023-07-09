@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
 networks = ['CM tests', 'HR tests', 'Tailbase tests']
-conditions_plot = [['50percent', '50percent'], ['50percent', '25percent'], ['50percent', '25percent']]
+conditions_plot = [['50percent', '50percent'], ['50percent', '50percent'], ['50percent', '50percent']]
 speeds = ['0,275', 'right_fast', 'left_fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
 colors_networks = ['black', 'teal', 'orange']
-summary_path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Benchmark plots\\Network comparison\\'
+summary_path = 'J:\\Data OPTO\\Benchmark plots\\Network comparison\\'
 
 stim_duration_st_net = []
 stim_onset_time_st_net = []
@@ -31,7 +31,7 @@ for count_n, n in enumerate(networks):
     stim_offset_time_sw_cond = []
     for count_s, s in enumerate(np.array([1, 3, 4])):
         trials = trials_reshape[s, :].flatten()
-        path_st = os.path.join('C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests', n, c[0])
+        path_st = os.path.join('J:\\Data OPTO', n, c[0])
         import online_tracking_class
         otrack_class = online_tracking_class.otrack_class(path_st)
         import locomotion_class
@@ -44,7 +44,7 @@ for count_n, n in enumerate(networks):
         stim_onset_time_st_cond.append(list(itertools.chain(*stim_onset_time_st_list[:, s])))
         stim_offset_time_st_cond.append(list(itertools.chain(*stim_offset_time_st_list[:, s])))
         accuracy_measures_st[:, :, count_s, count_n] = np.array(benchmark_accuracy_st[benchmark_accuracy_st['trial'].isin(trials)].iloc[:,3::2])
-        path_sw = os.path.join('C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Tests', n, c[1])
+        path_sw = os.path.join('J:\\Data OPTO', n, c[1])
         import online_tracking_class
         otrack_class = online_tracking_class.otrack_class(path_sw)
         import locomotion_class
