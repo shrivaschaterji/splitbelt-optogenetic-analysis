@@ -10,7 +10,7 @@ conditions_plot = ['75percent', '25percent']
 speeds = ['0,175', '0,275', '0,375', 'right_fast', 'left_fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
-cmap_speeds = plt.get_cmap('magma')
+cmap_speeds = plt.get_cmap('terrain')
 colors_speeds = [cmap_speeds(i) for i in np.linspace(0, 1, int(np.floor(len(speeds) + 1)))]
 summary_path = 'J:\\Data OPTO\\Benchmark plots\\Experiment settings\\'
 
@@ -54,12 +54,11 @@ for idx_speed in range(len(speeds)):
 speeds_label = ['0,175', '0,275', '0,375', 'split right\nfast', 'split left\nfast']
 # DURATION
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for s in range(len(speeds)):
-    violin_parts = ax.violinplot(stim_duration_st, positions=np.arange(0, 15, 3) + (0.5 * s),
+violin_parts = ax.violinplot(stim_duration_st, positions=np.arange(0, 5, 1),
         showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_speeds[s])
-ax.set_xticks(np.arange(0, 15, 3)+1)
+for s, pc in enumerate(violin_parts['bodies']):
+    pc.set_color(colors_speeds[s])
+ax.set_xticks(np.arange(0, 5, 1))
 ax.set_xticklabels(speeds_label, fontsize=11)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([0, 0.4])
@@ -69,15 +68,14 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(summary_path, 'stim_duration_st'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for s in range(len(speeds)):
-    violin_parts = ax.violinplot(stim_duration_sw, positions=np.arange(0, 15, 3) + (0.5 * s),
+violin_parts = ax.violinplot(stim_duration_sw, positions=np.arange(0, 5, 1),
         showextrema=False)
-    for pc in violin_parts['bodies']:
+for s, pc in enumerate(violin_parts['bodies']):
         pc.set_color(colors_speeds[s])
-ax.set_xticks(np.arange(0, 15, 3)+1)
+ax.set_xticks(np.arange(0, 5, 1))
 ax.set_xticklabels(speeds_label, fontsize=11)
 ax.set_ylabel('Time (s)', fontsize=14)
-ax.set_ylim([0, 0.4])
+ax.set_ylim([0, 0.2])
 plt.xticks(fontsize=11)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
@@ -86,12 +84,11 @@ plt.savefig(os.path.join(summary_path, 'stim_duration_sw'), dpi=128)
 
 # ONSET TIME
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for s in range(len(speeds)):
-    violin_parts = ax.violinplot(stim_onset_time_st, positions=np.arange(0, 15, 3) + (0.5 * s),
+violin_parts = ax.violinplot(stim_onset_time_st, positions=np.arange(0, 5, 1),
         showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_speeds[s])
-ax.set_xticks(np.arange(0, 15, 3)+1)
+for s, pc in enumerate(violin_parts['bodies']):
+    pc.set_color(colors_speeds[s])
+ax.set_xticks(np.arange(0, 5, 1))
 ax.set_xticklabels(speeds_label, fontsize=11)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([-400, 75])
@@ -101,12 +98,11 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(summary_path, 'stim_onset_time_st'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for s in range(len(speeds)):
-    violin_parts = ax.violinplot(stim_onset_time_sw, positions=np.arange(0, 15, 3) + (0.5 * s),
+violin_parts = ax.violinplot(stim_onset_time_sw, positions=np.arange(0, 5, 1),
         showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_speeds[s])
-ax.set_xticks(np.arange(0, 15, 3)+1)
+for s, pc in enumerate(violin_parts['bodies']):
+    pc.set_color(colors_speeds[s])
+ax.set_xticks(np.arange(0, 5, 1))
 ax.set_xticklabels(speeds_label, fontsize=11)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([-250, 100])
@@ -118,12 +114,11 @@ plt.savefig(os.path.join(summary_path, 'stim_onset_time_sw'), dpi=128)
 
 # OFFSET TIME
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for s in range(len(speeds)):
-    violin_parts = ax.violinplot(stim_offset_time_st, positions=np.arange(0, 15, 3) + (0.5 * s),
+violin_parts = ax.violinplot(stim_offset_time_st, positions=np.arange(0, 5, 1),
         showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_speeds[s])
-ax.set_xticks(np.arange(0, 15, 3)+1)
+for s, pc in enumerate(violin_parts['bodies']):
+     pc.set_color(colors_speeds[s])
+ax.set_xticks(np.arange(0, 5, 1))
 ax.set_xticklabels(speeds_label, fontsize=11)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([0, 150])
@@ -133,12 +128,11 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(summary_path, 'stim_offset_time_st'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for s in range(len(speeds)):
-    violin_parts = ax.violinplot(stim_offset_time_sw, positions=np.arange(0, 15, 3) + (0.5 * s),
+violin_parts = ax.violinplot(stim_offset_time_sw, positions=np.arange(0, 5, 1),
         showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_speeds[s])
-ax.set_xticks(np.arange(0, 15, 3)+1)
+for s, pc in enumerate(violin_parts['bodies']):
+    pc.set_color(colors_speeds[s])
+ax.set_xticks(np.arange(0, 5, 1))
 ax.set_xticklabels(speeds_label, fontsize=11)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([0, 75])
@@ -164,6 +158,7 @@ for i in range(len(measure_name)):
     ax.set_xticks(np.arange(0, 20, 10)+2.5)
     ax.set_xticklabels(['stance', 'swing'], fontsize=14)
     ax.set_ylabel(measure_name[i], fontsize=14)
+    #ax.legend(speeds_label, frameon=0)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     if i == 0:
