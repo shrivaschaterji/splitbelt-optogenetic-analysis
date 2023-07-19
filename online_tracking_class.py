@@ -186,8 +186,12 @@ class otrack_class:
             time_end = sync_timestamps_p0[sync_signal_p0_off_idx] #time when trial start signal ended
             timestamps_p1 = np.arange(time_beg, time_end, 3) #since cam is triggered all triggers should appear every 3ms between trial start ON
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
-            [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-            [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            if animal == 'MC16851':
+                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
+                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            else:
+                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
+                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
             trial_p0_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p0)))
             trial_p1_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p1)))
             trial_p2_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p2)))
@@ -1190,95 +1194,6 @@ class otrack_class:
         return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
 
     @staticmethod
-    def accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
-        """Gets the accuracy of LED presentations (true positive, false positive, true negative, false negative)
-        Inputs:
-            trial: int
-            event: (str) stance or swing
-            offtracks_st: dataframe with offline tracks for stance
-            offtracks_sw: dataframe with offline tracks for swing
-            st_led_on: dataframe with stance led on
-            sw_led_on: dataframe with swing led on
-            final_tracks_trials: paw excursions
-            timestamps_session: list of timestamps for each trial
-            plot_data: boolean"""
-        if event == 'stance':
-            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
-            light_trial = st_led_on.loc[st_led_on['trial'] == trial]
-            led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial].iloc[:, 2:4]))
-            offtrack_trial_otherperiod = offtracks_sw.loc[offtracks_sw['trial'] == trial]
-        if event == 'swing':
-            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
-            light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
-            led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial].iloc[:, 2:4]))
-            offtrack_trial_otherperiod = offtracks_st.loc[offtracks_st['trial'] == trial]
-        nr_presentations = np.shape(offtracks_st.loc[offtracks_st['trial'] == trial])[0] + np.shape(offtracks_sw.loc[offtracks_sw['trial'] == trial])[0]
-        full_hits = 0
-        incomplete_hits = 0
-        full_hits_st = []
-        incomplete_hits_st = []
-        all = []
-        for t in range(len(offtrack_trial['time'])):
-            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
-                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
-                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
-                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
-            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
-                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
-                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
-                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
-            if len(full_hit_idx) > 0:
-                full_hits += 1
-                full_hits_st.extend(full_hit_idx)
-                all.extend(full_hit_idx)
-            if len(before_hit_idx) > 0:
-                incomplete_hits += 1
-                incomplete_hits_st.extend(before_hit_idx)
-                all.extend(before_hit_idx)
-        all_other = []
-        for t in range(len(offtrack_trial_otherperiod['time'])):
-            full_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
-                                    & (offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_on'])
-                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
-                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[0]
-            incomplete_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
-                                          & (offtrack_trial_otherperiod['time'].iloc[t] > light_trial['time_on'])
-                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
-                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[
-                0]
-            if len(full_hit_idx) > 0:
-                all_other.extend(full_hit_idx)
-            if len(incomplete_hit_idx) > 0:
-                all_other.extend(incomplete_hit_idx)
-        # definitions of accuracy for an aimed stance
-        # false positive is the number of times light hit correctly swing
-        fp_trial = len(all_other) / nr_presentations
-        # true positive is the number of times light hit correctly stance
-        tp_trial = (full_hits + incomplete_hits) / nr_presentations
-        # false negative is the number of times a stance was detected and there was no light there
-        fn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)) / nr_presentations
-        # true negative is the number of times a swing was detected and light was not there
-        tn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other))/ nr_presentations
-        accuracy_trial = (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other)))/ nr_presentations
-        precision_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(all_other))
-        recall_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)))
-        f1_trial = 2 * ((precision_trial*recall_trial)/(precision_trial+recall_trial))
-        if plot_data:
-            paw_colors = ['red', 'blue', 'magenta', 'cyan']
-            p = 0
-            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
-            for r in range(np.shape(led_trials)[1]):
-                rectangle = plt.Rectangle((led_trials[0, r], -400),
-                                          led_trials[1, r] - led_trials[0, r], 800, fc='grey', alpha=0.3)
-                plt.gca().add_patch(rectangle)
-            mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
-            ax.plot(final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
-                    color=paw_colors[p], linewidth=2)
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-        return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
-
-    @staticmethod
     def laser_presentation_phase(trial, event, offtracks_st, offtracks_sw, laser_on, time_bool):
         """
         Inputs: From all the times the laser was on it checks when the laser onset and offset happened in relation to either
@@ -1326,9 +1241,6 @@ class otrack_class:
                     light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
                     light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
                 if len(before_hit_idx) > 0:
-                    print((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
-                    print(loco_period_duration)
-                    print((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
                     light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
                     light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
         return light_onset_phase, light_offset_phase
