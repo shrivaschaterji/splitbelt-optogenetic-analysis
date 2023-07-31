@@ -417,44 +417,117 @@ if single_animal_analysis==0 and (len(paths)>1 or len(control_path)>1):
                 plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session', dpi=128)
             else:
                 plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_non_bs_average_with_control_multi_session', dpi=128)
-        
-        # Do bar plot of learning parameters - each one will be num_experiments x num_animals
+    
+        # LEARNING PARAMETERS (bar plots) - each one will be num_experiments x num_animals
         initial_error = []                      
         learning = []
         aftereffect = []
         learning_sym_change = []
         aftereffect_sym_change = []
+        stat_initial_error = []
+        stat_learning = []
+        stat_aftereffect = []
+        stat_learning_sym_change = []
+        stat_aftereffect_sym_change = []
 
         # First add control, if any
         if len(control_path)>0:
-            initial_error.append(abs(np.nanmean(control_param_sym_bs[p][:,split_start-1:split_start+1], axis=1)))          
-            learning.append(np.nanmean(control_param_sym_bs[p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(control_param_sym_bs[p][:,split_start-1:split_start+1], axis=1))
-            aftereffect.append(abs(np.nanmean(control_param_sym_bs[p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1)))
-            
+            if (param_sym_name[p] == 'double_support' and control_ses == 'right') or ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'left'):
+                initial_error.append(np.nanmean(control_param_sym_bs[p][:,split_start_control-1:split_start_control+1], axis=1))          
+                learning.append(-(np.nanmean(control_param_sym_bs[p][:,split_start_control+split_duration_control-3:split_start_control+split_duration_control-1], axis=1)-np.nanmean(control_param_sym_bs[p][:,split_start_control-1:split_start_control+1], axis=1)))
+                aftereffect.append(-np.nanmean(control_param_sym_bs[p][:,split_start_control+split_duration_control-1:split_start_control+split_duration_control+1], axis=1))
+            else:
+                initial_error.append(-np.nanmean(control_param_sym_bs[p][:,split_start_control-1:split_start_control+1], axis=1))          
+                learning.append(np.nanmean(control_param_sym_bs[p][:,split_start_control+split_duration_control-3:split_start_control+split_duration_control-1], axis=1)-np.nanmean(control_param_sym_bs[p][:,split_start_control-1:split_start_control+1], axis=1))
+                aftereffect.append(np.nanmean(control_param_sym_bs[p][:,split_start_control+split_duration_control-1:split_start_control+split_duration_control+1], axis=1))
+
+        path_index = 0  
         for path in paths:
-            initial_error.append(abs(np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1)))          
-            learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
-            aftereffect.append(abs(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1)))
-        
+            for exp in experiment_colors_dict.keys():
+                if exp in path:
+                    experiment_name = exp
+                    current_experiment_names.append(experiment_name)
+                    current_experiment_colors.append(experiment_colors_dict[exp])
+                    current_bar_labels.append(exp)
+            
+            # Flip signs to have good control learning always positive
+            if (param_sym_name[p] == 'double_support' and control_ses == 'right') or ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'left'):
+                initial_error.append(np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))  
+                learning.append(-(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1)))
+                aftereffect.append(-np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
+            elif ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'right') or (param_sym_name[p] == 'double_support' and control_ses == 'left'):
+                initial_error.append(-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))         
+                learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
+                aftereffect.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
+          
+            # Compare to control - Statistics
+            if compute_statistics:
+                stat_initial_error.append(st.ttest_rel(initial_error[0], initial_error[path_index+1]).pvalue<significance_threshold)
+                stat_learning.append(st.ttest_rel(learning[0], learning[path_index+1]).pvalue<significance_threshold)
+                stat_aftereffect.append(st.ttest_rel(aftereffect[0], aftereffect[path_index+1]).pvalue<significance_threshold)
+                path_index+=1
+
         learning_sym_change=100*np.divide(np.array(learning),np.array(initial_error))
         aftereffect_sym_change=100*np.divide(np.array(aftereffect),np.array(initial_error))
+        if compute_statistics:
+            for path_index in range(len(paths)):
+                stat_learning_sym_change.append(st.ttest_rel(learning_sym_change[0], learning_sym_change[path_index+1]).pvalue<significance_threshold)
+                stat_aftereffect_sym_change.append(st.ttest_rel(aftereffect_sym_change[0], aftereffect_sym_change[path_index+1]).pvalue<significance_threshold)
         fig_bar, ax_bar = plt.subplots(2,3)
-        ax_bar[0,0].bar(list(range(len(paths)+len(control_path))), np.nanmean(initial_error, axis=1), yerr=np.nanstd(initial_error, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
-        ax_bar[0,0].set_ylabel(param_sym_name[p])
-        ax_bar[0,0].set_title('init. error')
-        ax_bar[0,1].bar(list(range(len(paths)+len(control_path))), np.nanmean(learning, axis=1), yerr=np.nanstd(learning, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
-        ax_bar[0,1].set_title('late-early')
-        ax_bar[0,2].bar(list(range(len(paths)+len(control_path))), np.nanmean(aftereffect, axis=1), yerr=np.nanstd(aftereffect, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
-        ax_bar[0,2].set_title('aftereffect')
-        ax_bar[1,1].bar(list(range(len(paths)+len(control_path))), np.nanmean(learning_sym_change, axis=1), yerr=np.nanstd(learning_sym_change, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
-        ax_bar[1,1].set_title('change late-early %')
+        bars = ax_bar[0,0].bar(list(range(len(paths)+len(control_path))), np.nanmean(initial_error, axis=1), yerr=np.nanstd(initial_error, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=current_experiment_colors, ecolor='black', capsize=6)
+        #ax_bar[0,0].plot(initial_error,'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
+        ax_bar[0,0].set_ylabel(param_sym_name[p]+' (mm)')
+        ax_bar[0,0].set_title('init. error', size=9)
+        ax_bar[0,1].bar(list(range(len(paths)+len(control_path))), np.nanmean(learning, axis=1), yerr=np.nanstd(learning, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=current_experiment_colors, ecolor='black', capsize=6)
+        ax_bar[0,1].set_title('late-early', size=9)
+        ax_bar[0,2].bar(list(range(len(paths)+len(control_path))), np.nanmean(aftereffect, axis=1), yerr=np.nanstd(aftereffect, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=current_experiment_colors, ecolor='black', capsize=6)
+        #ax_bar[0,2].plot(list(range(1,len(paths)+len(control_path))),[max(max(np.nanmean(aftereffect, axis=1)+np.nanstd(aftereffect, axis=1)),0)*i if i==1 else math.nan*i for i in stat_aftereffect ],'*', color='black')
+        #ax_bar[0,2].plot(aftereffect,'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
+        ax_bar[0,2].set_title('aftereffect', size=9)
+        ax_bar[1,1].bar(list(range(len(paths)+len(control_path))), np.nanmean(learning_sym_change, axis=1), yerr=np.nanstd(learning_sym_change, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=current_experiment_colors, ecolor='black', capsize=6)
+        #ax_bar[1,1].plot(learning_sym_change,'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
+        ax_bar[1,1].set_title('% change late-early', size=9)
         ax_bar[1,1].set_ylabel('% sym change')
-        ax_bar[1,2].bar(list(range(len(paths)+len(control_path))), np.nanmean(aftereffect_sym_change, axis=1), yerr=np.nanstd(aftereffect_sym_change, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
-        ax_bar[1,2].set_title('change aftereffect %')
+        ax_bar[1,2].bar(list(range(len(paths)+len(control_path))), np.nanmean(aftereffect_sym_change, axis=1), yerr=np.nanstd(aftereffect_sym_change, axis=1)/np.sqrt(len(learning)), align='center', alpha=0.5, color=current_experiment_colors, ecolor='black', capsize=6)
+        #ax_bar[1,2].plot(aftereffect_sym_change,'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
+        ax_bar[1,2].set_title('% change aftereffect', size=9)
+        # Add single animal data
+        for a in included_animals_id:
+            ax_bar[0,0].plot(np.array(initial_error)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animal_list[a]], color=animal_colors_dict[included_animal_list[a]], linewidth=1)
+            ax_bar[0,1].plot(np.array(learning)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animal_list[a]], color=animal_colors_dict[included_animal_list[a]], linewidth=1)
+            ax_bar[0,2].plot(np.array(aftereffect)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animal_list[a]], color=animal_colors_dict[included_animal_list[a]], linewidth=1)
+            ax_bar[1,1].plot(np.array(learning_sym_change)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animal_list[a]], color=animal_colors_dict[included_animal_list[a]], linewidth=1)
+            ax_bar[1,2].plot(np.array(aftereffect_sym_change)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animal_list[a]], color=animal_colors_dict[included_animal_list[a]], linewidth=1)
+               
+        # Add zero line
+        for ax in ax_bar.flatten():
+            ax.axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
+            if uniform_ranges:
+                ax.set(ylim= bars_ranges[param_sym_name[p]])      #   [-4.5,max(abs(np.array(axes_ranges[param_sym_name[p]])))])
 
+        if compute_statistics:
+            ax_bar[0,0].plot(list(range(1,len(paths)+len(control_path))),[max(max(np.nanmean(initial_error, axis=1)+np.nanstd(initial_error, axis=1)),0)*i if i==1 else math.nan*i for i in stat_initial_error ],'*', color='black')
+            ax_bar[0,1].plot(list(range(1,len(paths)+len(control_path))),[max(max(np.nanmean(learning, axis=1)+np.nanstd(learning, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning ],'*', color='black')
+            ax_bar[1,1].plot(list(range(1,len(paths)+len(control_path))),[max(max(np.nanmean(learning_sym_change, axis=1)+np.nanstd(learning_sym_change, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_sym_change ],'*', color='black')
+            ax_bar[1,2].plot(list(range(1,len(paths)+len(control_path))),[max(max(np.nanmean(aftereffect_sym_change, axis=1)+np.nanstd(aftereffect_sym_change, axis=1)),0)*i if i==1 else math.nan*i for i in stat_aftereffect_sym_change ],'*', color='black')
+
+        
+        for ax in ax_bar.flatten():
+            ax.set_xticks([])
+        fig_bar.delaxes(ax_bar[1,0])
         fig_bar.suptitle(param_sym_name[p])
-        if print_plots:
+        fig_bar.tight_layout()
+        fig_bar.legend(bars, current_bar_labels,
+           loc="lower left",   
+           borderaxespad=3 
+           )
+
+                               
+        if print_plots_multi_session:
             if not os.path.exists(paths_save[0]):
                 os.mkdir(paths_save[0])
             plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session_barplot', dpi=96)
+
+
+        
 
