@@ -5,7 +5,11 @@ import os
 # Inputs
 laser_event = 'swing'
 single_animal_analysis = 0
-animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours, excluding 1,2,4
+axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+#axes_ranges = {'coo': [-3, 5], 'step_length': [-5, 12], 'double_support': [-13, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+#bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 17], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+uniform_ranges = 1
 
 # List of paths - it is possible to have only one element
 paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
@@ -206,6 +210,12 @@ for path in paths:
         for p in range(np.shape(param_sym)[0] - 1):
             param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+            if uniform_ranges:
+                ax.set(ylim=axes_ranges[param_sym_name[p]])
+                rectangle = plt.Rectangle((split_start - 0.5, axes_ranges[param_sym_name[p]][0]), split_duration,
+                                            axes_ranges[param_sym_name[p]][1] - axes_ranges[param_sym_name[p]][0],
+                                            fc='lightblue', alpha=0.3)
+            else:
                 rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
                                             np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(param_sym_bs_ave[:, :].flatten()),
                                             fc='lightblue', alpha=0.3)
@@ -291,6 +301,12 @@ for path in paths:
                         np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
                         facecolor='black', alpha=0.5)
                 
+                if uniform_ranges:
+                    ax.set(ylim=axes_ranges[param_sym_name[p]])
+                    rectangle = plt.Rectangle((split_start - 0.5, axes_ranges[param_sym_name[p]][0]), split_duration,
+                                            axes_ranges[param_sym_name[p]][1] - axes_ranges[param_sym_name[p]][0],
+                                            fc='lightblue', alpha=0.3)
+                else:
                     rectangle = plt.Rectangle((split_start - 0.5, min(np.nanmin(param_sym_bs_ave[:, :].flatten()), np.nanmin(np.nanmean(control_param_sym_bs[p, :, :], axis=0)))), split_duration,
                                                 max(np.nanmax(param_sym_bs_ave[:, :].flatten()), np.nanmax(np.nanmean(control_param_sym_bs[p, :, :], axis=0))) - min(np.nanmin(
                                                     param_sym_bs_ave[:, :].flatten()),np.nanmin(np.nanmean(control_param_sym_bs[p, :, :], axis=0))),
@@ -407,6 +423,11 @@ if single_animal_analysis==0 and (len(paths)>1 or len(control_path)>1):
             max_rect = max(max_rect,np.nanmax(np.nanmean(control_param_sym_bs[p], axis=0)+np.nanstd(control_param_sym_bs[p], axis = 0)))
         
         ax_multi.legend()
+        if uniform_ranges:
+            rectangle = plt.Rectangle((split_start - 0.5, axes_ranges[param_sym_name[p]][0]), split_duration,
+                                                axes_ranges[param_sym_name[p]][1] - axes_ranges[param_sym_name[p]][0],
+                                                fc='lightblue', alpha=0.3)
+        else:
             rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
                                                 max_rect - min_rect,
                                                 fc='lightblue', alpha=0.3)
@@ -416,6 +437,8 @@ if single_animal_analysis==0 and (len(paths)>1 or len(control_path)>1):
         ax_multi.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
         ax_multi.set_xlabel('Trial', fontsize=20)
         ax_multi.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+        if uniform_ranges:
+            ax_multi.set(ylim=axes_ranges[param_sym_name[p]])
         if p == 2:
             plt.gca().invert_yaxis()
         plt.xticks(fontsize=16)
