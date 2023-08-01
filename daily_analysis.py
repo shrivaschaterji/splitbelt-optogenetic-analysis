@@ -113,7 +113,9 @@ for path in paths:
         ax.spines['top'].set_visible(False)
         plt.savefig(os.path.join(paths_save[path_index], 'laser_on_accuracy_' + laser_event + '.png'))
         fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-        rectangle = plt.Rectangle((split_start - 0.5, 0), split_duration, 50, fc=colors[path_index], alpha=0.3)
+        rectangle = plt.Rectangle((split_start - 0.5, 0), split_duration, 50, fc='lightblue', alpha=0.3)
+        ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
+        ax.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
         plt.gca().add_patch(rectangle)
         ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
         ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
@@ -169,11 +171,14 @@ for path in paths:
         param_sym_bs_plot = param_sym_bs[:, included_animals_id, :]
         for p in range(np.shape(param_sym)[0] - 1):
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start - 0.5, np.min(param_sym_bs[p, :, :].flatten())), split_duration,
-                                    np.max(param_sym_bs[p, :, :].flatten()) - np.min(param_sym_bs[p, :, :].flatten()),
-                                    fc=colors[path_index], alpha=0.3)
+            rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs[p, :, :].flatten())), split_duration,
+                                    np.nanmax(param_sym_bs[p, :, :].flatten()) - np.nanmin(param_sym_bs[p, :, :].flatten()),
+                                    fc='lightblue', alpha=0.3)
             plt.gca().add_patch(rectangle)
+            ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
+            ax.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
             plt.hlines(0, 1, len(param_sym_bs[p, a, :]), colors='grey', linestyles='--')
+            
             for a in range(np.shape(param_sym)[1]):         # Loop on all animals
                 plt.plot(np.linspace(1, len(param_sym_bs[p, a, :]), len(param_sym_bs[p, a, :])), param_sym_bs[p, a, :], color=animal_colors[a],
                         label=animal_list[a], linewidth=2)
@@ -201,10 +206,12 @@ for path in paths:
         for p in range(np.shape(param_sym)[0] - 1):
             param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
-                                        np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(param_sym_bs_ave[:, :].flatten()),
-                                        fc=experiment_colors[path_index], alpha=0.3)
+                rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
+                                            np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(param_sym_bs_ave[:, :].flatten()),
+                                            fc='lightblue', alpha=0.3)
             plt.gca().add_patch(rectangle)
+            ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
+            ax.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
             plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
             for a in range(np.shape(param_sym_bs_ave)[0]):
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1, color = animal_colors[included_animals_id[a]], label=animal_list[included_animals_id[a]])
@@ -284,11 +291,14 @@ for path in paths:
                         np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
                         facecolor='black', alpha=0.5)
                 
-                rectangle = plt.Rectangle((split_start - 0.5, min(np.nanmin(param_sym_bs_ave[:, :].flatten()), np.nanmin(control_param_sym_bs[p,:, :].flatten()))), split_duration,
-                                            max(np.nanmax(param_sym_bs_ave[:, :].flatten()), np.nanmax(control_param_sym_bs[p,:, :].flatten())) - min(np.nanmin(
-                                                param_sym_bs_ave[:, :].flatten()),np.nanmin(control_param_sym_bs[p,:, :].flatten())),
-                                            fc=experiment_colors[path_index], alpha=0.3)
+                    rectangle = plt.Rectangle((split_start - 0.5, min(np.nanmin(param_sym_bs_ave[:, :].flatten()), np.nanmin(np.nanmean(control_param_sym_bs[p, :, :], axis=0)))), split_duration,
+                                                max(np.nanmax(param_sym_bs_ave[:, :].flatten()), np.nanmax(np.nanmean(control_param_sym_bs[p, :, :], axis=0))) - min(np.nanmin(
+                                                    param_sym_bs_ave[:, :].flatten()),np.nanmin(np.nanmean(control_param_sym_bs[p, :, :], axis=0))),
+                                                fc='lightblue', alpha=0.3)
                 plt.gca().add_patch(rectangle)
+                plt.legend()
+                ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
+                ax.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
                 ax.set_xlabel('Trial', fontsize=20)
                 ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
                 if p == 2:
@@ -313,7 +323,7 @@ for path in paths:
         for a in range(np.shape(stance_speed)[1]):
             data = stance_speed[:, a, :]
             fig, ax = plt.subplots(figsize=(7,10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start-0.5, -0.5), split_duration, 1, fc=experiment_colors[path_index],alpha=0.3)
+            rectangle = plt.Rectangle((split_start-0.5, -0.5), split_duration, 1, fc='lightblue',alpha=0.3)
             for p in range(4):
                 ax.axvline(x = split_start, color='dimgray', linestyle='--')
                 ax.axvline(x = split_start+ split_duration, color='dimgray', linestyle='--')
@@ -397,11 +407,13 @@ if single_animal_analysis==0 and (len(paths)>1 or len(control_path)>1):
             max_rect = max(max_rect,np.nanmax(np.nanmean(control_param_sym_bs[p], axis=0)+np.nanstd(control_param_sym_bs[p], axis = 0)))
         
         ax_multi.legend()
-        rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
-                                            max_rect - min_rect,
-                                            fc='lightblue', alpha=0.3)
+            rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
+                                                max_rect - min_rect,
+                                                fc='lightblue', alpha=0.3)
         plt.gca().add_patch(rectangle)
         plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
+        ax_multi.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
+        ax_multi.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
         ax_multi.set_xlabel('Trial', fontsize=20)
         ax_multi.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
         if p == 2:
