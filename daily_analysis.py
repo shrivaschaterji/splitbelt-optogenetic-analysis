@@ -6,6 +6,7 @@ import os
 laser_event = 'swing'
 single_animal_analysis = 0
 plot_continuous = 0
+compare_baselines = 0
 axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 #axes_ranges = {'coo': [-3, 5], 'step_length': [-5, 12], 'double_support': [-13, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
@@ -139,6 +140,8 @@ for path in paths:
         stance_speed = np.zeros((4, len(animal_list), Ntrials))
         stance_speed[:] = np.NaN
         st_strides_trials = []
+        param_gait = np.zeros((len(param_gait_name), len(animal_list), Ntrials))
+        param_gait[:] = np.NaN
         for count_animal, animal in enumerate(animal_list):
             session = int(session_list[count_animal])
             #TODO: check if this filelist needs to be emptied first!
@@ -158,6 +161,10 @@ for path in paths:
                         param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0]) - np.nanmean(param_mat[2])
                     else:
                         param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])
+                if compare_baselines:
+                    for count_p, param in enumerate(param_gait_name):
+                        param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
+                        param_gait[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])
 
         # BASELINE SUBTRACTION OF GAIT PARAMETERS
         if bs_bool:
@@ -172,8 +179,47 @@ for path in paths:
         else:
             param_sym_bs = param_sym
 
-        # PLOT GAIT PARAMETERS OF INCLUDED ANIMALS
-        param_sym_bs_plot = param_sym_bs[:, included_animals_id, :]
+        # Compare baseline symmetry with and without stim
+        if compare_baselines:
+            param_no_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))          # Stance speed is not considered in the params
+            param_no_stim[:] = np.NaN
+            param_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))
+            param_stim[:] = np.NaN
+            # Symmetry parameters
+            for p in range(np.shape(param_sym)[0]-1):
+                for a in included_animals_id:            #range(np.shape(param_sym)[1]):
+                    param_no_stim[p, a, :] = param_sym[p, a, :stim_start-1]
+                    param_stim[p, a, :] = param_sym[p, a, stim_start-1:stim_start+stim_duration-1]        # :8]
+            # Gait parameters
+            start_ind=np.shape(param_sym)[0]-1
+            for p in range(np.shape(param_gait)[0]):
+                for a in included_animals_id:           #range(np.shape(param_gait)[1]):
+                    param_no_stim[start_ind+p, a, :] = param_gait[p, a, :stim_start-1]
+                    param_stim[start_ind+p, a, :] = param_gait[p, a, stim_start-1:stim_start+stim_duration-1]           # :8]
+            
+
+            # Plot and compare
+            import math
+            param_names = param_sym_name[:-1]+param_gait_name
+            fig_stim_cmp, ax_stim_cmp = plt.subplots(3,5)           # len(param_sym_name)+len(param_gait_name))
+            rc = [[0,0],[0,1],[0,2],[0,3],[0,4],[1,0],[1,1],[1,2],[1,3],[1,4],[2,0],[2,1],[2,2],[2,3],[2,4]]
+            for p in range(np.shape(param_stim)[0]):
+                ax_stim_cmp[rc[p][0],rc[p][1]].bar([0,1], [np.nanmean(np.nanmean(param_no_stim[p,:,:], axis=1)), np.nanmean(np.nanmean(param_stim[p,:,:], axis=1))], yerr=[np.nanstd(np.nanmean(param_no_stim[p,:,:], axis=1)),np.nanstd(np.nanmean(param_stim[p,:,:], axis=1))], align='center', color=['gray', experiment_colors_dict[experiment_name]], alpha=0.5, ecolor='black', capsize=6)
+                ax_stim_cmp[rc[p][0],rc[p][1]].plot([np.nanmean(param_no_stim[p,:,:], axis=1), np.nanmean(param_stim[p,:,:], axis=1)],'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
+                ax_stim_cmp[rc[p][0],rc[p][1]].set_title(param_names[p], size=9)
+                ax_stim_cmp[rc[p][0],rc[p][1]].set_xticks([])
+            fig_stim_cmp.tight_layout()
+            if print_plots:
+                if not os.path.exists(paths_save[path_index]):
+                    os.mkdir(paths_save[path_index])
+                
+                plt.savefig(paths_save[path_index] + 'compare_baselines', dpi=128)
+                
+
+
+
+
+
         for p in range(np.shape(param_sym)[0] - 1):
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
             rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs[p, :, :].flatten())), split_duration,
