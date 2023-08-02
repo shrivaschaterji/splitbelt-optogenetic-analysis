@@ -1,12 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import scipy.stats as st
 
 # Inputs
 laser_event = 'swing'
 single_animal_analysis = 0
 plot_continuous = 0
 compare_baselines = 0
+compute_statistics = 0
+significance_threshold = 0.05
+
 axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 #axes_ranges = {'coo': [-3, 5], 'step_length': [-5, 12], 'double_support': [-13, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
