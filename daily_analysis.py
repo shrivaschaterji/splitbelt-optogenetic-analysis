@@ -17,7 +17,9 @@ bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 1
 #bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 17], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 uniform_ranges = 1
 
-# List of paths - it is possible to have only one element
+# List of paths for each experiment - it is possible to have only one element
+experiment_names = ['trial stim', 'stance stim', 'swing stim']
+
 paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
          'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\06062023 tied stance stim\\',
          'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\07062023 tied swing stim\\']
@@ -69,6 +71,9 @@ for path in paths:
     if not os.path.exists(path + 'grouped output'):
         os.mkdir(path + 'grouped output')
 
+    for exp in experiment_names:
+        if exp in path:
+            experiment_name = exp
 
     # GET THE NUMBER OF ANIMALS AND THE SESSION ID
     animal_session_list = locos[path_index].animals_within_session()
@@ -430,7 +435,7 @@ for path in paths:
                 fig, ax = plt.subplots(tight_layout=True, figsize=(25,10))
                 sl_time_start = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]
                 sl_time_duration = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]+(locos[path_index].trial_time*stim_duration)
-                rectangle = plt.Rectangle((sl_time_start, np.nanmin(sl_values)), sl_time_duration-sl_time_start, np.nanmax(sl_values)+np.abs(np.nanmin(sl_values)), fc=experiment_colors[a], alpha=0.3)
+                rectangle = plt.Rectangle((sl_time_start, np.nanmin(sl_values)), sl_time_duration-sl_time_start, np.nanmax(sl_values)+np.abs(np.nanmin(sl_values)), fc=experiment_colors_dict[experiment_name], alpha=0.3)
                 plt.gca().add_patch(rectangle)
                 ax.plot(sl_time, sl_values, color='black')
                 ax.set_xlabel('time (s)')
