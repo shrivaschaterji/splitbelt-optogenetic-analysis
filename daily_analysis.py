@@ -331,23 +331,24 @@ for path in paths:
 
             for p in range(np.shape(param_sym)[0] - 1):   
                 param_sym_bs_ave = param_sym_bs_plot[p, :, :]
+                
                 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)  
                 
                 plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
                 for a in range(np.shape(param_sym_bs_ave)[0]):
                     plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])),
-                                param_sym_bs_ave[a, :], color=animal_colors[included_animals_id[a]], linewidth=1)
+                                param_sym_bs_ave[a, :], color=animal_colors_dict[included_animal_list[a]], linewidth=1, label=animal_list[a])
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_bs_ave, axis=0), color=animal_colors[included_animals_id[a]], linewidth=2)
-                # Add control average
+                            np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors_dict[experiment_name], linewidth=2, label=experiment_names[path_index])
+               # Add control average
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='black', linewidth=2)
+                            np.nanmean(control_param_sym_bs[p, :, :], axis=0), color='black', linewidth=2, label='control')
                 # Add control SE
                 ax.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
-                        np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)+np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
-                        np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
+                        np.nanmean(control_param_sym_bs[p, :, :], axis=0)+np.nanstd(control_param_sym_bs[p, :, :], axis=0)/np.sqrt(len(included_animal_list)), 
+                        np.nanmean(control_param_sym_bs[p, :, :], axis=0)-np.nanstd(control_param_sym_bs[p, :, :], axis=0)/np.sqrt(len(included_animal_list)), 
                         facecolor='black', alpha=0.5)
-                
+
                 if uniform_ranges:
                     ax.set(ylim=axes_ranges[param_sym_name[p]])
                     rectangle = plt.Rectangle((split_start - 0.5, axes_ranges[param_sym_name[p]][0]), split_duration,
