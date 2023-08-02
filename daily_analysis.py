@@ -225,9 +225,9 @@ for path in paths:
             ax.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
             plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
             for a in range(np.shape(param_sym_bs_ave)[0]):
-                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1, color = animal_colors[included_animals_id[a]], label=animal_list[included_animals_id[a]])
+                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1, color = animal_colors_dict[included_animal_list[a]], label=animal_list[included_animals_id[a]])
             ax.legend(frameon=False)
-            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors[path_index], linewidth=3)
+            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors_dict[experiment_name], linewidth=3)
             ax.set_xlabel('Trial', fontsize=20)
             ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
             if p == 2:
@@ -397,7 +397,9 @@ for path in paths:
 # MULTI-SESSION PLOT
 if single_animal_analysis==0 and (len(paths)>1 or len(control_path)>1):
     if len(control_path)>0:
-        experiment_colors = ['black'] + experiment_colors
+        current_experiment_colors = ['black']
+        current_bar_labels = ['control']
+    
     for p in range(np.shape(param_sym)[0] - 1):
         fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
         min_rect = 0
@@ -467,6 +469,9 @@ if single_animal_analysis==0 and (len(paths)>1 or len(control_path)>1):
         stat_aftereffect = []
         stat_learning_sym_change = []
         stat_aftereffect_sym_change = []
+        if split_duration==0:
+            split_start = stim_start
+            split_duration = stim_duration
 
         # First add control, if any
         if len(control_path)>0:
