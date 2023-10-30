@@ -71,7 +71,7 @@ for count_a, animal in enumerate(animals):
     fp_sw_laser = np.zeros(len(trials))
     event = 'swing'
     for count_t, trial in enumerate(trials):
-        [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
+        [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
         tp_sw_laser[count_t] = tp_trial
         tn_sw_laser[count_t] = tn_trial
         f1_sw_laser[count_t] = f1_trial

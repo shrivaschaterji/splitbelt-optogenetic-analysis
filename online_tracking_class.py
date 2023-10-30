@@ -13,6 +13,8 @@ import cv2
 import glob
 from decord import VideoReader
 from decord import cpu
+import scipy.signal as sig
+from matplotlib.cm import ScalarMappable
 np.warnings.filterwarnings('ignore')
 
 class otrack_class:
@@ -364,7 +366,7 @@ class otrack_class:
 
     def get_offtrack_paws(self, loco, animal, session):
         """Use the locomotion class to get the paw excursions from
-        the post-hoc tracking full DLC NETWORK
+        the post-hoc tracking full DLC NETWORK. Gets also swing and stance points for each trial.
         Input:
         loco: locomotion class
         animal: (str)
@@ -386,10 +388,15 @@ class otrack_class:
             tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
             files_ordered.append(filelist[tr_ind])
         final_tracks_trials = []
+        st_strides_trials = []
+        sw_strides_trials = []
         for f in files_ordered:
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0) #read h5 using the full network features
             final_tracks_trials.append(final_tracks)
-        return final_tracks_trials
+            [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)
+            st_strides_trials.append(st_strides_mat)
+            sw_strides_trials.append(sw_pts_mat)
+        return final_tracks_trials, st_strides_trials, sw_strides_trials
 
     def get_offtrack_event_data(self, paw, loco, animal, session, timestamps_session):
         """Use the locomotion class to get the stance and swing points from
@@ -1193,18 +1200,21 @@ class otrack_class:
             ax.spines['top'].set_visible(False)
         return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
 
-    @staticmethod
-    def laser_presentation_phase(trial, event, offtracks_st, offtracks_sw, laser_on, time_bool):
-        """
-        Inputs: From all the times the laser was on it checks when the laser onset and offset happened in relation to either
+    def laser_presentation_phase(self, trial, trials, event, offtracks_st, offtracks_sw, laser_on, timestamps_session, final_tracks_phase, time_bool):
+        """From all the times the laser was on it checks when the laser onset and offset happened in relation to either
         the stance or swing duration
+        Inputs:
             trial: int
             event: (str) stance or swing
             offtracks_st: dataframe with offline tracks for stance
             offtracks_sw: dataframe with offline tracks for swing
-            st_led_on: dataframe with stance led on
-            sw_led_on: dataframe with swing led on
-            time_bool: if 1 result is in time and not in phase"""
+            laser_on: dataframe with laser on
+            timestamps_session: (list) with frame timestamps for each trial
+            final_tracks_phase: (list) with paws excursion in phase
+            time_bool: boolean to decide if output is time or phase around stance or swing"""
+        paw_idx = 0  # always the FR paw
+        trial_idx = np.where(trials == trial)[0][0]
+        final_tracks_phase_paw = self.inpaint_nans(final_tracks_phase[trial_idx][0, paw_idx, :])
         if event == 'stance':
             offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             light_trial = laser_on.loc[laser_on['trial'] == trial]
@@ -1222,10 +1232,9 @@ class otrack_class:
                                       & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
                                       & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
                                       & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
-            loco_period_duration = offtrack_trial['time_off'].iloc[t]-offtrack_trial['time'].iloc[t]
             light_onset_arr = np.array(light_trial['time_on'])
             light_offset_arr = np.array(light_trial['time_off'])
-            if time_bool:
+            if time_bool: #if output is in time
                 if len(full_hit_idx) > 0:
                     light_onset_phase.append(
                         (light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
@@ -1236,27 +1245,56 @@ class otrack_class:
                         (light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
                     light_offset_phase.append(
                         (light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
-            else:
+            else: #if output is in phase
                 if len(full_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
-                    light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_full_hit_onset = light_onset_arr[full_hit_idx[0]]
+                    light_full_hit_onset_idx = np.argmin(
+                        np.abs(light_full_hit_onset - timestamps_session[trial_idx]))
+                    if (light_full_hit_onset - offtrack_trial['time'].iloc[t])>0:
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
+                    else:
+                        light_onset_phase.append(-final_tracks_phase_paw[light_full_hit_onset_idx])
+                    light_full_hit_offset = light_offset_arr[full_hit_idx[0]]
+                    light_full_hit_offset_idx = np.argmin(
+                        np.abs(light_full_hit_offset - timestamps_session[trial_idx]))
+                    if (light_full_hit_offset - offtrack_trial['time'].iloc[t])>0:
+                        light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
+                    else:
+                        light_offset_phase.append(-final_tracks_phase_paw[light_full_hit_offset_idx])
                 if len(before_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
-                    light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_before_hit_onset = light_onset_arr[before_hit_idx[0]]
+                    light_before_hit_onset_idx = np.argmin(
+                        np.abs(light_before_hit_onset - timestamps_session[trial_idx]))
+                    if (light_before_hit_onset - offtrack_trial['time'].iloc[t])>0:
+                        light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
+                    else:
+                        light_onset_phase.append(-final_tracks_phase_paw[light_before_hit_onset_idx])
+                    light_before_hit_offset = light_offset_arr[before_hit_idx[0]]
+                    light_before_hit_offset_idx = np.argmin(
+                        np.abs(light_before_hit_offset - timestamps_session[trial_idx]))
+                    if (light_before_hit_offset - offtrack_trial['time'].iloc[t])>0:
+                        light_offset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
+                    else:
+                        light_offset_phase.append(-final_tracks_phase_paw[light_before_hit_offset_idx])
         return light_onset_phase, light_offset_phase
 
-    @staticmethod
-    def light_presentation_phase(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, time_bool):
-        """
-        Inputs: From all the times the LED was on it checks when the laser onset and offset happened in relation to either
+    def light_presentation_phase(self, trial, trials, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                                 timestamps_session, final_tracks_phase, time_bool):
+        """From all the times the LED was on it checks when the laser onset and offset happened in relation to either
         the stance or swing duration
+        Inputs:
             trial: int
             event: (str) stance or swing
             offtracks_st: dataframe with offline tracks for stance
             offtracks_sw: dataframe with offline tracks for swing
             st_led_on: dataframe with stance led on
             sw_led_on: dataframe with swing led on
-            time_bool: if 1 result is in time and not in phase"""
+            timestamps_session: (list) with frame timestamps for each trial
+            final_tracks_phase: (list) with paws excursion in phase
+            time_bool: boolean to decide if output is time or phase around stance or swing"""
+        paw_idx = 0  # always the FR paw
+        trial_idx = np.where(trials == trial)[0][0]
+        final_tracks_phase_paw = self.inpaint_nans(final_tracks_phase[trial_idx][0, paw_idx, :])
         if event == 'stance':
             offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
             light_trial = st_led_on.loc[st_led_on['trial'] == trial]
@@ -1284,14 +1322,135 @@ class otrack_class:
                 if len(before_hit_idx) > 0:
                     light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
                     light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
-            else:
+                    if time_bool:  # if output is in time
+                        if len(full_hit_idx) > 0:
+                            light_onset_phase.append(
+                                (light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
+                            light_offset_phase.append(
+                                (light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
+                        if len(before_hit_idx) > 0:
+                            light_onset_phase.append(
+                                (light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
+                            light_offset_phase.append(
+                                (light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t]))
+            else:  # if output is in phase
                 if len(full_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
-                    light_offset_phase.append((light_offset_arr[full_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_full_hit_onset = light_onset_arr[full_hit_idx[0]]
+                    light_full_hit_onset_idx = np.argmin(
+                        np.abs(light_full_hit_onset - timestamps_session[trial_idx]))
+                    if (light_full_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
+                    else:
+                        light_onset_phase.append(-final_tracks_phase_paw[light_full_hit_onset_idx])
+                    light_full_hit_offset = light_offset_arr[full_hit_idx[0]]
+                    light_full_hit_offset_idx = np.argmin(
+                        np.abs(light_full_hit_offset - timestamps_session[trial_idx]))
+                    if (light_full_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
+                        light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
+                    else:
+                        light_offset_phase.append(-final_tracks_phase_paw[light_full_hit_offset_idx])
                 if len(before_hit_idx) > 0:
-                    light_onset_phase.append((light_onset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
-                    light_offset_phase.append((light_offset_arr[before_hit_idx[0]] - offtrack_trial['time'].iloc[t])/loco_period_duration)
+                    light_before_hit_onset = light_onset_arr[before_hit_idx[0]]
+                    light_before_hit_onset_idx = np.argmin(
+                        np.abs(light_before_hit_onset - timestamps_session[trial_idx]))
+                    if (light_before_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
+                        light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
+                    else:
+                        light_onset_phase.append(-final_tracks_phase_paw[light_before_hit_onset_idx])
+                    light_before_hit_offset = light_offset_arr[before_hit_idx[0]]
+                    light_before_hit_offset_idx = np.argmin(
+                        np.abs(light_before_hit_offset - timestamps_session[trial_idx]))
+                    if (light_before_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
+                        light_offset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
+                    else:
+                        light_offset_phase.append(-final_tracks_phase_paw[light_before_hit_offset_idx])
         return light_onset_phase, light_offset_phase
+
+    def plot_laser_presentation_phase(self, light_onset_phase_st, light_offset_phase_st, event, fontsize_plot):
+        """Plot on a schematic stride in phase the distribution of onsets and offsets for laser presentations
+        Inputs:
+            light_onset_phase_st: list with onsets of laser/LED
+            light_offset_phase_st: list with offsets of laser/LED
+            event: (str) stance or swing
+            fontsize_plot: (int) for size of the font of the plots"""
+        # Compute histograms of onset and offsets
+        light_onset_phase_st_viz = []
+        light_duration_phase_st = []
+        for count_on, on in enumerate(light_onset_phase_st):
+            if on < 0:  # for viz purposes for phase to be between 0 and 1 - if onset was before st
+                light_onset_phase_st_viz.append(np.abs(on))
+                light_duration_phase_st.append(
+                    on + 1 + light_offset_phase_st[count_on])  # because of sign this is the way to get right duration
+            if on >= 0:  # for viz purposes for phase to be between 1 and 2 - if onset was after st
+                light_onset_phase_st_viz.append(on + 1)
+                light_duration_phase_st.append(
+                    light_offset_phase_st[count_on] - on)  # with positive phase if offset-onset
+        light_offset_phase_st_viz = []
+        for off in light_offset_phase_st:
+            if off < 0:  # for viz purposes for phase to be between 0 and 1 - if offset was before st
+                light_offset_phase_st_viz.append(np.abs(off))
+            if off >= 0:  # for viz purposes for phase to be between 1 and 2 - if offset was after st
+                light_offset_phase_st_viz.append(off + 1)
+        # histogram of onset phases
+        light_onset_phase_st_viz_hist = np.histogram(light_onset_phase_st_viz, range=(
+        np.min(light_onset_phase_st_viz), np.max(light_onset_phase_st_viz)))
+        light_onset_phase_st_viz_hist_norm = light_onset_phase_st_viz_hist[0] / np.nanmax(
+            light_onset_phase_st_viz_hist[0])
+        # histogram of offset phases
+        light_offset_phase_st_viz_hist = np.histogram(light_offset_phase_st_viz, range=(
+        np.min(light_offset_phase_st_viz), np.max(light_offset_phase_st_viz)))
+        light_offset_phase_st_viz_hist_norm = light_offset_phase_st_viz_hist[0] / np.nanmax(
+            light_offset_phase_st_viz_hist[0])
+        # mean phase duration for the binned onset phases
+        light_onset_bin_idx = np.digitize(light_onset_phase_st_viz, light_onset_phase_st_viz_hist[1])
+        light_duration_phase_st_mean_bins = np.zeros(len(light_onset_phase_st_viz_hist[1]))
+        light_duration_phase_st_arr = np.array(light_duration_phase_st)
+        for b in np.unique(light_onset_bin_idx):  # mean onset duration for that bin
+            light_duration_phase_st_mean_bins[b - 1] = np.nanmean(light_duration_phase_st_arr[light_onset_bin_idx == b])
+        #Plot onset and histograms phase distributions
+        cmap_on = plt.get_cmap('Blues')
+        color_bars = [cmap_on(i) for i in np.linspace(0, 1, 11)]
+        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        FR = 5 * np.sin(2 * np.pi * time + (np.pi / 2)) + 5
+        FR_sawtooth = 5 * sig.sawtooth(2 * np.pi * time) + 5
+        fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
+        ax.plot(time, FR, color='black')
+        for b in range(len(light_onset_phase_st_viz_hist[1]) - 1):
+            ax.bar(light_onset_phase_st_viz_hist[1][b] + (light_duration_phase_st_mean_bins[b] / 2), height=1,
+                   bottom=b + 0.1, width=light_duration_phase_st_mean_bins[b],
+                   color=color_bars[np.int64(np.ceil(light_onset_phase_st_viz_hist_norm[b] * 10))])
+        plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.max(light_offset_phase_st_viz_hist[0]))),
+                     ticks=np.linspace(0, np.max(light_offset_phase_st_viz_hist[0]), 11), label='counts')
+        ax.set_xticks([0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+        ax.set_title(event + '-like stimulation onset', fontsize=fontsize_plot+2)
+        ax.get_yaxis().set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
+        cmap_off = plt.get_cmap('Reds')
+        color_bars = [cmap_off(i) for i in np.linspace(0, 1, 11)]
+        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        FR = np.sin(2 * np.pi * time + (np.pi / 2)) + 1
+        fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
+        plt.plot(time, FR, color='black')
+        for b in range(len(light_offset_phase_st_viz_hist[1]) - 1):
+            plt.bar(light_offset_phase_st_viz_hist[1][b], height=2, width=0.07,
+                    color=color_bars[np.int64(np.ceil(light_offset_phase_st_viz_hist_norm[b] * 10))])
+        plt.colorbar(ScalarMappable(cmap=cmap_off, norm=plt.Normalize(0, np.max(light_offset_phase_st_viz_hist[0]))),
+                     ticks=np.linspace(0, np.max(light_offset_phase_st_viz_hist[0]), 11), label='counts')
+        ax.set_xticks([0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+        ax.set_title(event + '-like stimulation offset', fontsize=fontsize_plot + 2)
+        ax.get_yaxis().set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
+        return
 
     def accuracy_scores_otrack(self, otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw):
         """Function to compute accuracy, precision, recall and F1 scores for when the
