@@ -29,14 +29,10 @@ trial_id = []
 condition_id = []
 stim_duration_st = []
 stim_duration_sw = []
-stim_onset_phase_st = []
-stim_onset_phase_sw = []
-stim_onset_time_st = []
-stim_onset_time_sw = []
-stim_offset_phase_st = []
-stim_offset_phase_sw = []
-stim_offset_time_st = []
-stim_offset_time_sw = []
+light_onset_phase_st = []
+light_offset_phase_st = []
+light_onset_phase_sw = []
+light_offset_phase_sw = []
 for count_a, animal in enumerate(animals):
     trials = otrack_class.get_trials(animal)
     # LOAD PROCESSED DATA
@@ -45,6 +41,8 @@ for count_a, animal in enumerate(animals):
     [st_led_on, sw_led_on, frame_counter_session] = otrack_class.load_benchmark_files(animal)
     # READ OFFLINE PAW EXCURSIONS
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
+    final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
+                                                 'st-sw-st')
     # LASER ACCURACY
     tp_st_laser = np.zeros(len(trials))
     tn_st_laser = np.zeros(len(trials))
@@ -88,62 +86,48 @@ for count_a, animal in enumerate(animals):
     trials_reshape = np.reshape(np.arange(1, 11), (5, 2))
     stim_duration_st_animal = []
     stim_duration_sw_animal = []
-    stim_onset_phase_st_animal = []
-    stim_onset_time_st_animal = []
-    stim_onset_phase_sw_animal = []
-    stim_onset_time_sw_animal = []
-    stim_offset_phase_st_animal = []
-    stim_offset_time_st_animal = []
-    stim_offset_phase_sw_animal = []
-    stim_offset_time_sw_animal = []
+    stim_nr_st_trials = np.zeros(np.shape(trials_reshape)[0])
+    stride_nr_st_trials = np.zeros(np.shape(trials_reshape)[0])
+    stim_nr_sw_trials = np.zeros(np.shape(trials_reshape)[0])
+    stride_nr_sw_trials = np.zeros(np.shape(trials_reshape)[0])
+    light_onset_phase_st_animal = []
+    light_offset_phase_st_animal = []
+    light_onset_phase_sw_animal = []
+    light_offset_phase_sw_animal = []
     for i in range(len(trials_reshape)):
         stim_duration_st_trialtype = []
         stim_duration_sw_trialtype = []
-        stim_onset_phase_st_trialtype = []
-        stim_onset_time_st_trialtype = []
-        stim_onset_phase_sw_trialtype = []
-        stim_onset_time_sw_trialtype = []
-        stim_offset_phase_st_trialtype = []
-        stim_offset_time_st_trialtype = []
-        stim_offset_phase_sw_trialtype = []
-        stim_offset_time_sw_trialtype = []
+        light_onset_phase_st_trialtype = []
+        light_offset_phase_st_trialtype = []
+        light_onset_phase_sw_trialtype = []
+        light_offset_phase_sw_trialtype = []
         for t in trials_reshape[i, :]:
             #stim duration
             stim_duration_st_trialtype.extend((laser_on.loc[laser_on['trial'] == t]['time_off']-laser_on.loc[laser_on['trial'] == t]['time_on']))
             stim_duration_sw_trialtype.extend((sw_led_on.loc[sw_led_on['trial'] == t]['time_off']-sw_led_on.loc[sw_led_on['trial'] == t]['time_on']))
-            #stim onset and offset
-            [light_onset_phase_st, light_offset_phase_st] = otrack_class.laser_presentation_phase(t, event, offtracks_st, offtracks_sw, laser_on, 0)
-            [light_onset_phase_sw, light_offset_phase_sw] = otrack_class.light_presentation_phase(t, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, 0)
-            [light_onset_time_st, light_offset_time_st] = otrack_class.laser_presentation_phase(t, event, offtracks_st, offtracks_sw, laser_on, 1)
-            [light_onset_time_sw, light_offset_time_sw] = otrack_class.light_presentation_phase(t, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, 1)
-            stim_onset_phase_st_trialtype.extend(light_onset_phase_st)
-            stim_onset_time_st_trialtype.extend(list(np.array(light_onset_time_st)*1000)) #in msec
-            stim_onset_phase_sw_trialtype.extend(light_onset_phase_sw)
-            stim_onset_time_sw_trialtype.extend(list(np.array(light_onset_time_sw)*1000))
-            stim_offset_phase_st_trialtype.extend(light_offset_phase_st)
-            stim_offset_time_st_trialtype.extend(list(np.array(light_offset_time_st)*1000))
-            stim_offset_phase_sw_trialtype.extend(light_offset_phase_sw)
-            stim_offset_time_sw_trialtype.extend(list(np.array(light_offset_time_sw)*1000))
+            #stim phase
+            [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                otrack_class.laser_presentation_phase(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
+                                                      timestamps_session, final_tracks_phase, 0)
+            [light_onset_phase_sw_trial, light_offset_phase_sw_trial, stim_nr_sw, stride_nr_sw] = \
+                otrack_class.laser_presentation_phase(trial, trials, 'swing', offtracks_st, offtracks_sw, laser_on,
+                                                      timestamps_session, final_tracks_phase, 0)
+            light_onset_phase_st_trialtype.extend(light_onset_phase_st_trial)
+            light_offset_phase_st_trialtype.extend(light_offset_phase_st_trial)
+            light_onset_phase_sw_trialtype.extend(light_onset_phase_sw_trial)
+            light_offset_phase_sw_trialtype.extend(light_offset_phase_sw_trial)
         stim_duration_st_animal.append(stim_duration_st_trialtype)
         stim_duration_sw_animal.append(stim_duration_sw_trialtype)
-        stim_onset_phase_st_animal.append(stim_onset_phase_st_trialtype)
-        stim_onset_time_st_animal.append(stim_onset_time_st_trialtype)
-        stim_onset_phase_sw_animal.append(stim_onset_phase_sw_trialtype)
-        stim_onset_time_sw_animal.append(stim_onset_time_sw_trialtype)
-        stim_offset_phase_st_animal.append(stim_offset_phase_st_trialtype)
-        stim_offset_time_st_animal.append(stim_offset_time_st_trialtype)
-        stim_offset_phase_sw_animal.append(stim_offset_phase_sw_trialtype)
-        stim_offset_time_sw_animal.append(stim_offset_time_sw_trialtype)
+        light_onset_phase_st_animal.append(light_onset_phase_st_trialtype)
+        light_offset_phase_st_animal.append(light_offset_phase_st_trialtype)
+        light_onset_phase_sw_animal.append(light_onset_phase_sw_trialtype)
+        light_offset_phase_sw_animal.append(light_offset_phase_sw_trialtype)
     stim_duration_st.append(stim_duration_st_animal)
     stim_duration_sw.append(stim_duration_sw_animal)
-    stim_onset_phase_st.append(stim_onset_phase_st_animal)
-    stim_onset_phase_sw.append(stim_onset_phase_sw_animal)
-    stim_onset_time_st.append(stim_onset_time_st_animal)
-    stim_onset_time_sw.append(stim_onset_time_sw_animal)
-    stim_offset_phase_st.append(stim_offset_phase_st_animal)
-    stim_offset_phase_sw.append(stim_offset_phase_sw_animal)
-    stim_offset_time_st.append(stim_offset_time_st_animal)
-    stim_offset_time_sw.append(stim_offset_time_sw_animal)
+    light_onset_phase_st.append(light_onset_phase_st_animal)
+    light_offset_phase_st.append(light_offset_phase_st_animal)
+    light_onset_phase_sw.append(light_onset_phase_sw_animal)
+    light_offset_phase_sw.append(light_offset_phase_sw_animal)
 
 benchmark_accuracy = pd.DataFrame(
     {'condition': condition_id, 'animal': animal_id, 'trial': trial_id, 'accuracy_st': accuracy_st,
@@ -153,14 +137,6 @@ benchmark_accuracy.to_csv(os.path.join(otrack_class.path, 'processed files', 'be
 
 np.save(os.path.join(otrack_class.path, 'processed files', 'stim_duration_st.npy'), stim_duration_st, allow_pickle=True)
 np.save(os.path.join(otrack_class.path, 'processed files', 'stim_duration_sw.npy'), stim_duration_sw, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_onset_phase_st.npy'), stim_onset_phase_st, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_onset_phase_sw.npy'), stim_onset_phase_sw, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_onset_time_st.npy'), stim_onset_time_st, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_onset_time_sw.npy'), stim_onset_time_sw, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_offset_phase_st.npy'), stim_offset_phase_st, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_offset_phase_sw.npy'), stim_offset_phase_sw, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_offset_time_st.npy'), stim_offset_time_st, allow_pickle=True)
-np.save(os.path.join(otrack_class.path, 'processed files', 'stim_offset_time_sw.npy'), stim_offset_time_sw, allow_pickle=True)
 
 # STIMULATION ACCURACY MEASURES
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2))
@@ -334,142 +310,21 @@ plt.savefig(os.path.join(path, 'plots', 'stim_duration_sw_' + condition), dpi=12
 plt.close('all')
 
 # STIMULATION ONSET AND OFFSET IN %STRIDE
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_onset_phase_st[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (%stride)', fontsize=14)
-ax.set_title('Stance stimulus onset phase ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_onset_phase_st_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_onset_phase_sw[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (%stride)', fontsize=14)
-ax.set_title('Swing stimulus onset phase ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_onset_phase_sw_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_offset_phase_st[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (%stride)', fontsize=14)
-ax.set_title('Stance stimulus offset phase ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_offset_phase_st_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_offset_phase_sw[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (%stride)', fontsize=14)
-ax.set_title('Swing stimulus offset phase ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_offset_phase_sw_' + condition), dpi=128)
-plt.close('all')
-
-# STIMULATION ONSET AND OFFSET IN TIME
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_onset_time_st[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (ms)', fontsize=14)
-ax.set_title('Stance stimulus onset time ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_onset_time_st_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_onset_time_sw[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (ms)', fontsize=14)
-ax.set_title('Swing stimulus onset time ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_onset_time_sw_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_offset_time_st[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (ms)', fontsize=14)
-ax.set_title('Stance stimulus offset time ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_offset_time_st_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
-for count_a in range(len(animals)):
-    violin_parts = ax.violinplot(stim_offset_time_sw[count_a], positions=xaxis+(0.5*count_a))
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_animals[count_a])
-    violin_parts['cbars'].set_color(colors_animals[count_a])
-    violin_parts['cmins'].set_color(colors_animals[count_a])
-    violin_parts['cmaxes'].set_color(colors_animals[count_a])
-ax.set_xticks(xaxis+0.125)
-ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
-ax.set_ylabel('Light on\nlatency (ms)', fontsize=14)
-ax.set_title('Swing stimulus offset time ' + condition, fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path, 'plots', 'stim_offset_time_sw_' + condition), dpi=128)
-plt.close('all')
+light_onset_phase_st_plot_trials = []
+light_offset_phase_st_plot_trials = []
+light_onset_phase_sw_plot_trials = []
+light_offset_phase_sw_plot_trials = []
+for i in range(len(trials_reshape)):
+    light_onset_phase_st_plot_animals = []
+    light_offset_phase_st_plot_animals = []
+    light_onset_phase_sw_plot_animals = []
+    light_offset_phase_sw_plot_animals = []
+    for count_a in range(len(animals)):
+        light_onset_phase_st_plot_animals.extend(light_onset_phase_st[count_a][i])
+        light_offset_phase_st_plot_animals.extend(light_offset_phase_st[count_a][i])
+        light_onset_phase_sw_plot_animals.extend(light_onset_phase_sw[count_a][i])
+        light_offset_phase_sw_plot_animals.extend(light_offset_phase_sw[count_a][i])
+    light_onset_phase_st_plot_trials.append(light_onset_phase_st_plot_animals)
+    light_offset_phase_st_plot_trials.append(light_offset_phase_st_plot_animals)
+    light_onset_phase_sw_plot_trials.append(light_onset_phase_sw_plot_animals)
+    light_offset_phase_sw_plot_trials.append(light_offset_phase_sw_plot_animals)
