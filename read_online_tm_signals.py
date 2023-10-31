@@ -5,7 +5,7 @@ Created on Tue Feb  7 16:59:15 2023
 """
 import os
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\Real-time plots\\stance stim right fast split stim\\'
+path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\16062023 split right fast stance stim only split\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -15,7 +15,7 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
+animals = ['MC17319', 'MC17665', 'MC17670']
 
 for animal in animals:
     trials = otrack_class.get_trials(animal)

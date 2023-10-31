@@ -1,8 +1,5 @@
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.signal as sig
-from matplotlib.cm import ScalarMappable
 np.warnings.filterwarnings('ignore')
 
 path = 'J:\\Data OPTO\\CM tests\\75percent\\'
@@ -28,22 +25,36 @@ trials = otrack_class.get_trials(animal)
 final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
                                              'st-sw-st')
 time_bool = 0
+norm_stim = 1
+norm_stride = 0
 fontsize_plot = 16
+trials_plot = np.array([5, 6])
 light_onset_phase_st_all = []
 light_offset_phase_st_all = []
-for trial in trials:
-    [light_onset_phase_st, light_offset_phase_st] = \
+stim_nr_trials = np.zeros(len(trials_plot))
+stride_nr_trials = np.zeros(len(trials_plot))
+for count_t, trial in enumerate(trials_plot):
+    [light_onset_phase_st, light_offset_phase_st, stim_nr, stride_nr] = \
         otrack_class.laser_presentation_phase(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
         timestamps_session, final_tracks_phase, time_bool)
+    stim_nr_trials[count_t] = stim_nr
+    stride_nr_trials[count_t] = stride_nr
     light_onset_phase_st_all.extend(light_onset_phase_st)
     light_offset_phase_st_all.extend(light_offset_phase_st)
-otrack_class.plot_laser_presentation_phase(light_onset_phase_st_all, light_offset_phase_st_all, 'stance', fontsize_plot)
+otrack_class.plot_laser_presentation_phase(light_onset_phase_st_all, light_offset_phase_st_all, 'stance', fontsize_plot,
+            np.sum(stim_nr_trials), np.sum(stride_nr_trials), norm_stim, norm_stride)
 light_onset_phase_sw_all = []
 light_offset_phase_sw_all = []
-for trial in trials:
-    [light_onset_phase_sw, light_offset_phase_sw] = \
+stim_nr_trials = np.zeros(len(trials_plot))
+stride_nr_trials = np.zeros(len(trials_plot))
+for count_t, trial in enumerate(trials_plot):
+    [light_onset_phase_sw, light_offset_phase_sw, stim_nr, stride_nr] = \
         otrack_class.light_presentation_phase(trial, trials, 'swing', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
                             timestamps_session, final_tracks_phase, time_bool)
+    stim_nr_trials[count_t] = stim_nr
+    stride_nr_trials[count_t] = stride_nr
     light_onset_phase_sw_all.extend(light_onset_phase_sw)
     light_offset_phase_sw_all.extend(light_offset_phase_sw)
-otrack_class.plot_laser_presentation_phase(light_onset_phase_sw_all, light_offset_phase_sw_all, 'swing', fontsize_plot)
+otrack_class.plot_laser_presentation_phase(light_onset_phase_sw_all, light_offset_phase_sw_all, 'swing', fontsize_plot,
+            np.sum(stim_nr_trials), np.sum(stride_nr_trials), norm_stim, norm_stride)
+
