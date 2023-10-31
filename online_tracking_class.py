@@ -1437,7 +1437,10 @@ class otrack_class:
         for b in np.unique(light_onset_bin_idx):  # mean onset duration for that bin
             light_duration_phase_mean_bins[b - 1] = np.nanmean(light_duration_phase_arr[light_onset_bin_idx == b])
         #Plot onset and histograms phase distributions
-        cmap_on = plt.get_cmap('Blues')
+        if event == 'stance':
+            cmap_on = plt.get_cmap('Oranges')
+        if event == 'swing':
+            cmap_on = plt.get_cmap('Greens')
         color_bars = [cmap_on(i) for i in np.linspace(0, 1, 11)]
         time = np.arange(0, 2, np.round(1 / self.sr, 3))
         FR = 5 * np.sin(2 * np.pi * time + (np.pi / 2)) + 5
@@ -1452,12 +1455,12 @@ class otrack_class:
             plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
                 np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
                          ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1), 11),
-                         label='% correct\nstimulations')
+                         label='fraction correct\nstimulations')
         if norm_stride:
             plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
                 np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
                          ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stride_nr, 1), 11),
-                         label='% correct\nstrides')
+                         label='fraction correct\nstrides')
         ax.set_xticks([0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
@@ -1469,7 +1472,10 @@ class otrack_class:
         ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
         plt.savefig(path_save + plot_name + '_onset')
 
-        cmap_off = plt.get_cmap('Reds')
+        if event == 'stance':
+            cmap_off = plt.get_cmap('Oranges')
+        if event == 'swing':
+            cmap_off = plt.get_cmap('Greens')
         color_bars = [cmap_off(i) for i in np.linspace(0, 1, 11)]
         time = np.arange(0, 2, np.round(1 / self.sr, 3))
         FR = np.sin(2 * np.pi * time + (np.pi / 2)) + 1
@@ -1482,12 +1488,12 @@ class otrack_class:
             plt.colorbar(ScalarMappable(cmap=cmap_off, norm=plt.Normalize(0, np.round(
                 np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
                          ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1), 11),
-                         label='% correct\nstimulations')
+                         label='fraction correct\nstimulations')
         if norm_stride:
             plt.colorbar(ScalarMappable(cmap=cmap_off, norm=plt.Normalize(0, np.round(
                 np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
                          ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stride_nr, 1), 11),
-                         label='% correct\nstrides')
+                         label='fraction correct\nstrides')
         ax.set_xticks([0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
