@@ -6,10 +6,13 @@ import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
 networks = ['CM tests', 'HR tests', 'Tailbase tests']
+networks_label = ['Center of mass normalization', 'Hind right paw normalization', 'Base of the tail normalization']
 conditions_plot = [['50percent', '50percent'], ['50percent', '50percent'], ['50percent', '50percent']]
 speeds = ['0,275', 'right_fast', 'left_fast']
+speeds_label = ['0,275 m/s', 'split right fast', 'split left fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
+measure_name_label = ['Accuracy', 'F1 score', 'False negatives', 'False positives']
 colors_networks = ['black', 'teal', 'orange']
 summary_path = 'J:\\Data OPTO\\Benchmark plots\\Network comparison\\'
 
@@ -92,15 +95,15 @@ for n in range(len(networks)):
     for pc in violin_parts['bodies']:
         pc.set_color(colors_networks[n])
 ax.set_xticks(np.arange(0, 9, 3)+0.5)
-ax.set_xticklabels(speeds, fontsize=14)
-ax.set_title('Stance stim duration', fontsize=16)
+ax.set_xticklabels(speeds_label, fontsize=14)
+#ax.set_title('Stance stim duration', fontsize=16)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([0, 0.3])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'stim_duration_st'), dpi=128)
+#plt.savefig(os.path.join(summary_path, 'stim_duration_st'), dpi=128)
 plt.savefig(os.path.join(summary_path, 'stim_duration_st.svg'), dpi=128)
 
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
@@ -110,15 +113,15 @@ for n in range(len(networks)):
     for pc in violin_parts['bodies']:
         pc.set_color(colors_networks[n])
 ax.set_xticks(np.arange(0, 9, 3)+0.5)
-ax.set_xticklabels(speeds, fontsize=14)
-ax.set_title('Swing stim duration', fontsize=16)
+ax.set_xticklabels(speeds_label, fontsize=14)
+#ax.set_title('Swing stim duration', fontsize=16)
 ax.set_ylabel('Time (s)', fontsize=14)
 ax.set_ylim([0, 0.65])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'stim_duration_sw'), dpi=128)
+#plt.savefig(os.path.join(summary_path, 'stim_duration_sw'), dpi=128)
 plt.savefig(os.path.join(summary_path, 'stim_duration_sw.svg'), dpi=128)
 
 # STIMULATION ONSETS AND OFFSETS
@@ -148,38 +151,37 @@ for count_n, n in enumerate(networks):
         plt.close('all')
 
 # FRACTION OF STIMULATED STRIDES
-networks_labels = ['Center of mass normalization', 'Hind right paw normalization', 'Base of the tail normalization']
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for count_n, n in enumerate(networks_labels):
+for count_n, n in enumerate(networks_label):
     ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
                fraction_strides_stim_on_st_networks[count_n, :],
                s=40, color=colors_networks[count_n], label=n)
-# ax.legend(networks_labels, frameon=False, fontsize=14)
+ax.legend(networks_label, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2.5)
-ax.set_xticklabels(speeds, fontsize=14)
+ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
 ax.set_ylim([0, 1])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
+#plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
 plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0] + '.svg'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
 for count_n, n in enumerate(networks):
     ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
                fraction_strides_stim_on_sw_networks[count_n, :],
                s=40, color=colors_networks[count_n], label=n)
-ax.legend(networks, frameon=False, fontsize=14)
+ax.legend(networks_label, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2.5)
-ax.set_xticklabels(speeds, fontsize=14)
+ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
 ax.set_ylim([0, 1])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
+#plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
 plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
 
 # ACCURACY
@@ -195,15 +197,15 @@ for i in range(len(measure_name)):
                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
                            s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
     ax.set_xticks(np.arange(0, 30, 10))
-    ax.set_xticklabels(speeds, fontsize=14)
+    ax.set_xticklabels(speeds_label, fontsize=14)
     ax.set_ylim([0, 1])
-    ax.set_title('Stance ' + measure_name[i].replace('_', ' '), fontsize=16)
-    ax.set_ylabel(measure_name[i], fontsize=14)
+    #ax.set_title('Stance ' + measure_name[i].replace('_', ' '), fontsize=16)
+    ax.set_ylabel(measure_name_label[i], fontsize=14)
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, measure_name[i] + '_st'), dpi=128)
+    #plt.savefig(os.path.join(summary_path, measure_name[i] + '_st'), dpi=128)
     plt.savefig(os.path.join(summary_path, measure_name[i] + '_st.svg'), dpi=128)
 
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
@@ -216,15 +218,15 @@ for i in range(len(measure_name)):
                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
                            s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
     ax.set_xticks(np.arange(0, 30, 10))
-    ax.set_xticklabels(speeds, fontsize=14)
-    ax.set_title('Swing ' + measure_name[i].replace('_', ' '), fontsize=16)
-    ax.set_ylabel(measure_name[i], fontsize=14)
+    ax.set_xticklabels(speeds_label, fontsize=14)
+    #ax.set_title('Swing ' + measure_name[i].replace('_', ' '), fontsize=16)
+    ax.set_ylabel(measure_name_label[i], fontsize=14)
     ax.set_ylim([0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw'), dpi=128)
+    #plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw'), dpi=128)
     plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw.svg'), dpi=128)
     plt.close('all')
 
