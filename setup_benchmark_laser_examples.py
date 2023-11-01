@@ -29,7 +29,7 @@ trials = otrack_class.get_trials(animal)
 # LOAD DATA FOR BENCHMARK ANALYSIS
 [st_led_on, sw_led_on, frame_counter_session] = otrack_class.load_benchmark_files(animal)
 # READ OFFLINE PAW EXCURSIONS
-final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
+[final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
 
 # # LASER ACCURACY
 # time_on = 11

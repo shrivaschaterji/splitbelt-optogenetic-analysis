@@ -1200,6 +1200,95 @@ class otrack_class:
             ax.spines['top'].set_visible(False)
         return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
 
+    @staticmethod
+    def accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, plot_data):
+        """Gets the accuracy of LED presentations (true positive, false positive, true negative, false negative)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            st_led_on: dataframe with left LED on
+            sw_led_on: dataframe with right LED on
+            final_tracks_trials: paw excursions
+            timestamps_session: list of timestamps for each trial
+            plot_data: boolean"""
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = st_led_on.loc[st_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(st_led_on.loc[st_led_on['trial'] == trial]))
+            offtrack_trial_otherperiod = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
+            led_trials = np.transpose(np.array(sw_led_on.loc[sw_led_on['trial'] == trial]))
+            offtrack_trial_otherperiod = offtracks_st.loc[offtracks_st['trial'] == trial]
+        nr_presentations = np.shape(offtracks_st.loc[offtracks_st['trial'] == trial])[0] + np.shape(offtracks_sw.loc[offtracks_sw['trial'] == trial])[0]
+        full_hits = 0
+        incomplete_hits = 0
+        full_hits_st = []
+        incomplete_hits_st = []
+        all = []
+        for t in range(len(offtrack_trial['time'])):
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            if len(full_hit_idx) > 0:
+                full_hits += 1
+                full_hits_st.extend(full_hit_idx)
+                all.extend(full_hit_idx)
+            if len(before_hit_idx) > 0:
+                incomplete_hits += 1
+                incomplete_hits_st.extend(before_hit_idx)
+                all.extend(before_hit_idx)
+        all_other = []
+        for t in range(len(offtrack_trial_otherperiod['time'])):
+            full_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
+                                    & (offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[0]
+            incomplete_hit_idx = np.where((offtrack_trial_otherperiod['time'].iloc[t] < light_trial['time_off'])
+                                          & (offtrack_trial_otherperiod['time'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_trial_otherperiod['time_off'].iloc[t] > light_trial['time_off']))[
+                0]
+            if len(full_hit_idx) > 0:
+                all_other.extend(full_hit_idx)
+            if len(incomplete_hit_idx) > 0:
+                all_other.extend(incomplete_hit_idx)
+        # definitions of accuracy for an aimed stance
+        # false positive is the number of times light hit correctly swing
+        fp_trial = len(all_other) / nr_presentations
+        # true positive is the number of times light hit correctly stance
+        tp_trial = (full_hits + incomplete_hits) / nr_presentations
+        # false negative is the number of times a stance was detected and there was no light there
+        fn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)) / nr_presentations
+        # true negative is the number of times a swing was detected and light was not there
+        tn_trial = len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other))/ nr_presentations
+        accuracy_trial = (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial_otherperiod['time'])), all_other)))/ nr_presentations
+        precision_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(all_other))
+        recall_trial = (full_hits + incomplete_hits) / (full_hits + incomplete_hits + len(np.setdiff1d(np.arange(0, len(offtrack_trial['time'])), all)))
+        f1_trial = 2 * ((precision_trial*recall_trial)/(precision_trial+recall_trial))
+        if plot_data:
+            paw_colors = ['red', 'blue', 'magenta', 'cyan']
+            p = 0
+            fig, ax = plt.subplots(figsize=(20, 10), tight_layout=True)
+            for r in range(np.shape(led_trials)[1]):
+                rectangle = plt.Rectangle((led_trials[0, r], -400),
+                                          led_trials[1, r] - led_trials[0, r], 800, fc='grey', alpha=0.3)
+                plt.gca().add_patch(rectangle)
+            mean_excursion = np.nanmean(final_tracks_trials[trial - 1][0, p, :])
+            ax.plot(timestamps_session[trial - 1], final_tracks_trials[trial - 1][0, p, :] - mean_excursion,
+                    color=paw_colors[p], linewidth=2)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+        return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
+
     def laser_presentation_phase(self, trial, trials, event, offtracks_st, offtracks_sw, laser_on, timestamps_session, final_tracks_phase, time_bool):
         """From all the times the laser was on it checks when the laser onset and offset happened in relation to either
         the stance or swing duration
@@ -1453,13 +1542,13 @@ class otrack_class:
                    color=color_bars[np.int64(np.ceil(light_onset_phase_viz_hist_norm[b] * 10))])
         if norm_stim:
             plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
-                np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
-                         ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1), 11),
+                np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1))),
+                         ticks=np.linspace(0, np.round(np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1), 11),
                          label='fraction correct\nstimulations')
         if norm_stride:
             plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
-                np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
-                         ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stride_nr, 1), 11),
+                np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1))),
+                         ticks=np.linspace(0, np.round(np.max(light_onset_phase_viz_hist[0]) / stride_nr, 1), 11),
                          label='fraction correct\nstrides')
         ax.set_xticks([0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
@@ -1505,6 +1594,114 @@ class otrack_class:
         ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
         plt.savefig(path_save + plot_name + '_offset')
         return
+
+    def plot_laser_presentation_phase_benchmark(self, light_onset_phase, light_offset_phase, event, fontsize_plot,
+            stim_nr, stride_nr, cmap_name, path_save, plot_name):
+        """Plot on a schematic stride in phase the distribution of onsets and offsets for laser presentations.
+        Histogram normalized by number of light stimulations.
+        Inputs:
+            light_onset_phase_st: list with onsets of laser/LED
+            light_offset_phase_st: list with offsets of laser/LED
+            event: (str) stance or swing
+            fontsize_plot: (int) for size of the font of the plots
+            stim_nr: (int) number of stimulations - total of all trials where phase was computed
+            stride_nr: (int) number of strides - total of all trials where phase was computed
+            cmap_name: (str) name of colormap
+            path_save: (str) with path to save plots
+            plot_name: (str) plot name that can include animal name and session"""
+        # Compute histograms of onset and offsets
+        light_onset_phase_viz = []
+        light_duration_phase = []
+        for count_on, on in enumerate(light_onset_phase):
+            if on < 0:  # for viz purposes for phase to be between 0 and 1 - if onset was before st
+                light_onset_phase_viz.append(np.abs(on))
+                light_duration_phase.append(
+                    on + 1 + light_offset_phase[count_on])  # because of sign this is the way to get right duration
+            if on >= 0:  # for viz purposes for phase to be between 1 and 2 - if onset was after st
+                light_onset_phase_viz.append(on + 1)
+                light_duration_phase.append(
+                    light_offset_phase[count_on] - on)  # with positive phase if offset-onset
+        light_offset_phase_viz = []
+        for off in light_offset_phase:
+            if off < 0:  # for viz purposes for phase to be between 0 and 1 - if offset was before st
+                light_offset_phase_viz.append(np.abs(off))
+            if off >= 0:  # for viz purposes for phase to be between 1 and 2 - if offset was after st
+                light_offset_phase_viz.append(off + 1)
+        # histogram of onset phases
+        light_onset_phase_viz_hist = np.histogram(light_onset_phase_viz, range=(
+        np.min(light_onset_phase_viz), np.max(light_onset_phase_viz)))
+        light_onset_phase_viz_hist_norm = light_onset_phase_viz_hist[0] / np.nanmax(
+            light_onset_phase_viz_hist[0])
+        # histogram of offset phases
+        light_offset_phase_viz_hist = np.histogram(light_offset_phase_viz, range=(
+        np.min(light_offset_phase_viz), np.max(light_offset_phase_viz)))
+        light_offset_phase_viz_hist_norm = light_offset_phase_viz_hist[0] / np.nanmax(
+            light_offset_phase_viz_hist[0])
+        # mean phase duration for the binned onset phases
+        light_onset_bin_idx = np.digitize(light_onset_phase_viz, light_onset_phase_viz_hist[1])
+        light_duration_phase_mean_bins = np.zeros(len(light_onset_phase_viz_hist[1]))
+        light_duration_phase_arr = np.array(light_duration_phase)
+        for b in np.unique(light_onset_bin_idx):  # mean onset duration for that bin
+            light_duration_phase_mean_bins[b - 1] = np.nanmean(light_duration_phase_arr[light_onset_bin_idx == b])
+        #Plot onset and histograms phase distributions
+        if event == 'stance':
+            cmap_on = plt.get_cmap(cmap_name)
+        if event == 'swing':
+            cmap_on = plt.get_cmap(cmap_name)
+        color_bars = [cmap_on(i) for i in np.linspace(0, 1, 11)]
+        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        FR = 5 * np.sin(2 * np.pi * time + (np.pi / 2)) + 5
+        FR_sawtooth = 5 * sig.sawtooth(2 * np.pi * time) + 5
+        fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
+        ax.plot(time, FR, color='black')
+        for b in range(len(light_onset_phase_viz_hist[1]) - 1):
+            ax.bar(light_onset_phase_viz_hist[1][b] + (light_duration_phase_mean_bins[b] / 2), height=1,
+                   bottom=b + 0.1, width=light_duration_phase_mean_bins[b],
+                   color=color_bars[np.int64(np.ceil(light_onset_phase_viz_hist_norm[b] * 10))])
+        plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
+            np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1))),
+                     ticks=np.linspace(0, np.round(np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1), 11),
+                     label='fraction correct\nstimulations')
+        ax.set_xticks([0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+        ax.set_title(event + '-like stimulation onset', fontsize=fontsize_plot+2)
+        ax.get_yaxis().set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
+        plt.savefig(path_save + plot_name + '_onset.svg')
+        fraction_strides_stim_on = np.sum(light_onset_phase_viz_hist[0]) / stride_nr
+
+        if event == 'stance':
+            cmap_off = plt.get_cmap(cmap_name)
+        if event == 'swing':
+            cmap_off = plt.get_cmap(cmap_name)
+        color_bars = [cmap_off(i) for i in np.linspace(0, 1, 11)]
+        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        FR = np.sin(2 * np.pi * time + (np.pi / 2)) + 1
+        fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
+        plt.plot(time, FR, color='black')
+        for b in range(len(light_offset_phase_viz_hist[1]) - 1):
+            plt.bar(light_offset_phase_viz_hist[1][b]+(0.07/2), height=2, width=0.07,
+                    color=color_bars[np.int64(np.ceil(light_offset_phase_viz_hist_norm[b] * 10))])
+        plt.colorbar(ScalarMappable(cmap=cmap_off, norm=plt.Normalize(0, np.round(
+            np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
+                     ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1), 11),
+                     label='fraction correct\nstimulations')
+        ax.set_xticks([0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+        ax.set_title(event + '-like stimulation offset', fontsize=fontsize_plot + 2)
+        ax.get_yaxis().set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
+        plt.savefig(path_save + plot_name + '_offset.svg')
+        fraction_strides_stim_off = np.sum(light_offset_phase_viz_hist[0]) / stride_nr
+        return fraction_strides_stim_on, fraction_strides_stim_off
 
     def accuracy_scores_otrack(self, otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw):
         """Function to compute accuracy, precision, recall and F1 scores for when the
