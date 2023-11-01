@@ -98,8 +98,8 @@ for idx_speed in range(len(speeds)):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + speeds[idx_speed]), dpi=128)
-    plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + speeds[idx_speed]+'.svg'), dpi=128)
+    plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + speeds[idx_speed]), dpi=128)
+    # plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + speeds[idx_speed]+'.svg'), dpi=128)
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for n in range(len(networks)):
         violin_parts = ax.violinplot(stim_duration_sw_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
@@ -115,8 +115,8 @@ for idx_speed in range(len(speeds)):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + speeds[idx_speed]), dpi=128)
-    plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + speeds[idx_speed]+'.svg'), dpi=128)
+    plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + speeds[idx_speed]), dpi=128)
+    # plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + speeds[idx_speed]+'.svg'), dpi=128)
 
     # STIMULATION ONSETS AND OFFSETS
     fraction_strides_stim_on_st_networks = np.zeros((len(networks), len(conditions)))
@@ -125,14 +125,14 @@ for idx_speed in range(len(speeds)):
         for count_c, c in enumerate(conditions):
             [fraction_strides_stim_st_on, fraction_strides_stim_st_off] = \
             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_st_net[count_n][count_c],
-            light_offset_phase_st_net[count_n][count_c], 'stance', 16, np.sum(stim_nr_st_net[count_n][count_c]), np.sum(stride_nr_sw_net[count_n][count_c]), 'Greys',
-                    summary_path, '\\light_stance_'+networks[count_n]+'_'+conditions[count_c])
+            light_offset_phase_st_net[count_n][count_c], 'stance', 16, np.sum(stim_nr_st_net[count_n][count_c]), np.sum(stride_nr_st_net[count_n][count_c]), 'Greys',
+                    summary_path, '\\light_stance_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed])
             fraction_strides_stim_on_st_networks[count_n, count_c] = fraction_strides_stim_st_on
             plt.close('all')
             [fraction_strides_stim_sw_on, fraction_strides_stim_sw_off] = \
             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_sw_net[count_n][count_c],
-            light_offset_phase_sw_net[count_n][count_c], 'swing', 16, np.sum(stim_nr_st_net[count_n][count_c]), np.sum(stride_nr_sw_net[count_n][count_c]), 'Greys',
-                    summary_path, '\\light_swing_'+networks[count_n]+'_'+conditions[count_c])
+            light_offset_phase_sw_net[count_n][count_c], 'swing', 16, np.sum(stim_nr_sw_net[count_n][count_c]), np.sum(stride_nr_sw_net[count_n][count_c]), 'Greys',
+                    summary_path, '\\light_swing_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed])
             fraction_strides_stim_on_sw_networks[count_n, count_c] = fraction_strides_stim_sw_on
             plt.close('all')
 
@@ -151,8 +151,8 @@ for idx_speed in range(len(speeds)):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_'+speeds[idx_speed]), dpi=128)
-    plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_'+speeds[idx_speed]+'.svg'), dpi=128)
+    plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_'+speeds[idx_speed]), dpi=128)
+    # plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_'+speeds[idx_speed]+'.svg'), dpi=128)
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for count_n, n in enumerate(networks):
         ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
@@ -167,8 +167,8 @@ for idx_speed in range(len(speeds)):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+speeds[idx_speed]), dpi=128)
-    plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+speeds[idx_speed]+'.svg'), dpi=128)
+    plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+speeds[idx_speed]), dpi=128)
+    # plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+speeds[idx_speed]+'.svg'), dpi=128)
 
     # ACCURACY
     ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
@@ -192,8 +192,8 @@ for idx_speed in range(len(speeds)):
         plt.yticks(fontsize=14)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        # plt.savefig(os.path.join(summary_path, measure_name[i] + '_st_' + speeds[idx_speed]), dpi=128)
-        plt.savefig(os.path.join(summary_path, measure_name[i] + '_st_' + speeds[idx_speed]+'.svg'), dpi=128)
+        plt.savefig(os.path.join(summary_path, measure_name[i] + '_st_' + speeds[idx_speed]), dpi=128)
+        # plt.savefig(os.path.join(summary_path, measure_name[i] + '_st_' + speeds[idx_speed]+'.svg'), dpi=128)
 
         fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
         for n in range(len(networks)):
@@ -214,7 +214,7 @@ for idx_speed in range(len(speeds)):
         plt.yticks(fontsize=14)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
-        # plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw_' + speeds[idx_speed]), dpi=128)
-        plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw_' + speeds[idx_speed]+'.svg'), dpi=128)
+        plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw_' + speeds[idx_speed]), dpi=128)
+        # plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw_' + speeds[idx_speed]+'.svg'), dpi=128)
         plt.close('all')
 

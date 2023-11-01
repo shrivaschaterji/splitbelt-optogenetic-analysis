@@ -50,8 +50,8 @@ for count_n, n in enumerate(networks):
         light_offset_phase_st_list = np.load(os.path.join(path_st, 'processed files', 'light_offset_phase_st.npy'), allow_pickle=True)
         stim_nr_st_list = np.load(os.path.join(path_st, 'processed files', 'stim_nr_st.npy'), allow_pickle=True)
         stride_nr_st_list = np.load(os.path.join(path_st, 'processed files', 'stride_nr_st.npy'), allow_pickle=True)
-        stim_nr_st_cond.append(list(itertools.chain(*stim_nr_st_list[:, count_s])))
-        stride_nr_st_cond.append(list(itertools.chain(*stride_nr_st_list[:, count_s])))
+        stim_nr_st_cond.append(list(itertools.chain(*stim_nr_st_list[:, s])))
+        stride_nr_st_cond.append(list(itertools.chain(*stride_nr_st_list[:, s])))
         stim_duration_st_cond.append(list(itertools.chain(*stim_duration_st_list[:, s])))
         light_onset_phase_st_cond.append(list(itertools.chain(*light_onset_phase_st_list[:, s])))
         light_offset_phase_st_cond.append(list(itertools.chain(*light_offset_phase_st_list[:, s])))
@@ -67,8 +67,8 @@ for count_n, n in enumerate(networks):
         light_offset_phase_sw_list = np.load(os.path.join(path_sw, 'processed files', 'light_offset_phase_sw.npy'), allow_pickle=True)
         stim_nr_sw_list = np.load(os.path.join(path_sw, 'processed files', 'stim_nr_st.npy'), allow_pickle=True)
         stride_nr_sw_list = np.load(os.path.join(path_sw, 'processed files', 'stride_nr_st.npy'), allow_pickle=True)
-        stim_nr_sw_cond.append(list(itertools.chain(*stim_nr_sw_list[:, count_s])))
-        stride_nr_sw_cond.append(list(itertools.chain(*stride_nr_sw_list[:, count_s])))
+        stim_nr_sw_cond.append(list(itertools.chain(*stim_nr_sw_list[:, s])))
+        stride_nr_sw_cond.append(list(itertools.chain(*stride_nr_sw_list[:, s])))
         stim_duration_sw_cond.append(list(itertools.chain(*stim_duration_sw_list[:, s])))
         light_onset_phase_sw_cond.append(list(itertools.chain(*light_onset_phase_sw_list[:, s])))
         light_offset_phase_sw_cond.append(list(itertools.chain(*light_offset_phase_sw_list[:, s])))
@@ -130,7 +130,7 @@ for count_n, n in enumerate(networks):
             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_st_net[count_n][count_s],
                                                                  light_offset_phase_st_net[count_n][count_s], 'stance',
                                                                  16, np.sum(stim_nr_st_net[count_n][count_s]),
-                                                                 np.sum(stride_nr_sw_net[count_n][count_s]), 'Greys',
+                                                                 np.sum(stride_nr_st_net[count_n][count_s]), 'Greys',
                                                                  summary_path,
                                                                  '\\light_stance_' + networks[count_n] + '_' +
                                                                  speeds[count_s])
@@ -139,7 +139,7 @@ for count_n, n in enumerate(networks):
         [fraction_strides_stim_sw_on, fraction_strides_stim_sw_off] = \
             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_sw_net[count_n][count_s],
                                                                  light_offset_phase_sw_net[count_n][count_s], 'swing',
-                                                                 16, np.sum(stim_nr_st_net[count_n][count_s]),
+                                                                 16, np.sum(stim_nr_sw_net[count_n][count_s]),
                                                                  np.sum(stride_nr_sw_net[count_n][count_s]), 'Greys',
                                                                  summary_path,
                                                                  '\\light_swing_' + networks[count_n] + '_' +
@@ -148,12 +148,13 @@ for count_n, n in enumerate(networks):
         plt.close('all')
 
 # FRACTION OF STIMULATED STRIDES
+networks_labels = ['Center of mass normalization', 'Hind right paw normalization', 'Base of the tail normalization']
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for count_n, n in enumerate(networks):
+for count_n, n in enumerate(networks_labels):
     ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
                fraction_strides_stim_on_st_networks[count_n, :],
                s=40, color=colors_networks[count_n], label=n)
-ax.legend(networks, frameon=False, fontsize=14)
+# ax.legend(networks_labels, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2.5)
 ax.set_xticklabels(speeds, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
@@ -162,8 +163,8 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
-# plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0] + '.svg'), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
+plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0] + '.svg'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
 for count_n, n in enumerate(networks):
     ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
@@ -178,8 +179,8 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
-# plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
+plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
 
 # ACCURACY
 ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
@@ -223,7 +224,7 @@ for i in range(len(measure_name)):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    #plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw'), dpi=128)
+    # plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw'), dpi=128)
     plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw.svg'), dpi=128)
     plt.close('all')
 
