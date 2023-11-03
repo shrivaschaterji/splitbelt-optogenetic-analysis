@@ -28,6 +28,8 @@ stim_nr_sw_net = []
 stride_nr_sw_net = []
 accuracy_measures_st = np.zeros((6, 4, 3, len(networks)))
 accuracy_measures_sw = np.zeros((6, 4, 3, len(networks)))
+frac_strides_st = np.zeros((6, len(networks), len(speeds)))
+frac_strides_sw = np.zeros((6, len(networks), len(speeds)))
 for count_n, n in enumerate(networks):
     c = conditions_plot[count_n]
     stim_duration_st_cond = []
@@ -47,6 +49,8 @@ for count_n, n in enumerate(networks):
         otrack_class = online_tracking_class.otrack_class(path_st)
         import locomotion_class
         loco = locomotion_class.loco_class(path_st)
+        frac_strides_st[:, count_n, count_s] = np.load(os.path.join(path_st, 'processed files', 'frac_strides_st.npy'),
+                                                         allow_pickle=True)[:, s, :].flatten()
         benchmark_accuracy_st = pd.read_csv(os.path.join(path_st, 'processed files', 'benchmark_accuracy.csv'))
         stim_duration_st_list = np.load(os.path.join(path_st, 'processed files', 'stim_duration_st.npy'), allow_pickle=True)
         light_onset_phase_st_list = np.load(os.path.join(path_st, 'processed files', 'light_onset_phase_st.npy'), allow_pickle=True)
@@ -64,6 +68,8 @@ for count_n, n in enumerate(networks):
         otrack_class = online_tracking_class.otrack_class(path_sw)
         import locomotion_class
         loco = locomotion_class.loco_class(path_sw)
+        frac_strides_sw[:, count_n, count_s] = np.load(os.path.join(path_sw, 'processed files', 'frac_strides_sw.npy'),
+                                                         allow_pickle=True)[:, s, :].flatten()
         benchmark_accuracy_sw = pd.read_csv(os.path.join(path_sw, 'processed files', 'benchmark_accuracy.csv'))
         stim_duration_sw_list = np.load(os.path.join(path_sw, 'processed files', 'stim_duration_sw.npy'), allow_pickle=True)
         light_onset_phase_sw_list = np.load(os.path.join(path_sw, 'processed files', 'light_onset_phase_sw.npy'), allow_pickle=True)
@@ -125,8 +131,6 @@ ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(summary_path, 'stim_duration_sw.svg'), dpi=128)
 
 # STIMULATION ONSETS AND OFFSETS
-fraction_strides_stim_on_st_networks = np.zeros((len(networks), len(speeds)))
-fraction_strides_stim_on_sw_networks = np.zeros((len(networks), len(speeds)))
 for count_n, n in enumerate(networks):
     for count_s, s in enumerate(speeds):
         [fraction_strides_stim_st_on, fraction_strides_stim_st_off] = \
@@ -137,7 +141,6 @@ for count_n, n in enumerate(networks):
                                                                  summary_path,
                                                                  '\\light_stance_' + networks[count_n] + '_' +
                                                                  speeds[count_s])
-        fraction_strides_stim_on_st_networks[count_n, count_s] = fraction_strides_stim_st_on
         plt.close('all')
         [fraction_strides_stim_sw_on, fraction_strides_stim_sw_off] = \
             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_sw_net[count_n][count_s],
@@ -147,41 +150,52 @@ for count_n, n in enumerate(networks):
                                                                  summary_path,
                                                                  '\\light_swing_' + networks[count_n] + '_' +
                                                                  speeds[count_s])
-        fraction_strides_stim_on_sw_networks[count_n, count_s] = fraction_strides_stim_sw_on
         plt.close('all')
 
 # FRACTION OF STIMULATED STRIDES
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
 for count_n, n in enumerate(networks_label):
-    ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
-               fraction_strides_stim_on_st_networks[count_n, :],
-               s=40, color=colors_networks[count_n], label=n)
-ax.legend(networks_label, frameon=False, fontsize=14)
+    for a in range(6):
+        if a == 0:
+            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
+                       frac_strides_st[a, count_n, :],
+                       s=10, color=colors_networks[count_n], label=n)
+        else:
+            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
+                       frac_strides_st[a, count_n, :],
+                       s=10, color=colors_networks[count_n], label='_nolegend_')
+# ax.legend(networks_label, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2.5)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
-ax.set_ylim([0, 1])
+ax.set_ylim([0, 1.1])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-#plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
 plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0] + '.svg'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for count_n, n in enumerate(networks):
-    ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
-               fraction_strides_stim_on_sw_networks[count_n, :],
-               s=40, color=colors_networks[count_n], label=n)
-ax.legend(networks_label, frameon=False, fontsize=14)
+for count_n, n in enumerate(networks_label):
+    for a in range(6):
+        if a == 0:
+            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
+                       frac_strides_sw[a, count_n, :],
+                       s=10, color=colors_networks[count_n], label=n)
+        else:
+            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
+                       frac_strides_sw[a, count_n, :],
+                       s=10, color=colors_networks[count_n], label='_nolegend_')
+# ax.legend(networks_label, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2.5)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
-ax.set_ylim([0, 1])
+ax.set_ylim([0, 1.1])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-#plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
 plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
 
 # ACCURACY
