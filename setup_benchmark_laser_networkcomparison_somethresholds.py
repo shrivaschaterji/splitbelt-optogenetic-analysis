@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import itertools
 import matplotlib.pyplot as plt
+import scipy.stats
+from bioinfokit.analys import stat
 np.warnings.filterwarnings('ignore')
 
 networks = ['CM tests', 'HR tests', 'Tailbase tests']
@@ -93,154 +95,218 @@ for count_n, n in enumerate(networks):
     stim_nr_sw_net.append(stim_nr_sw_cond)
     stride_nr_sw_net.append(stride_nr_sw_cond)
 
-# DURATION
-fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for n in range(len(networks)):
-    violin_parts = ax.violinplot(stim_duration_st_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
-        showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_networks[n])
-ax.set_xticks(np.arange(0, 9, 3)+0.5)
-ax.set_xticklabels(speeds_label, fontsize=14)
-#ax.set_title('Stance stim duration', fontsize=16)
-ax.set_ylabel('Time (s)', fontsize=14)
-ax.set_ylim([0, 0.3])
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-#plt.savefig(os.path.join(summary_path, 'stim_duration_st'), dpi=128)
-plt.savefig(os.path.join(summary_path, 'stim_duration_st.svg'), dpi=128)
+# # DURATION
+# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+# for n in range(len(networks)):
+#     violin_parts = ax.violinplot(stim_duration_st_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
+#         showextrema=False)
+#     for pc in violin_parts['bodies']:
+#         pc.set_color(colors_networks[n])
+# ax.set_xticks(np.arange(0, 9, 3)+0.5)
+# ax.set_xticklabels(speeds_label, fontsize=14)
+# #ax.set_title('Stance stim duration', fontsize=16)
+# ax.set_ylabel('Time (s)', fontsize=14)
+# ax.set_ylim([0, 0.3])
+# plt.xticks(fontsize=14)
+# plt.yticks(fontsize=14)
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# #plt.savefig(os.path.join(summary_path, 'stim_duration_st'), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'stim_duration_st.svg'), dpi=128)
+#
+# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+# for n in range(len(networks)):
+#     violin_parts = ax.violinplot(stim_duration_sw_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
+#         showextrema=False)
+#     for pc in violin_parts['bodies']:
+#         pc.set_color(colors_networks[n])
+# ax.set_xticks(np.arange(0, 9, 3)+0.5)
+# ax.set_xticklabels(speeds_label, fontsize=14)
+# #ax.set_title('Swing stim duration', fontsize=16)
+# ax.set_ylabel('Time (s)', fontsize=14)
+# ax.set_ylim([0, 0.65])
+# plt.xticks(fontsize=14)
+# plt.yticks(fontsize=14)
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# #plt.savefig(os.path.join(summary_path, 'stim_duration_sw'), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'stim_duration_sw.svg'), dpi=128)
+#
+# # STIMULATION ONSETS AND OFFSETS
+# for count_n, n in enumerate(networks):
+#     for count_s, s in enumerate(speeds):
+#         [fraction_strides_stim_st_on, fraction_strides_stim_st_off] = \
+#             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_st_net[count_n][count_s],
+#                                                                  light_offset_phase_st_net[count_n][count_s], 'stance',
+#                                                                  16, np.sum(stim_nr_st_net[count_n][count_s]),
+#                                                                  np.sum(stride_nr_st_net[count_n][count_s]), 'Greys',
+#                                                                  summary_path,
+#                                                                  '\\light_stance_' + networks[count_n] + '_' +
+#                                                                  speeds[count_s])
+#         plt.close('all')
+#         [fraction_strides_stim_sw_on, fraction_strides_stim_sw_off] = \
+#             otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_sw_net[count_n][count_s],
+#                                                                  light_offset_phase_sw_net[count_n][count_s], 'swing',
+#                                                                  16, np.sum(stim_nr_sw_net[count_n][count_s]),
+#                                                                  np.sum(stride_nr_sw_net[count_n][count_s]), 'Greys',
+#                                                                  summary_path,
+#                                                                  '\\light_swing_' + networks[count_n] + '_' +
+#                                                                  speeds[count_s])
+#         plt.close('all')
+#
+# # FRACTION OF STIMULATED STRIDES
+# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+# for count_n, n in enumerate(networks_label):
+#     for a in range(6):
+#         if a == 0:
+#             ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+#                        frac_strides_st[a, count_n, :],
+#                        s=10, color=colors_networks[count_n], label=n)
+#         else:
+#             ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+#                        frac_strides_st[a, count_n, :],
+#                        s=10, color=colors_networks[count_n], label='_nolegend_')
+# # ax.legend(networks_label, frameon=False, fontsize=14)
+# ax.set_xticks(np.arange(0, 30, 10) + 2.5)
+# ax.set_xticklabels(speeds_label, fontsize=14)
+# ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+# ax.set_ylim([0, 1.15])
+# plt.xticks(fontsize=14)
+# plt.yticks(fontsize=14)
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# #plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0] + '.svg'), dpi=128)
+# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+# for count_n, n in enumerate(networks_label):
+#     for a in range(6):
+#         if a == 0:
+#             ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+#                        frac_strides_sw[a, count_n, :],
+#                        s=10, color=colors_networks[count_n], label=n)
+#         else:
+#             ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+#                        frac_strides_sw[a, count_n, :],
+#                        s=10, color=colors_networks[count_n], label='_nolegend_')
+# # ax.legend(networks_label, frameon=False, fontsize=14)
+# ax.set_xticks(np.arange(0, 30, 10) + 2.5)
+# ax.set_xticklabels(speeds_label, fontsize=14)
+# ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+# ax.set_ylim([0, 1.15])
+# plt.xticks(fontsize=14)
+# plt.yticks(fontsize=14)
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# #plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
+#
+# # ACCURACY
+# ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
+# for i in range(len(measure_name)):
+#     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+#     for n in range(len(networks)):
+#         for a in range(6):
+#             if a == 0:
+#                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
+#                            s=10, color=colors_networks[n], linewidth=2, label=networks[n])
+#             else:
+#                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
+#                            s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
+#     ax.set_xticks(np.arange(0, 30, 10))
+#     ax.set_xticklabels(speeds_label, fontsize=14)
+#     ax.set_ylim([0, 1])
+#     #ax.set_title('Stance ' + measure_name[i].replace('_', ' '), fontsize=16)
+#     ax.set_ylabel(measure_name_label[i], fontsize=14)
+#     plt.xticks(fontsize=14)
+#     plt.yticks(fontsize=14)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     #plt.savefig(os.path.join(summary_path, measure_name[i] + '_st'), dpi=128)
+#     plt.savefig(os.path.join(summary_path, measure_name[i] + '_st.svg'), dpi=128)
+#
+#     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+#     for n in range(len(networks)):
+#         for a in range(6):
+#             if a == 0:
+#                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
+#                            s=10, color=colors_networks[n], linewidth=2, label=networks[n])
+#             else:
+#                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
+#                            s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
+#     ax.set_xticks(np.arange(0, 30, 10))
+#     ax.set_xticklabels(speeds_label, fontsize=14)
+#     #ax.set_title('Swing ' + measure_name[i].replace('_', ' '), fontsize=16)
+#     ax.set_ylabel(measure_name_label[i], fontsize=14)
+#     ax.set_ylim([0, 1])
+#     plt.xticks(fontsize=14)
+#     plt.yticks(fontsize=14)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     #plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw'), dpi=128)
+#     plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw.svg'), dpi=128)
+#     plt.close('all')s
+#
+###### STATS #######
+#Mann-Whitney on accuracy for the three computed speeds - network comparison stance
+accuracy_stats_st = accuracy_measures_st[:, 0, :, :].reshape((np.shape(accuracy_measures_st[:, 0, :, :])[0]*np.shape(accuracy_measures_st[:, 0, :, :])[1], np.shape(accuracy_measures_st[:, 0, :, :])[2]))
+res_accuracy_st_cm_hr = scipy.stats.mannwhitneyu(accuracy_stats_st[:, 0], accuracy_stats_st[:, 1], method='exact')
+print(res_accuracy_st_cm_hr)
+res_accuracy_st_cm_tb = scipy.stats.mannwhitneyu(accuracy_stats_st[:, 0], accuracy_stats_st[:, 2], method='exact')
+print(res_accuracy_st_cm_tb)
+res_accuracy_st_hr_tb = scipy.stats.mannwhitneyu(accuracy_stats_st[:, 1], accuracy_stats_st[:, 2], method='exact')
+print(res_accuracy_st_hr_tb)
 
-fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for n in range(len(networks)):
-    violin_parts = ax.violinplot(stim_duration_sw_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
-        showextrema=False)
-    for pc in violin_parts['bodies']:
-        pc.set_color(colors_networks[n])
-ax.set_xticks(np.arange(0, 9, 3)+0.5)
-ax.set_xticklabels(speeds_label, fontsize=14)
-#ax.set_title('Swing stim duration', fontsize=16)
-ax.set_ylabel('Time (s)', fontsize=14)
-ax.set_ylim([0, 0.65])
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-#plt.savefig(os.path.join(summary_path, 'stim_duration_sw'), dpi=128)
-plt.savefig(os.path.join(summary_path, 'stim_duration_sw.svg'), dpi=128)
+#Mann-Whitney on accuracy for the three computed speeds - network comparison swing
+accuracy_stats_sw = accuracy_measures_sw[:, 0, :, :].reshape((np.shape(accuracy_measures_sw[:, 0, :, :])[0]*np.shape(accuracy_measures_sw[:, 0, :, :])[1], np.shape(accuracy_measures_sw[:, 0, :, :])[2]))
+res_accuracy_sw_cm_hr = scipy.stats.mannwhitneyu(accuracy_stats_sw[:, 0], accuracy_stats_sw[:, 1], method='exact')
+print(res_accuracy_sw_cm_hr)
+res_accuracy_sw_cm_tb = scipy.stats.mannwhitneyu(accuracy_stats_sw[:, 0], accuracy_stats_sw[:, 2], method='exact')
+print(res_accuracy_sw_cm_tb)
+res_accuracy_sw_hr_tb = scipy.stats.mannwhitneyu(accuracy_stats_sw[:, 1], accuracy_stats_sw[:, 2], method='exact')
+print(res_accuracy_sw_hr_tb)
 
-# STIMULATION ONSETS AND OFFSETS
-for count_n, n in enumerate(networks):
-    for count_s, s in enumerate(speeds):
-        [fraction_strides_stim_st_on, fraction_strides_stim_st_off] = \
-            otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_st_net[count_n][count_s],
-                                                                 light_offset_phase_st_net[count_n][count_s], 'stance',
-                                                                 16, np.sum(stim_nr_st_net[count_n][count_s]),
-                                                                 np.sum(stride_nr_st_net[count_n][count_s]), 'Greys',
-                                                                 summary_path,
-                                                                 '\\light_stance_' + networks[count_n] + '_' +
-                                                                 speeds[count_s])
-        plt.close('all')
-        [fraction_strides_stim_sw_on, fraction_strides_stim_sw_off] = \
-            otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_sw_net[count_n][count_s],
-                                                                 light_offset_phase_sw_net[count_n][count_s], 'swing',
-                                                                 16, np.sum(stim_nr_sw_net[count_n][count_s]),
-                                                                 np.sum(stride_nr_sw_net[count_n][count_s]), 'Greys',
-                                                                 summary_path,
-                                                                 '\\light_swing_' + networks[count_n] + '_' +
-                                                                 speeds[count_s])
-        plt.close('all')
+#ANOVA on onset times for 0,275m/s - network comparison stance
+fvalue_onset_st, pvalue_onset_st = scipy.stats.f_oneway(light_onset_phase_st_net[0][0], light_onset_phase_st_net[1][0], light_onset_phase_st_net[2][0])
+print(fvalue_onset_st, pvalue_onset_st)
 
-# FRACTION OF STIMULATED STRIDES
-fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for count_n, n in enumerate(networks_label):
-    for a in range(6):
-        if a == 0:
-            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
-                       frac_strides_st[a, count_n, :],
-                       s=10, color=colors_networks[count_n], label=n)
-        else:
-            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
-                       frac_strides_st[a, count_n, :],
-                       s=10, color=colors_networks[count_n], label='_nolegend_')
-# ax.legend(networks_label, frameon=False, fontsize=14)
-ax.set_xticks(np.arange(0, 30, 10) + 2.5)
-ax.set_xticklabels(speeds_label, fontsize=14)
-ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
-ax.set_ylim([0, 1.1])
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0]), dpi=128)
-plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + conditions_plot[0][0] + '.svg'), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-for count_n, n in enumerate(networks_label):
-    for a in range(6):
-        if a == 0:
-            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
-                       frac_strides_sw[a, count_n, :],
-                       s=10, color=colors_networks[count_n], label=n)
-        else:
-            ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
-                       frac_strides_sw[a, count_n, :],
-                       s=10, color=colors_networks[count_n], label='_nolegend_')
-# ax.legend(networks_label, frameon=False, fontsize=14)
-ax.set_xticks(np.arange(0, 30, 10) + 2.5)
-ax.set_xticklabels(speeds_label, fontsize=14)
-ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
-ax.set_ylim([0, 1.1])
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0]), dpi=128)
-plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
+#ANOVA on offset times for 0,275m/s - network comparison stance
+fvalue_offset_st, pvalue_offset_st = scipy.stats.f_oneway(light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])
+print(fvalue_offset_st, pvalue_offset_st)
+#Tukey HSD test for multiple pairwise comparison
+mean_networks_offset_st = np.round([np.nanmean(light_offset_phase_st_net[0][0]), np.nanmean(light_offset_phase_st_net[1][0]), np.nanmean(light_offset_phase_st_net[2][0])], 3)
+print(mean_networks_offset_st)
+dict_offset_st = {'value': np.concatenate((light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])),
+    'network': np.concatenate((np.repeat('CM', len(light_offset_phase_st_net[0][0])), np.repeat('HR', len(light_offset_phase_st_net[1][0])),
+        np.repeat('TB', len(light_offset_phase_st_net[2][0]))))}
+df_offset_st = pd.DataFrame(dict_offset_st)
+res_offset_st = stat()
+res_offset_st.tukey_hsd(df=df_offset_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+res_offset_st.tukey_summary
 
-# ACCURACY
-ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
-for i in range(len(measure_name)):
-    fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-    for n in range(len(networks)):
-        for a in range(6):
-            if a == 0:
-                ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
-                           s=10, color=colors_networks[n], linewidth=2, label=networks[n])
-            else:
-                ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
-                           s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
-    ax.set_xticks(np.arange(0, 30, 10))
-    ax.set_xticklabels(speeds_label, fontsize=14)
-    ax.set_ylim([0, 1])
-    #ax.set_title('Stance ' + measure_name[i].replace('_', ' '), fontsize=16)
-    ax.set_ylabel(measure_name_label[i], fontsize=14)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    #plt.savefig(os.path.join(summary_path, measure_name[i] + '_st'), dpi=128)
-    plt.savefig(os.path.join(summary_path, measure_name[i] + '_st.svg'), dpi=128)
+#ANOVA on onset times for 0,275m/s - network comparison swing
+fvalue_onset_sw, pvalue_onset_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])
+print(fvalue_onset_sw, pvalue_onset_sw)
+#Tukey HSD test for multiple pairwise comparison
+mean_networks_onset_sw = np.round([np.nanmean(light_onset_phase_sw_net[0][0]), np.nanmean(light_onset_phase_sw_net[1][0]), np.nanmean(light_onset_phase_sw_net[2][0])], 3)
+print(mean_networks_onset_sw)
+dict_onset_sw = {'value': np.concatenate((light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])),
+    'network': np.concatenate((np.repeat('CM', len(light_onset_phase_sw_net[0][0])), np.repeat('HR', len(light_onset_phase_sw_net[1][0])),
+        np.repeat('TB', len(light_onset_phase_sw_net[2][0]))))}
+df_onset_sw = pd.DataFrame(dict_onset_sw)
+res_onset_sw = stat()
+res_onset_sw.tukey_hsd(df=df_onset_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+res_onset_sw.tukey_summary
 
-    fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-    for n in range(len(networks)):
-        for a in range(6):
-            if a == 0:
-                ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
-                           s=10, color=colors_networks[n], linewidth=2, label=networks[n])
-            else:
-                ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
-                           s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
-    ax.set_xticks(np.arange(0, 30, 10))
-    ax.set_xticklabels(speeds_label, fontsize=14)
-    #ax.set_title('Swing ' + measure_name[i].replace('_', ' '), fontsize=16)
-    ax.set_ylabel(measure_name_label[i], fontsize=14)
-    ax.set_ylim([0, 1])
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=14)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    #plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw'), dpi=128)
-    plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw.svg'), dpi=128)
-    plt.close('all')
-
+#ANOVA on offset times for 0,275m/s - network comparison swing
+fvalue_offset_sw, pvalue_offset_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])
+print(fvalue_offset_sw, pvalue_offset_sw)
+#Tukey HSD test for multiple pairwise comparison
+mean_networks_offset_sw = np.round([np.nanmean(light_offset_phase_sw_net[0][0]), np.nanmean(light_offset_phase_sw_net[1][0]), np.nanmean(light_offset_phase_sw_net[2][0])], 3)
+print(mean_networks_offset_sw)
+dict_offset_sw = {'value': np.concatenate((light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])),
+    'network': np.concatenate((np.repeat('CM', len(light_offset_phase_sw_net[0][0])), np.repeat('HR', len(light_offset_phase_sw_net[1][0])),
+        np.repeat('TB', len(light_offset_phase_sw_net[2][0]))))}
+df_offset_sw = pd.DataFrame(dict_offset_sw)
+res_offset_sw = stat()
+res_offset_sw.tukey_hsd(df=df_offset_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+res_offset_sw.tukey_summary
