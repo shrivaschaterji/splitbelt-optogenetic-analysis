@@ -484,9 +484,15 @@ class otrack_class:
             [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 0)  # swing and stance detection, exclusion of strides
             #get lists for dataframe
             offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
-            offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
+            if (len(timestamps_session[count_t])<np.int64(np.array(st_strides_mat[p][:, 1, -1]))).any():
+                offtracks_st_off_time.extend(timestamps_session[count_t][np.where(np.int64(np.array(sw_pts_mat[p][:, 0, -1]))<len(timestamps_session[count_t]))[0]])
+            else:
+                offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
             offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
-            offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 1, -1]))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
+            if (len(timestamps_session[count_t])<np.int64(np.array(st_strides_mat[p][:, 1, -1]))).any():
+                offtracks_sw_off_time.extend(timestamps_session[count_t][np.where(np.int64(np.array(st_strides_mat[p][:, 1, -1]))<len(timestamps_session[count_t]))[0]])
+            else:
+                offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 1, -1]))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
             offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
             offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
             offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #swing onset idx
