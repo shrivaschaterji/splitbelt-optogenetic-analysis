@@ -15,7 +15,10 @@ from decord import VideoReader
 from decord import cpu
 import scipy.signal as sig
 from matplotlib.cm import ScalarMappable
-np.warnings.filterwarnings('ignore')
+# np.warnings.filterwarnings('ignore')
+np.seterr(all="ignore")
+
+
 
 class otrack_class:
     def __init__(self, path):
