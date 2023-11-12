@@ -266,18 +266,21 @@ class otrack_class:
         otracks_sw = []
         for trial, f in enumerate(files_ordered):
             otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'st', 'sw'])
-            otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
-            len_timestamps_trial = len(timestamps_session[trial])
-            if otracks_frame_counter[-1] >= len_timestamps_trial:
-                frames_not_valid = np.where(otracks_frame_counter > len_timestamps_trial-1)[0]
-                frames_valid = np.setdiff1d(np.arange(0, len(otracks_frame_counter)), frames_not_valid)
-                otracks_frame_counter = otracks_frame_counter[frames_valid]
-                otracks = otracks.iloc[frames_valid, :]
-                print('otracks trial ' + str(trial + 1) + ' has more ' + str(len(frames_not_valid)) + ' frames than video')
-            otracks_timestamps = np.array(timestamps_session[trial])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
+            meta = pd.read_csv(os.path.join(self.path, f[:-10]+'meta.csv'),
+                names=['a', 'b', 'c', 'frames', 'd', 'e', 'f', 'g', 'h', 'i', 'j'])
+            frames_cam = meta['frames']
+            frames_cam_correct_nr = np.arange(0, len(frames_cam))  # taking into account missing frames
+            otracks_frame_counter = np.array(otracks.iloc[:, 1])
+            # match frame counter otrack with frame count from meta and get true frame idx (camera frame idx)
+            otracks_frame_counter_real = []
+            for count_f, f in enumerate(otracks_frame_counter):
+                meta_frame_idx = np.where(f == frames_cam)[0][0]
+                otracks_frame_counter_real.append(frames_cam_correct_nr[meta_frame_idx])
+            otracks_timestamps = np.array(timestamps_session[trial])[
+                np.array(otracks_frame_counter_real)]  # get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
-            otracks_frames.extend(np.array(otracks_frame_counter))  # list of frame counters
+            otracks_frames.extend(np.array(otracks_frame_counter_real))  # list of frame counters
             otracks_trials.extend(
                 np.array(np.ones(len(otracks_frame_counter)) * (self.trials[trial])))  # list of trial value
             otracks_posx.extend(
@@ -325,28 +328,29 @@ class otrack_class:
         otracks_sw_trials = []
         otracks_st_posx = []
         otracks_sw_posx = []
-        otracks_st_posy = []
-        otracks_sw_posy = []
         for trial, f in enumerate(files_ordered):
             otracks = pd.read_csv(os.path.join(self.path, f), names = ['bonsai time', 'bonsai frame', 'x', 'y', 'st', 'sw'])
-            otracks_frame_counter = np.array(otracks.iloc[:, 1] - otracks.iloc[0, 1])# get the frame counter of otrack, first line is the same as first frame of the trial
-            len_timestamps_trial = len(timestamps_session[trial])
-            if otracks_frame_counter[-1] >= len_timestamps_trial:
-                frames_not_valid = np.where(otracks_frame_counter > len_timestamps_trial-1)[0]
-                frames_valid = np.setdiff1d(np.arange(0, len(otracks_frame_counter)), frames_not_valid)
-                otracks_frame_counter = otracks_frame_counter[frames_valid]
-                otracks = otracks.iloc[frames_valid, :]
-                print('otracks trial ' + str(trial + 1) + ' has more ' + str(len(frames_not_valid)) + ' frames than video')
+            meta = pd.read_csv(os.path.join(self.path, f[:-10]+'meta.csv'),
+                names=['a', 'b', 'c', 'frames', 'd', 'e', 'f', 'g', 'h', 'i', 'j'])
+            frames_cam = meta['frames']
+            frames_cam_correct_nr = np.arange(0, len(frames_cam))  # taking into account missing frames
+            otracks_frame_counter = np.array(otracks.iloc[:, 1])
+            # match frame counter otrack with frame count from meta and get true frame idx (camera frame idx)
+            otracks_frame_counter_real = []
+            for count_f, f in enumerate(otracks_frame_counter):
+                meta_frame_idx = np.where(f == frames_cam)[0][0]
+                otracks_frame_counter_real.append(frames_cam_correct_nr[meta_frame_idx])
+            otracks_timestamps = np.array(timestamps_session[trial])[
+                np.array(otracks_frame_counter_real)]  # get timestamps of synchronizer for each otrack frame
             stance_frames = np.where(otracks.iloc[:, 3]==True)[0] #get all the otrack where it detected a stance (above the threshold set in bonsai)
             swing_frames = np.where(otracks.iloc[:, 4]==True)[0] #get all the otrack where it detected a swing (above the threshold set in bonsai)
-            otracks_timestamps = np.array(timestamps_session[trial])[otracks_frame_counter] #get timestamps of synchronizer for each otrack frame
             # create lists to add them to a dataframe
             otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames]) #list of timestamps
             otracks_sw_time.extend(np.array(otracks_timestamps)[swing_frames]) #list of timestamps
-            otracks_st_frames.extend(np.array(otracks_frame_counter)[stance_frames]) #list of frame counters
-            otracks_sw_frames.extend(np.array(otracks_frame_counter)[swing_frames]) #list of frame counters
-            otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter))[stance_frames]*(self.trials[trial]))) #list of trial value
-            otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter))[swing_frames]*(self.trials[trial]))) #list of trial value
+            otracks_st_frames.extend(np.array(otracks_frame_counter_real)[stance_frames]) #list of frame counters
+            otracks_sw_frames.extend(np.array(otracks_frame_counter_real)[swing_frames]) #list of frame counters
+            otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter_real))[stance_frames]*(self.trials[trial]))) #list of trial value
+            otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter_real))[swing_frames]*(self.trials[trial]))) #list of trial value
             otracks_st_posx.extend(np.array(otracks.iloc[stance_frames, 2])) #list of otrack paw x position when in stance
             otracks_sw_posx.extend(np.array(otracks.iloc[swing_frames, 2])) #list of otrack paw x position when in swing
         #creating the dataframe
@@ -550,7 +554,7 @@ class otrack_class:
                 out.write(frame_np)
         out.release()
 
-    def measure_light_on_videos(self, trial, animal, timestamps_session, otracks_st, otracks_sw):
+    def measure_light_on_videos(self, trial, animal, timestamps_session, otracks_st, otracks_sw, corr_latency):
         """Function to measure when the light in the video was ON (equivalent to optogenetic
         stimulation).
          Input:
@@ -558,7 +562,8 @@ class otrack_class:
          animal: (str) animal name
          timestamps_session: list with the camera timestamps for each session
          otracks_st: dataframe with the otrack stance data
-         otracks_sw: dataframe with the otrack swing data"""
+         otracks_sw: dataframe with the otrack swing data
+         corr_latency: (boolean) if otrack file was correctly logged"""
         mp4_files = glob.glob(self.path + '*.mp4') #read mp4 filenames
         filename = []
         for f in mp4_files: #get the mp4 for that specific trial
@@ -574,9 +579,11 @@ class otrack_class:
         for frameNr in range(frames_total):
             frame = vidObj[frameNr]
             frame_np = frame.asnumpy()
-            # st_led.append(np.mean(frame_np[:60, 980:1050, :].flatten())) #get the mean intensity of the location where left LED is
-            st_led.append(np.mean(
-                frame_np[:60, 1050:, :].flatten()))  # get the mean intensity of the location where right LED is
+            if corr_latency:
+                st_led.append(np.mean(frame_np[:60, 980:1050, :].flatten())) #get the mean intensity of the location where left LED is
+            else:
+                st_led.append(np.mean(
+                    frame_np[:60, 1050:, :].flatten()))  # get the mean intensity of the location where right LED is
             sw_led.append(np.mean(frame_np[:60, 1050:, :].flatten())) #get the mean intensity of the location where right LED is
         #if it starts on
         if st_led[0]>15:
@@ -619,7 +626,7 @@ class otrack_class:
             latency_trial_sw[count_t] = np.min(np.abs(time_diff)) * 1000
         return latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames
 
-    def get_led_information_trials(self, animal, timestamps_session, otracks_st, otracks_sw):
+    def get_led_information_trials(self, animal, timestamps_session, otracks_st, otracks_sw, corr_latency):
         """Using the function to see, in wach trial when the LED were on and off loop over the session
         trials and compile this information across trials
         Inputs:
@@ -627,7 +634,8 @@ class otrack_class:
         animal: (str) animal name
         timestamps_session: list with the camera timestamps for each session
         otracks_st: dataframe with the otrack stance data
-        otracks_sw: dataframe with the otrack swing data"""
+        otracks_sw: dataframe with the otrack swing data
+        corr_latency: (boolean) if otrack file was correctly logged"""
         if not os.path.exists(self.path + 'processed files'):
             os.mkdir(self.path + 'processed files')
         latency_light_st = []
@@ -643,7 +651,7 @@ class otrack_class:
         sw_led_time_off = []
         sw_led_trial = []
         for count_t, trial in enumerate(self.trials):
-            [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames] = self.measure_light_on_videos(trial, animal, timestamps_session, otracks_st, otracks_sw)
+            [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames] = self.measure_light_on_videos(trial, animal, timestamps_session, otracks_st, otracks_sw, corr_latency)
             latency_light_st.append(latency_trial_st)
             latency_light_sw.append(latency_trial_sw)
             st_led_on.extend(st_led_frames[0, :])
@@ -1812,8 +1820,8 @@ class otrack_class:
             f1_sw[count_t] = 2 * ((precision_sw[count_t] * recall_sw[count_t]) / (precision_sw[count_t] + recall_sw[count_t]))
         return accuracy_st, accuracy_sw, precision_st, precision_sw, recall_st, recall_sw, f1_st, f1_st, fn_st, fn_sw, tn_st, tn_sw, fp_st, fp_sw, tp_st, tp_sw
 
-    def get_benchmark_data_laser(self, event, th_loco_all, condition, animal, otracks, otracks_st, otracks_sw, laser_on, offtracks_st, offtracks_sw):
-        """Function to compute benchmark data (for each threshold crossing in bonsai when the other signals came up).
+    def get_latency_data_laser(self, event, th_loco_all, condition, animal, otracks, otracks_st, otracks_sw, laser_on, offtracks_st, offtracks_sw):
+        """Function to compute latency (for each threshold crossing in bonsai when the laser came up).
         This is done for stimulation detection coming from the synchronizer.
         Inputs:
             event: (str) stance or swing
@@ -1832,14 +1840,8 @@ class otrack_class:
         if event == 'swing':
             otracks_loco = otracks_sw
             offtracks_loco = offtracks_sw
-        th_cross_on = []
-        th_cross_off = []
-        th_detect_on = []
-        th_detect_off = []
-        th_laser_on = []
-        th_laser_off = []
-        th_loco_on = []
-        th_loco_off = []
+        th_latency_on = []
+        th_latency_off = []
         animal_id = []
         trial_id = []
         condition_id = []
@@ -1853,42 +1855,24 @@ class otrack_class:
                 otracks_loco_trial = otracks_loco_trial.iloc[1:, :]
             otracks_trial_time = np.array(otracks_trial['time'])
             # getting the time duration that x crossed the threshold for threshold stance and threshold swing
-            th_cross_loco_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) >= th_loco_all[count_t])[0]]
+            if event == 'stance':
+                th_cross_loco_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) >= th_loco_all[count_t])[0]]
+            if event == 'swing':
+                th_cross_loco_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) < th_loco_all[count_t])[0]]
             th_cross_loco_on_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0] + 1]
             th_cross_loco_off_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0]]
             th_cross_loco_on_time = np.insert(th_cross_loco_on_time, 0, th_cross_loco_time[0])
             if len(th_cross_loco_on_time) > len(th_cross_loco_off_time):
                 th_cross_loco_on_time = th_cross_loco_on_time[:-1]
-            # computing time when threshold crossing was detected
-            otracks_loco_true_trial_time = np.array(otracks_loco_trial['time'])
-            loco_true_trial_time_cross_on = otracks_loco_true_trial_time[
-                np.where(np.diff(otracks_loco_true_trial_time) > 0.013)[0] + 1]
-            loco_true_trial_time_cross_off = otracks_loco_true_trial_time[
-                np.where(np.diff(otracks_loco_true_trial_time) > 0.013)[0]]
-            loco_true_trial_time_cross_on = np.insert(loco_true_trial_time_cross_on, 0, otracks_loco_true_trial_time[0])
-            if loco_true_trial_time_cross_off[-1] < loco_true_trial_time_cross_on[-1]:
-                loco_true_trial_time_cross_on = loco_true_trial_time_cross_on[:-1]
             # computing time of laser stimulation
             laser_time_on = np.array(laser_on.loc[laser_on['trial'] == trial, 'time_on'])
             laser_time_off = np.array(laser_on.loc[laser_on['trial'] == trial, 'time_off'])
             # find threshold detection and laser stimulation matches to threshold crossings
-            th_cross_loco_on_match_true = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_off_match_true = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_on_match_true[:] = np.nan
-            th_cross_loco_off_match_true[:] = np.nan
             th_cross_loco_on_match_laser = np.zeros(len(th_cross_loco_on_time))
             th_cross_loco_off_match_laser = np.zeros(len(th_cross_loco_on_time))
             th_cross_loco_on_match_laser[:] = np.nan
             th_cross_loco_off_match_laser[:] = np.nan
             for count_j, j in enumerate(th_cross_loco_on_time):
-                # find the closest next stance true time
-                diff_comparison_true = loco_true_trial_time_cross_on - j
-                match_idx_true = np.where((diff_comparison_true) >= 0)[0]
-                if len(match_idx_true) > 0:
-                    th_cross_loco_on_match_true[count_j] = loco_true_trial_time_cross_on[
-                        match_idx_true[np.argmin(diff_comparison_true[match_idx_true])]]
-                    th_cross_loco_off_match_true[count_j] = loco_true_trial_time_cross_off[
-                        match_idx_true[np.argmin(diff_comparison_true[match_idx_true])]]
                 # find the closest next stance laser time
                 diff_comparison_laser = laser_time_on - j
                 match_idx_laser = np.where((diff_comparison_laser) >= 0)[0]
@@ -1897,34 +1881,15 @@ class otrack_class:
                         match_idx_laser[np.argmin(diff_comparison_laser[match_idx_laser])]]
                     th_cross_loco_off_match_laser[count_j] = laser_time_off[
                         match_idx_laser[np.argmin(diff_comparison_laser[match_idx_laser])]]
-            # find stance periods matching the threshold crossings
-            loco_on = np.array(offtracks_loco.loc[offtracks_loco['trial'] == trial, 'time'])
-            loco_off = np.array(offtracks_loco.loc[offtracks_loco['trial'] == trial, 'time_off'])
-            th_cross_loco_on_match_loco_offline = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_off_match_loco_offline = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_on_match_loco_offline[:] = np.nan
-            th_cross_loco_off_match_loco_offline[:] = np.nan
-            for count_j, j in enumerate(th_cross_loco_off_match_laser):
-                match_idx = np.where((j >= loco_on) & (j <= loco_off))[
-                    0]  # laser off needs to be between stance onset and swing onset
-                if len(match_idx) > 0:
-                    th_cross_loco_on_match_loco_offline[count_j] = loco_on[match_idx]
-                    th_cross_loco_off_match_loco_offline[count_j] = loco_off[match_idx]
-            th_cross_on.extend(th_cross_loco_on_time)
-            th_cross_off.extend(th_cross_loco_off_time)
-            th_detect_on.extend(th_cross_loco_on_match_true)
-            th_detect_off.extend(th_cross_loco_off_match_true)
-            th_laser_on.extend(th_cross_loco_on_match_laser)
-            th_laser_off.extend(th_cross_loco_off_match_laser)
-            th_loco_on.extend(th_cross_loco_on_match_loco_offline)
-            th_loco_off.extend(th_cross_loco_off_match_loco_offline)
+            th_latency_on.extend(th_cross_loco_on_match_laser-th_cross_loco_on_time)
+            th_latency_off.extend(th_cross_loco_off_match_laser-th_cross_loco_on_time)
             animal_id.extend(np.repeat(animal, len(th_cross_loco_on_time)))
             trial_id.extend(np.repeat(trial, len(th_cross_loco_on_time)))
             condition_id.extend(np.repeat(condition, len(th_cross_loco_on_time)))
-        return condition_id, trial_id, animal_id, th_cross_on, th_cross_off, th_detect_on, th_detect_off, th_laser_on, th_laser_off, th_loco_on, th_loco_off
+        return condition_id, trial_id, animal_id, th_latency_on, th_latency_off
 
-    def get_benchmark_data_led(self, event, th_loco_all, condition, animal, otracks, otracks_st, otracks_sw, st_led_on, sw_led_on, offtracks_st, offtracks_sw):
-        """Function to compute benchmark data (for each threshold crossing in bonsai when the other signals came up).
+    def get_latency_data_led(self, event, condition, animal, otracks, otracks_st, otracks_sw, st_led_on, sw_led_on, offtracks_st, offtracks_sw):
+        """Function to compute latency (for each threshold crossing in bonsai when the LED came up).
         This is done for stimulation detection coming from the LED in the video.
         Inputs:
             event: (str) stance or swing
@@ -1946,14 +1911,8 @@ class otrack_class:
             otracks_loco = otracks_sw
             offtracks_loco = offtracks_sw
             light_on = sw_led_on
-        th_cross_on = []
-        th_cross_off = []
-        th_detect_on = []
-        th_detect_off = []
-        th_laser_on = []
-        th_laser_off = []
-        th_loco_on = []
-        th_loco_off = []
+        th_latency_on = []
+        th_latency_off = []
         animal_id = []
         trial_id = []
         condition_id = []
@@ -1967,43 +1926,27 @@ class otrack_class:
                 otracks_loco_trial = otracks_loco_trial.iloc[1:, :]
             otracks_trial_time = np.array(otracks_trial['time'])
             # getting the time duration that x crossed the threshold for threshold stance and threshold swing
-            th_cross_loco_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) >= th_loco_all[count_t])[0]]
+            if event == 'stance':
+                th_cross_loco_time = otracks_trial_time[
+                    np.where(np.array(otracks_trial['st_on']) == 1)[0]]
+            if event == 'swing':
+                th_cross_loco_time = otracks_trial_time[
+                    np.where(np.array(otracks_trial['sw_on']) == 1)[0]]
             th_cross_loco_on_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0] + 1]
             th_cross_loco_off_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0]]
             th_cross_loco_on_time = np.insert(th_cross_loco_on_time, 0, th_cross_loco_time[0])
             if len(th_cross_loco_on_time) > len(th_cross_loco_off_time):
                 th_cross_loco_on_time = th_cross_loco_on_time[:-1]
-            # computing time when threshold crossing was detected
-            otracks_loco_true_trial_time = np.array(otracks_loco_trial['time'])
-            loco_true_trial_time_cross_on = otracks_loco_true_trial_time[
-                np.where(np.diff(otracks_loco_true_trial_time) > 0.013)[0] + 1]
-            loco_true_trial_time_cross_off = otracks_loco_true_trial_time[
-                np.where(np.diff(otracks_loco_true_trial_time) > 0.013)[0]]
-            loco_true_trial_time_cross_on = np.insert(loco_true_trial_time_cross_on, 0, otracks_loco_true_trial_time[0])
-            if loco_true_trial_time_cross_off[-1] < loco_true_trial_time_cross_on[-1]:
-                loco_true_trial_time_cross_on = loco_true_trial_time_cross_on[:-1]
             # computing time of laser stimulation
             laser_time_on = np.array(light_on.loc[light_on['trial'] == trial, 'time_on'])
             laser_time_off = np.array(light_on.loc[light_on['trial'] == trial, 'time_off'])
             # find threshold detection and laser stimulation matches to threshold crossings
-            th_cross_loco_on_match_true = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_off_match_true = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_on_match_true[:] = np.nan
-            th_cross_loco_off_match_true[:] = np.nan
             th_cross_loco_on_match_laser = np.zeros(len(th_cross_loco_on_time))
             th_cross_loco_off_match_laser = np.zeros(len(th_cross_loco_on_time))
             th_cross_loco_on_match_laser[:] = np.nan
             th_cross_loco_off_match_laser[:] = np.nan
             for count_j, j in enumerate(th_cross_loco_on_time):
-                # find the closest next stance true time
-                diff_comparison_true = loco_true_trial_time_cross_on - j
-                match_idx_true = np.where((diff_comparison_true) >= 0)[0]
-                if len(match_idx_true) > 0:
-                    th_cross_loco_on_match_true[count_j] = loco_true_trial_time_cross_on[
-                        match_idx_true[np.argmin(diff_comparison_true[match_idx_true])]]
-                    th_cross_loco_off_match_true[count_j] = loco_true_trial_time_cross_off[
-                        match_idx_true[np.argmin(diff_comparison_true[match_idx_true])]]
-                # find the closest next stance laser time
+                # find the closest next led time
                 diff_comparison_laser = laser_time_on - j
                 match_idx_laser = np.where((diff_comparison_laser) >= 0)[0]
                 if len(match_idx_laser) > 0:
@@ -2011,28 +1954,9 @@ class otrack_class:
                         match_idx_laser[np.argmin(diff_comparison_laser[match_idx_laser])]]
                     th_cross_loco_off_match_laser[count_j] = laser_time_off[
                         match_idx_laser[np.argmin(diff_comparison_laser[match_idx_laser])]]
-            # find stance periods matching the threshold crossings
-            loco_on = np.array(offtracks_loco.loc[offtracks_loco['trial'] == trial, 'time'])
-            loco_off = np.array(offtracks_loco.loc[offtracks_loco['trial'] == trial, 'time_off'])
-            th_cross_loco_on_match_loco_offline = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_off_match_loco_offline = np.zeros(len(th_cross_loco_on_time))
-            th_cross_loco_on_match_loco_offline[:] = np.nan
-            th_cross_loco_off_match_loco_offline[:] = np.nan
-            for count_j, j in enumerate(th_cross_loco_off_match_laser):
-                match_idx = np.where((j >= loco_on) & (j <= loco_off))[
-                    0]  # laser off needs to be between stance onset and swing onset
-                if len(match_idx) > 0:
-                    th_cross_loco_on_match_loco_offline[count_j] = loco_on[match_idx]
-                    th_cross_loco_off_match_loco_offline[count_j] = loco_off[match_idx]
-            th_cross_on.extend(th_cross_loco_on_time)
-            th_cross_off.extend(th_cross_loco_off_time)
-            th_detect_on.extend(th_cross_loco_on_match_true)
-            th_detect_off.extend(th_cross_loco_off_match_true)
-            th_laser_on.extend(th_cross_loco_on_match_laser)
-            th_laser_off.extend(th_cross_loco_off_match_laser)
-            th_loco_on.extend(th_cross_loco_on_match_loco_offline)
-            th_loco_off.extend(th_cross_loco_off_match_loco_offline)
+            th_latency_on.extend(th_cross_loco_on_match_laser-th_cross_loco_on_time)
+            th_latency_off.extend(th_cross_loco_off_match_laser-th_cross_loco_off_time)
             animal_id.extend(np.repeat(animal, len(th_cross_loco_on_time)))
             trial_id.extend(np.repeat(trial, len(th_cross_loco_on_time)))
             condition_id.extend(np.repeat(condition, len(th_cross_loco_on_time)))
-        return condition_id, trial_id, animal_id, th_cross_on, th_cross_off, th_detect_on, th_detect_off, th_laser_on, th_laser_off, th_loco_on, th_loco_off
+        return condition_id, trial_id, animal_id, th_latency_on, th_latency_off
