@@ -273,8 +273,8 @@ print(fvalue_onset_st, pvalue_onset_st)
 fvalue_offset_st, pvalue_offset_st = scipy.stats.f_oneway(light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])
 print(fvalue_offset_st, pvalue_offset_st)
 #Tukey HSD test for multiple pairwise comparison
-mean_networks_offset_st = np.round([np.nanmean(light_offset_phase_st_net[0][0]), np.nanmean(light_offset_phase_st_net[1][0]), np.nanmean(light_offset_phase_st_net[2][0])], 3)
-print(mean_networks_offset_st)
+median_networks_offset_st = np.round([np.nanmedian(light_offset_phase_st_net[0][0]), np.nanmedian(light_offset_phase_st_net[1][0]), np.nanmedian(light_offset_phase_st_net[2][0])], 3)
+print(median_networks_offset_st)
 dict_offset_st = {'value': np.concatenate((light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])),
     'network': np.concatenate((np.repeat('CM', len(light_offset_phase_st_net[0][0])), np.repeat('HR', len(light_offset_phase_st_net[1][0])),
         np.repeat('TB', len(light_offset_phase_st_net[2][0]))))}
@@ -287,8 +287,8 @@ res_offset_st.tukey_summary
 fvalue_onset_sw, pvalue_onset_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])
 print(fvalue_onset_sw, pvalue_onset_sw)
 #Tukey HSD test for multiple pairwise comparison
-mean_networks_onset_sw = np.round([np.nanmean(light_onset_phase_sw_net[0][0]), np.nanmean(light_onset_phase_sw_net[1][0]), np.nanmean(light_onset_phase_sw_net[2][0])], 3)
-print(mean_networks_onset_sw)
+median_networks_onset_sw = np.round([np.nanmedian(light_onset_phase_sw_net[0][0]), np.nanmedian(light_onset_phase_sw_net[1][0]), np.nanmedian(light_onset_phase_sw_net[2][0])], 3)
+print(median_networks_onset_sw)
 dict_onset_sw = {'value': np.concatenate((light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])),
     'network': np.concatenate((np.repeat('CM', len(light_onset_phase_sw_net[0][0])), np.repeat('HR', len(light_onset_phase_sw_net[1][0])),
         np.repeat('TB', len(light_onset_phase_sw_net[2][0]))))}
@@ -301,8 +301,8 @@ res_onset_sw.tukey_summary
 fvalue_offset_sw, pvalue_offset_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])
 print(fvalue_offset_sw, pvalue_offset_sw)
 #Tukey HSD test for multiple pairwise comparison
-mean_networks_offset_sw = np.round([np.nanmean(light_offset_phase_sw_net[0][0]), np.nanmean(light_offset_phase_sw_net[1][0]), np.nanmean(light_offset_phase_sw_net[2][0])], 3)
-print(mean_networks_offset_sw)
+median_networks_offset_sw = np.round([np.nanmedian(light_offset_phase_sw_net[0][0]), np.nanmedian(light_offset_phase_sw_net[1][0]), np.nanmedian(light_offset_phase_sw_net[2][0])], 3)
+print(median_networks_offset_sw)
 dict_offset_sw = {'value': np.concatenate((light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])),
     'network': np.concatenate((np.repeat('CM', len(light_offset_phase_sw_net[0][0])), np.repeat('HR', len(light_offset_phase_sw_net[1][0])),
         np.repeat('TB', len(light_offset_phase_sw_net[2][0]))))}

@@ -85,8 +85,8 @@ for count_a, animal in enumerate(animals):
     latency_data_animal = latency_data_st.loc[latency_data_st['animal'] == animal]
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
-        data_t1 = np.nanmean(latency_data_animal.loc[latency_data_animal['trial']==trials_reshape[i, 0], 'th_latency_on'])
-        data_t2 = np.nanmean(
+        data_t1 = np.nanmedian(latency_data_animal.loc[latency_data_animal['trial']==trials_reshape[i, 0], 'th_latency_on'])
+        data_t2 = np.nanmedian(
             latency_data_animal.loc[latency_data_animal['trial'] == trials_reshape[i, 1], 'th_latency_on'])
         ax.scatter(np.ones(2)*trials_reshape[i, 0], np.array([data_t1, data_t2])*1000, s=80, color=colors_animals[count_a])
 ax.set_xticks(trials_reshape[:, 0])
@@ -103,8 +103,8 @@ for count_a, animal in enumerate(animals):
     latency_data_animal = latency_data_sw.loc[latency_data_sw['animal'] == animal]
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
-        data_t1 = np.nanmean(latency_data_animal.loc[latency_data_animal['trial']==trials_reshape[i, 0], 'th_latency_on'])
-        data_t2 = np.nanmean(
+        data_t1 = np.nanmedian(latency_data_animal.loc[latency_data_animal['trial']==trials_reshape[i, 0], 'th_latency_on'])
+        data_t2 = np.nanmedian(
             latency_data_animal.loc[latency_data_animal['trial'] == trials_reshape[i, 1], 'th_latency_on'])
         ax.scatter(np.ones(2)*trials_reshape[i, 0], np.array([data_t1, data_t2])*1000, s=80, color=colors_animals[count_a])
 ax.set_xticks(trials_reshape[:, 0])

@@ -5,7 +5,7 @@ Created on Tue Feb  7 16:59:15 2023
 """
 import os
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Desktop\\Data OPTO\\CM tests\\25percent\\'
+path = 'C:\\Users\\Ana\\Desktop\\Data OPTO\\Tailbase tests\\75percent\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -15,12 +15,11 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-# animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923']
-# corr_latency = [0, 0, 0, 1, 1]
-animals = ['VIV40922']
-corr_latency = [1]
+animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923', 'VIV40924']
+corr_latency = [0, 0, 0, 1, 1, 1]
 
 for count_a, animal in enumerate(animals):
+    print('Processing ' + animal)
     trials = otrack_class.get_trials(animal)
     # READ CAMERA TIMESTAMPS AND FRAME COUNTER
     [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_class.get_session_metadata(animal, plot_data)

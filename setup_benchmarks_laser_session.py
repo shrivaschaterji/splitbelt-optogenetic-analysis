@@ -178,7 +178,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], f1_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(f1_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(f1_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=3)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -194,7 +194,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], f1_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(f1_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(f1_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=3)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -210,7 +210,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], accuracy_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(accuracy_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(accuracy_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -226,7 +226,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], accuracy_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(accuracy_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(accuracy_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -242,7 +242,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], fn_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(fn_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(fn_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -258,7 +258,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], fn_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(fn_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(fn_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -274,7 +274,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], fp_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(fp_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(fp_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)
@@ -290,7 +290,7 @@ for count_a, animal in enumerate(animals):
     trials_ave = np.zeros(len(trials_reshape))
     for i in range(len(trials_reshape)):
         ax.scatter(np.ones(2)*trials_reshape[i, 0], fp_data[trials_reshape[i, :]-1], s=80, color=colors_animals[count_a])
-        trials_ave[i] = np.nanmean(fp_data[trials_reshape[i, :]-1])
+        trials_ave[i] = np.nanmedian(fp_data[trials_reshape[i, :]-1])
     ax.plot(trials_reshape[:, 0], trials_ave, color=colors_animals[count_a], linewidth=2)
 ax.set_xticks(trials_reshape[:, 0])
 ax.set_xticklabels(['0.175', '0.275', '0.375', 'split ipsi\nfast', 'split contra\nfast'], fontsize=14)

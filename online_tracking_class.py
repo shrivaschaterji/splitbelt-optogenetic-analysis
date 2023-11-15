@@ -1527,12 +1527,12 @@ class otrack_class:
         np.min(light_offset_phase_viz), np.max(light_offset_phase_viz)))
         light_offset_phase_viz_hist_norm = light_offset_phase_viz_hist[0] / np.nanmax(
             light_offset_phase_viz_hist[0])
-        # mean phase duration for the binned onset phases
+        # median phase duration for the binned onset phases
         light_onset_bin_idx = np.digitize(light_onset_phase_viz, light_onset_phase_viz_hist[1])
-        light_duration_phase_mean_bins = np.zeros(len(light_onset_phase_viz_hist[1]))
+        light_duration_phase_median_bins = np.zeros(len(light_onset_phase_viz_hist[1]))
         light_duration_phase_arr = np.array(light_duration_phase)
-        for b in np.unique(light_onset_bin_idx):  # mean onset duration for that bin
-            light_duration_phase_mean_bins[b - 1] = np.nanmean(light_duration_phase_arr[light_onset_bin_idx == b])
+        for b in np.unique(light_onset_bin_idx):  # median onset duration for that bin
+            light_duration_phase_median_bins[b - 1] = np.nanmedian(light_duration_phase_arr[light_onset_bin_idx == b])
         #Plot onset and histograms phase distributions
         if event == 'stance':
             cmap_on = plt.get_cmap('Oranges')
@@ -1545,8 +1545,8 @@ class otrack_class:
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
         ax.plot(time, FR, color='black')
         for b in range(len(light_onset_phase_viz_hist[1]) - 1):
-            ax.bar(light_onset_phase_viz_hist[1][b] + (light_duration_phase_mean_bins[b] / 2), height=1,
-                   bottom=b + 0.1, width=light_duration_phase_mean_bins[b],
+            ax.bar(light_onset_phase_viz_hist[1][b] + (light_duration_phase_median_bins[b] / 2), height=1,
+                   bottom=b + 0.1, width=light_duration_phase_median_bins[b],
                    color=color_bars[np.int64(np.ceil(light_onset_phase_viz_hist_norm[b] * 10))])
         if norm_stim:
             plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
@@ -1647,10 +1647,10 @@ class otrack_class:
             light_offset_phase_viz_hist[0])
         # mean phase duration for the binned onset phases
         light_onset_bin_idx = np.digitize(light_onset_phase_viz, light_onset_phase_viz_hist[1])
-        light_duration_phase_mean_bins = np.zeros(len(light_onset_phase_viz_hist[1]))
+        light_duration_phase_median_bins = np.zeros(len(light_onset_phase_viz_hist[1]))
         light_duration_phase_arr = np.array(light_duration_phase)
         for b in np.unique(light_onset_bin_idx):  # mean onset duration for that bin
-            light_duration_phase_mean_bins[b - 1] = np.nanmean(light_duration_phase_arr[light_onset_bin_idx == b])
+            light_duration_phase_median_bins[b - 1] = np.nanmedian(light_duration_phase_arr[light_onset_bin_idx == b])
         #Plot onset and histograms phase distributions
         if event == 'stance':
             cmap_on = plt.get_cmap(cmap_name)
@@ -1663,8 +1663,8 @@ class otrack_class:
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
         ax.plot(time, FR, color='black')
         for b in range(len(light_onset_phase_viz_hist[1]) - 1):
-            ax.bar(light_onset_phase_viz_hist[1][b] + (light_duration_phase_mean_bins[b] / 2), height=1,
-                   bottom=b + 0.1, width=light_duration_phase_mean_bins[b],
+            ax.bar(light_onset_phase_viz_hist[1][b] + (light_duration_phase_median_bins[b] / 2), height=1,
+                   bottom=b + 0.1, width=light_duration_phase_median_bins[b],
                    color=color_bars[np.int64(np.ceil(light_onset_phase_viz_hist_norm[b] * 10))])
         plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
             np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1))),

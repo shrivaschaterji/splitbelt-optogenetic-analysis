@@ -75,8 +75,6 @@ for count_n, n in enumerate(networks):
             stride_nr_sw_cond.append(list(itertools.chain(*stride_nr_sw_list[:, idx_speed])))
             benchmark_accuracy = pd.read_csv(os.path.join(path, 'processed files', 'benchmark_accuracy.csv'))
             trials = trials_reshape[idx_speed, :]
-            accuracy_measures_mean = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].mean()[1:]
-            accuracy_measures_std = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].std()[1:]
             accuracy_measures_st[:, :, count_c, idx_speed] = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].iloc[:, 3::2]
             accuracy_measures_sw[:, :, count_c, idx_speed] = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].iloc[:, 4::2]
         stim_duration_st_net.append(stim_duration_st_cond)
