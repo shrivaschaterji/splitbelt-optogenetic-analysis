@@ -14,13 +14,13 @@ measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
 measure_name_label = ['Accuracy', 'F1 score', 'False negatives', 'False positives']
 cmap_speeds = plt.get_cmap('magma')
 colors_speeds = [cmap_speeds(i) for i in np.linspace(0, 1, int(np.floor(len(speeds) + 1)))]
-summary_path = 'J:\\Data OPTO\\Benchmark plots\\Speed comparison\\'
+summary_path = 'C:\\Users\\Ana\\Desktop\\\Data OPTO\\Benchmark plots\\Speed comparison\\'
 
 for count_n, n in enumerate(networks):
-    accuracy_measures_st = np.zeros((6, 4, len(conditions), len(speeds)))
-    accuracy_measures_sw = np.zeros((6, 4, len(conditions), len(speeds)))
-    frac_strides_st = np.zeros((6, len(conditions), len(speeds)))
-    frac_strides_sw = np.zeros((6, len(conditions), len(speeds)))
+    accuracy_measures_st = np.zeros((12, 4, len(conditions), len(speeds)))
+    accuracy_measures_sw = np.zeros((12, 4, len(conditions), len(speeds)))
+    frac_strides_st = np.zeros((12, len(conditions), len(speeds)))
+    frac_strides_sw = np.zeros((12, len(conditions), len(speeds)))
     stim_duration_st_net = []
     stim_duration_sw_net = []
     light_onset_phase_st_net = []
@@ -43,7 +43,7 @@ for count_n, n in enumerate(networks):
         stride_nr_st_cond = []
         stride_nr_sw_cond = []
         for count_c, c in enumerate(conditions):
-            path = os.path.join('J:\\Data OPTO', n, c)
+            path = os.path.join('C:\\Users\\Ana\\Desktop\\\Data OPTO', n, c)
             if not os.path.exists(os.path.join(path, 'plots')):
                 os.mkdir(os.path.join(path, 'plots'))
             import online_tracking_class
@@ -76,7 +76,7 @@ for count_n, n in enumerate(networks):
             benchmark_accuracy = pd.read_csv(os.path.join(path, 'processed files', 'benchmark_accuracy.csv'))
             trials = trials_reshape[idx_speed, :]
             accuracy_measures_st[:, :, count_c, idx_speed] = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].iloc[:, 3::2]
-            accuracy_measures_sw[:, :, count_c, idx_speed] = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].iloc[:, 4::2]
+            accuracy_measures_sw[:, :, count_c, idx_speed] = benchmark_accuracy[benchmark_accuracy['trial'].isin(trials)].iloc[:, 3::2]
         stim_duration_st_net.append(stim_duration_st_cond)
         stim_duration_sw_net.append(stim_duration_sw_cond)
         light_onset_phase_st_net.append(light_onset_phase_st_cond)
@@ -105,7 +105,7 @@ for count_n, n in enumerate(networks):
     speeds_label = ['0,175 m/s', '0,275 m/s', '0,375 m/s', 'split right fast', 'split left fast']
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for s in range(len(speeds)):
-        for a in range(6):
+        for a in range(12):
             if a == 0:
                 ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
                            frac_strides_st[a, :, s],
@@ -123,11 +123,11 @@ for count_n, n in enumerate(networks):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_'+networks[count_n]), dpi=128)
+    #plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_'+networks[count_n]), dpi=128)
     plt.savefig(os.path.join(summary_path, 'strides_stimulated_st_' + networks[count_n]+'.svg'), dpi=128)
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for s in range(len(speeds)):
-        for a in range(6):
+        for a in range(12):
             if a == 0:
                 ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * s) + np.random.rand(3),
                            frac_strides_sw[a, :, s],
@@ -145,7 +145,7 @@ for count_n, n in enumerate(networks):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    # plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+networks[count_n]), dpi=128)
+    #plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+networks[count_n]), dpi=128)
     plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + networks[count_n]+'.svg'), dpi=128)
 
     # DURATION
@@ -164,8 +164,8 @@ for count_n, n in enumerate(networks):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + n), dpi=128)
-    #plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + n+'.svg'), dpi=128)
+    #plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + n), dpi=128)
+    plt.savefig(os.path.join(summary_path, 'stim_duration_st_' + n+'.svg'), dpi=128)
     fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
     for s in range(len(speeds)):
         violin_parts = ax.violinplot(stim_duration_sw_net[s], positions=np.arange(0, 9, 3) + (0.5 * s),
@@ -181,15 +181,15 @@ for count_n, n in enumerate(networks):
     plt.yticks(fontsize=14)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + n), dpi=128)
-    #plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + n+'.svg'), dpi=128)
+    #plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + n), dpi=128)
+    plt.savefig(os.path.join(summary_path, 'stim_duration_sw_' + n+'.svg'), dpi=128)
 
     # ACCURACY
     ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
     for i in range(len(measure_name)):
         fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
         for s in range(len(speeds)):
-            for a in range(6):
+            for a in range(12):
                 if a == 0:
                     ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*s)+np.random.rand(3), accuracy_measures_st[a, i, :, s],
                                s=10, color=colors_speeds[s], label=speeds[s])
@@ -211,7 +211,7 @@ for count_n, n in enumerate(networks):
 
         fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
         for s in range(len(speeds)):
-            for a in range(6):
+            for a in range(12):
                 if a == 0:
                     ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*s)+np.random.rand(3), accuracy_measures_sw[a, i, :, s],
                                s=10, color=colors_speeds[s], label=speeds[s])

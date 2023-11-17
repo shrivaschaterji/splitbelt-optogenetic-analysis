@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
-path = 'J:\\Data OPTO\\Tailbase tests\\75percent\\'
+path = 'C:\\Users\\Ana\\Desktop\\\Data OPTO\\CM tests\\75percent\\'
 condition = path.split('\\')[-2]
-animals = ['MC18089', 'MC18090', 'MC18091']
-colors_animals = ['black', 'teal', 'orange']
+animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923', 'VIV40924']
+colors_animals = ['blue', 'orange', 'darkgreen', 'crimson', 'purple', 'gray']
 session = 1
 if not os.path.exists(os.path.join(path, 'plots')):
     os.mkdir(os.path.join(path, 'plots'))
@@ -38,6 +38,7 @@ stride_nr_st_all = []
 stim_nr_sw_all = []
 stride_nr_sw_all = []
 for count_a, animal in enumerate(animals):
+    print('Processing ' + animal)
     trials = otrack_class.get_trials(animal)
     # LOAD PROCESSED DATA
     [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)
@@ -55,7 +56,10 @@ for count_a, animal in enumerate(animals):
     fp_st_laser = np.zeros(len(trials))
     event = 'stance'
     for count_t, trial in enumerate(trials):
-        [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
+        if animal == 'MC18089' or  animal == 'MC18090' or animal == 'MC18091':
+            [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
+        else:
+            [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
         tp_st_laser[count_t] = tp_trial
         tn_st_laser[count_t] = tn_trial
         f1_st_laser[count_t] = f1_trial
@@ -72,7 +76,10 @@ for count_a, animal in enumerate(animals):
     fp_sw_laser = np.zeros(len(trials))
     event = 'swing'
     for count_t, trial in enumerate(trials):
-        [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
+        if animal == 'MC18089' or  animal == 'MC18090' or animal == 'MC18091':
+            [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
+        else:
+            [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
         tp_sw_laser[count_t] = tp_trial
         tn_sw_laser[count_t] = tn_trial
         f1_sw_laser[count_t] = f1_trial
@@ -304,7 +311,7 @@ plt.close('all')
 
 # STIMULATION DURATION
 xaxis = np.array([0, 3, 6, 9, 12])
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
+fig, ax = plt.subplots(tight_layout=True, figsize=(15,5))
 for count_a in range(len(animals)):
     violin_parts = ax.violinplot(stim_duration_st[count_a], positions=xaxis+(0.5*count_a))
     for pc in violin_parts['bodies']:
@@ -321,7 +328,7 @@ plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'stim_duration_st_' + condition), dpi=128)
-fig, ax = plt.subplots(tight_layout=True, figsize=(7,5))
+fig, ax = plt.subplots(tight_layout=True, figsize=(15,5))
 for count_a in range(len(animals)):
     violin_parts = ax.violinplot(stim_duration_sw[count_a], positions=xaxis+(0.5*count_a))
     for pc in violin_parts['bodies']:

@@ -9,11 +9,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 paw_otrack = 'FR'
-path = path = 'C:\\Users\\Ana\\Desktop\\Data OPTO\\CM tests\\25percent\\'
-# th_st_all = np.repeat(95, 10)
-# th_sw_all = np.repeat(45, 10)
-animals = ['VIV40922']
-colors_animals = ['black', 'teal', 'orange']
+path = path = 'C:\\Users\\Ana\\Desktop\\Data OPTO\\HR tests\\25percent\\'
+animals = ['VIV40922', 'VIV40923', 'VIV40924']
+colors_animals = ['crimson', 'purple', 'gray']
 session = 1
 condition = path.split('\\')[-2]
 main_dir = path.split('\\')[:-2]
@@ -36,6 +34,7 @@ animal_sw_id = []
 trial_sw_id = []
 condition_sw_id = []
 for animal in animals:
+    print('Processing ' + animal)
     trials = otrack_class.get_trials(animal)
     # LOAD PROCESSED DATA
     [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session,
@@ -48,9 +47,6 @@ for animal in animals:
     [condition_id_st_singleanimal, trial_id_st_singleanimal, animal_id_st_singleanimal, th_latency_on_st_singleanimal,
      th_latency_off_st_singleanimal] = otrack_class.get_latency_data_led('stance',
         condition, animal, otracks, otracks_st, otracks_sw, st_led_on, sw_led_on, offtracks_st, offtracks_sw)
-    # [condition_id_st_singleanimal, trial_id_st_singleanimal, animal_id_st_singleanimal, th_latency_on_st_singleanimal,
-    #  th_latency_off_st_singleanimal] = otrack_class.get_latency_data_laser('stance', th_st_all,
-    #     condition, animal, otracks, otracks_st, otracks_sw, laser_on, offtracks_st, offtracks_sw)
     th_latency_on_st.extend(th_latency_on_st_singleanimal)
     th_latency_off_st.extend(th_latency_off_st_singleanimal)
     animal_st_id.extend(animal_id_st_singleanimal)
@@ -58,10 +54,10 @@ for animal in animals:
     condition_st_id.extend(condition_id_st_singleanimal)
     # GET LATENCY DATA SWING
     [condition_id_sw_singleanimal, trial_id_sw_singleanimal, animal_id_sw_singleanimal, th_latency_on_sw_singleanimal,
-     th_latency_off_sw_singleanimal] = otrack_class.get_latency_data_led('swing',
-        condition, animal, otracks, otracks_st, otracks_sw, st_led_on, sw_led_on, offtracks_st, offtracks_sw)
+      th_latency_off_sw_singleanimal] = otrack_class.get_latency_data_led('swing',
+         condition, animal, otracks, otracks_st, otracks_sw, st_led_on, sw_led_on, offtracks_st, offtracks_sw)
     # [condition_id_sw_singleanimal, trial_id_sw_singleanimal, animal_id_sw_singleanimal, th_latency_on_sw_singleanimal,
-    #  th_latency_off_sw_singleanimal] = otrack_class.get_latency_data_laser('swing', th_sw_all,
+    #  th_latency_off_sw_singleanimal] = otrack_class.get_latency_data_laser('swing', np.repeat(150, 10),
     #     condition, animal, otracks, otracks_st, otracks_sw, laser_on, offtracks_st, offtracks_sw)
     th_latency_on_sw.extend(th_latency_on_sw_singleanimal)
     th_latency_off_sw.extend(th_latency_off_sw_singleanimal)

@@ -386,6 +386,17 @@ class otrack_class:
             if animal_name == animal and session_nr == session:
                 filelist.append(path_split[-1])
                 trial_order.append(int(filename_split[7][:-3]))
+        if len(filelist) == 0: #sometimes its animals from Vivarium directly
+            filelist = []
+            trial_order = []
+            for f in h5files:  # get the trial order sorted
+                path_split = f.split(self.delim)
+                filename_split = path_split[-1].split('_')
+                animal_name = filename_split[0][filename_split[0].find('V'):]
+                session_nr = int(filename_split[6])
+                if animal_name == animal and session_nr == session:
+                    filelist.append(path_split[-1])
+                    trial_order.append(int(filename_split[7][:-3]))
         trial_ordered = np.sort(np.array(trial_order))  # reorder trials
         files_ordered = []  # order h5 filenames by file order
         for f in range(len(filelist)):
@@ -426,6 +437,17 @@ class otrack_class:
             if animal_name == animal and session_nr == session:
                 filelist.append(path_split[-1])
                 trial_order.append(int(filename_split[7][:-3]))
+        if len(filelist) == 0: #sometimes the animals are from Vivarium directly
+            filelist = []
+            trial_order = []
+            for f in h5files:  # get trial order sorted
+                path_split = f.split(self.delim)
+                filename_split = path_split[-1].split('_')
+                animal_name = filename_split[0][filename_split[0].find('V'):]
+                session_nr = int(filename_split[6])
+                if animal_name == animal and session_nr == session:
+                    filelist.append(path_split[-1])
+                    trial_order.append(int(filename_split[7][:-3]))
         trial_ordered = np.sort(np.array(trial_order))  # reorder trials
         files_ordered = []  # order tif filenames by file order
         for f in range(len(filelist)): #get files sorted by trial
@@ -610,21 +632,7 @@ class otrack_class:
             sw_led_off = np.append(sw_led_off, frameNr-1) #if trial ends with light on add the last frame, do -1 because python starts at 0
         st_led_frames = np.vstack((st_led_on, st_led_off)) #concatenate
         sw_led_frames = np.vstack((sw_led_on, sw_led_off))
-        otrack_st_trial = otracks_st.loc[otracks_st['trial'] == trial]
-        otrack_sw_trial = otracks_sw.loc[otracks_sw['trial'] == trial]
-        latency_trial_st = np.zeros(len(otrack_st_trial['time']))
-        latency_trial_st[:] = np.nan
-        otrack_st_beg_times = np.array(otrack_st_trial['time'])[np.where(np.diff(otrack_st_trial['frames']) > 4)[0]+1]  # subsampling of 4th frame to do otrack
-        for count_t, t in enumerate(otrack_st_beg_times):
-            time_diff = st_led_on_time - t  # measure the time difference between otrack time and light turning on for stance
-            latency_trial_st[count_t] = np.min(np.abs(time_diff)) * 1000
-        latency_trial_sw = np.zeros(len(otrack_sw_trial['time']))
-        latency_trial_sw[:] = np.nan
-        otrack_sw_beg_times = np.array(otrack_sw_trial['time'])[np.where(np.diff(otrack_sw_trial['frames']) > 4)[0]+1]  # subsampling of 4th frame to do otrack
-        for count_t, t in enumerate(otrack_sw_beg_times):
-            time_diff = sw_led_on_time - t #measure the time difference between otrack time and light turning on for swing
-            latency_trial_sw[count_t] = np.min(np.abs(time_diff)) * 1000
-        return latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames
+        return st_led_frames, sw_led_frames
 
     def get_led_information_trials(self, animal, timestamps_session, otracks_st, otracks_sw, corr_latency):
         """Using the function to see, in wach trial when the LED were on and off loop over the session
@@ -638,8 +646,7 @@ class otrack_class:
         corr_latency: (boolean) if otrack file was correctly logged"""
         if not os.path.exists(self.path + 'processed files'):
             os.mkdir(self.path + 'processed files')
-        latency_light_st = []
-        latency_light_sw = []
+
         st_led_on = []
         sw_led_on = []
         st_led_off = []
@@ -651,9 +658,7 @@ class otrack_class:
         sw_led_time_off = []
         sw_led_trial = []
         for count_t, trial in enumerate(self.trials):
-            [latency_trial_st, latency_trial_sw, st_led_frames, sw_led_frames] = self.measure_light_on_videos(trial, animal, timestamps_session, otracks_st, otracks_sw, corr_latency)
-            latency_light_st.append(latency_trial_st)
-            latency_light_sw.append(latency_trial_sw)
+            [st_led_frames, sw_led_frames] = self.measure_light_on_videos(trial, animal, timestamps_session, otracks_st, otracks_sw, corr_latency)
             st_led_on.extend(st_led_frames[0, :])
             sw_led_on.extend(sw_led_frames[0, :])
             st_led_off.extend(st_led_frames[1, :])
@@ -672,9 +677,7 @@ class otrack_class:
             os.mkdir(os.path.join(self.path, 'processed files', animal))
         st_led_on.to_csv(os.path.join(self.path, 'processed files', animal, 'st_led_on.csv'), sep=',', index=False)
         sw_led_on.to_csv(os.path.join(self.path, 'processed files', animal, 'sw_led_on.csv'), sep=',', index=False)
-        np.save(os.path.join(self.path, 'processed files', animal, 'latency_light_st.npy'), np.array(latency_light_st, dtype=object), allow_pickle=True)
-        np.save(os.path.join(self.path, 'processed files', animal, 'latency_light_sw.npy'), np.array(latency_light_sw, dtype=object), allow_pickle=True)
-        return latency_light_st, latency_light_sw, st_led_on, sw_led_on
+        return st_led_on, sw_led_on
 
     def get_laser_on(self, animal, laser_signal_session, timestamps_session):
         """Get in a dataframe format for each trial the time the laser was on and off from the synchronizer.
@@ -1859,7 +1862,7 @@ class otrack_class:
                 th_cross_loco_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) >= th_loco_all[count_t])[0]]
             if event == 'swing':
                 th_cross_loco_time = otracks_trial_time[np.where(np.array(otracks_trial['x']) < th_loco_all[count_t])[0]]
-            th_cross_loco_on_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0] + 1]
+            th_cross_loco_on_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0]-1] #REMOVE HERE THE +1 AND SEE IF LATENCY IS INSTANTANEOUS...
             th_cross_loco_off_time = th_cross_loco_time[np.where(np.diff(th_cross_loco_time) > 0.013)[0]]
             th_cross_loco_on_time = np.insert(th_cross_loco_on_time, 0, th_cross_loco_time[0])
             if len(th_cross_loco_on_time) > len(th_cross_loco_off_time):
