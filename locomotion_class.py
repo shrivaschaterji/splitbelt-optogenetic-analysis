@@ -115,7 +115,6 @@ class loco_class:
             param_sym_name: (list) of strings with param names"""
         filelist = self.get_track_files(animal, session)
         param_list = {}
-        sl_trials = []
         for count_p, param in enumerate(param_sym_name):
             param_list_trials_extend = []
             for count_trial, f in enumerate(filelist):
@@ -133,7 +132,7 @@ class loco_class:
         paw_idx = 0  # always the FR paw
         for count_trial, trial in enumerate(trials):
             trial_idx = np.where(trials == trial)[0][0]
-            final_tracks_phase_paw = self.inpaint_nans(final_tracks_phase[trial_idx][0, paw_idx, :])
+            final_tracks_phase_paw = final_tracks_phase[trial_idx][0, paw_idx, :]
             if event == 'stance':
                 offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
                 light_trial = laser_on.loc[laser_on['trial'] == trial]
@@ -518,13 +517,12 @@ class loco_class:
                         if phase_type == 'st-sw-st':
                             nr_st = len(final_tracks_trials[count_t][0, p, st_on:sw_on])
                             nr_sw = len(final_tracks_trials[count_t][0, p, sw_on:st_off])
-                            excursion_phase[st_on - 1:sw_on] = np.linspace(0, 0.5, nr_st + 1)
-                            excursion_phase[sw_on - 1:st_off] = np.linspace(0.5, 1, nr_sw + 1)
-                            excursion_phase[st_off] = 0  # put it there -1
+                            excursion_phase[st_on:sw_on+1] = np.linspace(0, 0.5, nr_st + 1)
+                            #last point needs to be 1 so that 1 and 0 and indistinguishable between strides
+                            excursion_phase[sw_on+1:st_off+1] = np.linspace(0.5, 1, nr_sw + 1)[1:]
                         if phase_type == 'st-st':
                             nr_st = len(final_tracks_trials[count_t][0, p, st_on:st_off])
-                            excursion_phase[st_on - 1:st_off] = np.linspace(0, 1, nr_st + 1)
-                            excursion_phase[st_off] = 0  # put it there -1
+                            excursion_phase[st_on:st_off+1] = np.linspace(0, 1, nr_st + 1)
                     final_tracks_phase[a, p, :] = excursion_phase
             final_tracks_trials_phase.append(final_tracks_phase)
         return final_tracks_trials_phase
