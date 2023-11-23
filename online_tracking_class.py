@@ -189,8 +189,12 @@ class otrack_class:
             timestamps_p1 = np.arange(time_beg, time_end, 3) #since cam is triggered all triggers should appear every 3ms between trial start ON
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
             if animal == 'MC16851':
-                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
-                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+                # for split right stance and split left stance
+                #[sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
+                #[sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+                #for tied stance, tied swing, split right fast swing, split left fast swing is for sure ch2 for laser signal
+                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
+                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 2)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
             else:
                 [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
                 [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
@@ -1489,7 +1493,7 @@ class otrack_class:
         return light_onset_phase, light_offset_phase, stim_nr, stride_nr
 
     def plot_laser_presentation_phase(self, light_onset_phase, light_offset_phase, event, fontsize_plot,
-            stim_nr, stride_nr, norm_stim, norm_stride, path_save, plot_name):
+            stim_nr, stride_nr, norm_stim, norm_stride, path_save, plot_name, print_plots):
         """Plot on a schematic stride in phase the distribution of onsets and offsets for laser presentations
         Inputs:
             light_onset_phase_st: list with onsets of laser/LED
@@ -1501,7 +1505,8 @@ class otrack_class:
             norm_stim: bool, normalize count value by number of stimulations
             norm_stride: bool, normalize count value by number of strides
             path_save: (str) with path to save plots
-            plot_name: (str) plot name that can include animal name and session"""
+            plot_name: (str) plot name that can include animal name and session
+            print_plots: boolean"""
         # Compute histograms of onset and offsets
         light_onset_phase_viz = []
         light_duration_phase = []
@@ -1570,7 +1575,8 @@ class otrack_class:
         ax.spines['left'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
-        plt.savefig(path_save + plot_name + '_onset')
+        if print_plots:
+            plt.savefig(path_save + plot_name + '_onset')
 
         if event == 'stance':
             cmap_off = plt.get_cmap('Oranges')
@@ -1603,8 +1609,11 @@ class otrack_class:
         ax.spines['left'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
-        plt.savefig(path_save + plot_name + '_offset')
-        return
+        if print_plots:
+            plt.savefig(path_save + plot_name + '_offset')
+        fraction_strides_stim_on = np.sum(light_onset_phase_viz_hist[0]) / stride_nr
+        fraction_strides_stim_off = np.sum(light_offset_phase_viz_hist[0]) / stride_nr
+        return fraction_strides_stim_on, fraction_strides_stim_off
 
     def plot_laser_presentation_phase_benchmark(self, light_onset_phase, light_offset_phase, event, fontsize_plot,
             stim_nr, stride_nr, cmap_name, path_save, plot_name):

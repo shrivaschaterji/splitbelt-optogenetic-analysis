@@ -1,11 +1,8 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb  7 16:59:15 2023
-@author: Ana
-"""
 import os
+import numpy as np
+
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Desktop\\Data OPTO\\CM tests\\75percent\\'
+path = 'C:\\Users\\Ana\\Desktop\\Opto Data\\split right fast swing stim\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -15,8 +12,16 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923', 'VIV40924']
-corr_latency = [0, 0, 0, 1, 1, 1]
+animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
+corr_latency = [0, 0, 0, 0, 0, 0]
+
+animal_session_list = loco.animals_within_session()
+animal_list = []
+for a in range(len(animal_session_list)):
+    animal_list.append(animal_session_list[a][0])
+session_list = []
+for a in range(len(animal_session_list)):
+    session_list.append(animal_session_list[a][1])
 
 for count_a, animal in enumerate(animals):
     print('Processing ' + animal)
@@ -32,7 +37,7 @@ for count_a, animal in enumerate(animals):
     [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session, animal)
 
     # READ OFFLINE DLC TRACKS
-    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, session, timestamps_session)
+    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session)
 
     ## READ OFFLINE PAW EXCURSIONS
     final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
@@ -40,8 +45,8 @@ for count_a, animal in enumerate(animals):
     # PROCESS SYNCHRONIZER LASER SIGNALS
     laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
 
-    # GET LED INFORMATION
-    [st_led_on, sw_led_on] = otrack_class.get_led_information_trials(animal, timestamps_session, otracks_st, otracks_sw, corr_latency[count_a])
+    # # GET LED INFORMATION
+    # [st_led_on, sw_led_on] = otrack_class.get_led_information_trials(animal, timestamps_session, otracks_st, otracks_sw, corr_latency[count_a])
 
     # # OVERLAY WHEN LED SWING WAS ON
     # for t in trials:
