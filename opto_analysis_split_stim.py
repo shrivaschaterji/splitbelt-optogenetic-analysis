@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #path inputs
-path_loco = 'C:\\Users\\Ana\\Desktop\\Opto Data\\split left fast stance stim\\'
+path_loco = 'C:\\Users\\Ana\\Desktop\\Opto Data\\split left fast swing stim\\'
 split_side = path_loco.split('\\')[-2].split(' ')[1]
 event_stim = path_loco.split('\\')[-2].split(' ')[-2]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
@@ -377,7 +377,7 @@ for count_a, animal in enumerate(animals_triggers):
     offtracks_phase = loco.get_symmetry_laser_phase_offtracks_df(animal, np.int64(session_list[count_a]), trials, final_tracks_phase, event_stim, laser_on,
                 timestamps_session, offtracks_st, offtracks_sw, ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length'])
     offtracks_phase_stim = offtracks_phase.loc[(offtracks_phase['trial']>stim_trials[0]-1) & (offtracks_phase['trial']<stim_trials[-1]+1)]
-    offtracks_st.to_csv(
+    offtracks_phase_stim.to_csv(
         os.path.join(path_loco, path_save, 'offtracks_phase_stim_' + experiment + '_' + animal + '.csv'), sep=',',
         index=False)
     offtracks_phase_stim_animals.append(offtracks_phase_stim)

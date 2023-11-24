@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #path inputs
-path_loco = 'C:\\Users\\Ana\\Desktop\\Opto Data\\tied stance stim\\'
+path_loco = 'C:\\Users\\Ana\\Desktop\\Opto Data\\tied swing stim\\'
 event_stim = path_loco.split('\\')[-2].split(' ')[1]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
 if event_stim == 'stance':
@@ -65,7 +65,10 @@ for count_animal, animal in enumerate(animal_list_plot):
         trial_filelist[count_f] = np.int64(f.split('_')[7][:f.split('_')[7].find('D')])
     #for the first animals the session was shorter was 8-8-8 instead of 8-10-10
     if animal in animals_short_session:
-        trial_filelist[trial_filelist == 17] = trial_filelist[trial_filelist == 17] + 2
+        #remove the 2 last in stimulation period
+        trial_filelist = np.delete(trial_filelist, [np.where(trial_filelist == 17)[0][0], np.where(trial_filelist == 18)[0][0]])
+        #move them to the post stimulation period
+        trial_filelist = np.append(trial_filelist, [25, 26])
     #account for missing trials and sessions of different lengths
     trials_idx = np.arange(0, 28)
     trials_ses = np.arange(1, 29)
@@ -93,7 +96,9 @@ for count_animal, animal in enumerate(animal_list_plot):
 #Plot
 #baseline subtracion of parameters
 param_sym_bs = np.zeros(np.shape(param_sym))
+param_sym_bs[:] = np.nan
 param_paw_bs = np.zeros(np.shape(param_paw))
+param_paw_bs[:] = np.nan
 for p in range(np.shape(param_sym)[0]-2):
     for a in range(np.shape(param_sym)[1]):
         bs_mean = np.nanmean(param_sym[p, a, :stim_trials[0]-1])
@@ -102,7 +107,7 @@ for p in range(np.shape(param_sym)[0]-2):
             bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_trials[0]-1])
             param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
 
-np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs)
+np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs[:-2, :, :])
 
 #plot symmetry baseline subtracted - mean animals
 for p in range(np.shape(param_sym)[0]-2):
@@ -372,7 +377,7 @@ for count_a, animal in enumerate(animals_triggers):
             otrack_class.laser_presentation_phase(trial, trials, event_stim, offtracks_st, offtracks_sw, laser_on,
                                                   timestamps_session, final_tracks_phase, 0)
         [fraction_strides_stim_on, fraction_strides_stim_off] = otrack_class.plot_laser_presentation_phase(
-            light_onset_phase, light_offset_phase, event_stim, 16, stim_nr, stride_nr, 1, 0,
+            light_onset_phase, light_onset_phase, event_stim, 16, stim_nr, stride_nr, 1, 0,
             path_save, 'ind_animals_' + animal + '_' + event_stim, 0)
         plt.close('all')
         fraction_strides_stim_on_animals[count_a, trials_idx_corr[count_t]] = fraction_strides_stim_on
@@ -381,7 +386,7 @@ for count_a, animal in enumerate(animals_triggers):
     offtracks_phase = loco.get_symmetry_laser_phase_offtracks_df(animal, session, trials, final_tracks_phase, event_stim, laser_on,
                 timestamps_session, offtracks_st, offtracks_sw, ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length'])
     offtracks_phase_stim = offtracks_phase.loc[(offtracks_phase['trial']>stim_trials[0]-1) & (offtracks_phase['trial']<stim_trials[-1]+1)]
-    offtracks_st.to_csv(
+    offtracks_phase_stim.to_csv(
         os.path.join(path_loco, path_save, 'offtracks_phase_stim_' + experiment + '_' + animal + '.csv'), sep=',',
         index=False)
     offtracks_phase_stim_animals.append(offtracks_phase_stim)

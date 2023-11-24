@@ -132,7 +132,7 @@ class loco_class:
         paw_idx = 0  # always the FR paw
         for count_trial, trial in enumerate(trials):
             trial_idx = np.where(trials == trial)[0][0]
-            final_tracks_phase_paw = final_tracks_phase[trial_idx][0, paw_idx, :]
+            final_tracks_phase_paw = self.inpaint_nans(final_tracks_phase[trial_idx][0, paw_idx, :])
             if event == 'stance':
                 offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
                 light_trial = laser_on.loc[laser_on['trial'] == trial]
