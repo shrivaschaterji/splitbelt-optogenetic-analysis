@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Desktop\\Opto Data\\split right fast swing stim\\'
+path = path_loco = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -12,6 +12,7 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
+# animals = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670', 'MC18737', 'MC19022', 'MC19082', 'MC19107', 'MC19123', 'MC19124', 'MC19130', 'MC19132', 'MC19214']
 animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
 corr_latency = [0, 0, 0, 0, 0, 0]
 

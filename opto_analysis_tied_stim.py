@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #path inputs
-path_loco = 'C:\\Users\\Ana\\Desktop\\Opto Data\\tied swing stim\\'
+path_loco = 'J:\\Opto JAWS Data\\tied swing stim\\'
 event_stim = path_loco.split('\\')[-2].split(' ')[1]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
 if event_stim == 'stance':
@@ -12,10 +12,15 @@ if event_stim == 'swing':
     color_cond = 'green'
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
-#animals = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670', 'MC18737', 'MC19022', 'MC19082', 'MC19107', 'MC19123', 'MC19124', 'MC19130', 'MC19132', 'MC19214']
+#animals = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670', 'MC18737', 'MC19022', 'MC19082', 'MC19107', 'MC19123', 'MC19124', 'MC19130', 'MC19132', 'MC19214']
 animals = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 animals_triggers = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 animals_short_session = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+# animals = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+# animals_triggers = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+# animals_short_session = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+#BAD RT TRACKING IN STANCE FOR MC17319
+#BAD RT TRACKING IN STANCE FOR MC16851
 stim_trials = np.arange(9, 19)
 
 #import classes
@@ -107,7 +112,9 @@ for p in range(np.shape(param_sym)[0]-2):
             bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_trials[0]-1])
             param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
 
-np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs[:-2, :, :])
+np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs)
+np.save(os.path.join(path_loco, path_save, 'param_paw_bs.npy'), param_paw_bs)
+np.save(os.path.join(path_loco, path_save, 'param_phase.npy'), param_phase)
 
 #plot symmetry baseline subtracted - mean animals
 for p in range(np.shape(param_sym)[0]-2):
@@ -383,7 +390,7 @@ for count_a, animal in enumerate(animals_triggers):
         fraction_strides_stim_on_animals[count_a, trials_idx_corr[count_t]] = fraction_strides_stim_on
         fraction_strides_stim_off_animals[count_a, trials_idx_corr[count_t]] = fraction_strides_stim_off
     # Laser timing with symmetry
-    offtracks_phase = loco.get_symmetry_laser_phase_offtracks_df(animal, session, trials, final_tracks_phase, event_stim, laser_on,
+    offtracks_phase = loco.get_symmetry_laser_phase_offtracks_df(animal, np.int64(session_list[count_a]), trials, final_tracks_phase, event_stim, laser_on,
                 timestamps_session, offtracks_st, offtracks_sw, ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length'])
     offtracks_phase_stim = offtracks_phase.loc[(offtracks_phase['trial']>stim_trials[0]-1) & (offtracks_phase['trial']<stim_trials[-1]+1)]
     offtracks_phase_stim.to_csv(
@@ -478,4 +485,29 @@ for count_a in range(len(animals)):
     ax[count_a].tick_params(axis='y')
     ax[count_a].set_title(animals[count_a])
 plt.savefig(path_save + 'ind_animals_laser_' + event_stim + '_fraction_stim_strides_onset.png')
+plt.close('all')
+
+# ACCURACY VERSUS STIMULATION EFFECT
+param_sym_label_ae = ['Center of oscillation\nafter-effect symmetry (mm)', 'Step length\nafter-effect symmetry(mm)', 'Percentage of double support\nafter-effect symmetry', 'Center of oscillation\n stance after-effect symmetry (mm)',
+        'Swing length\nafter-effect symmetry (mm)']
+for count_p in range(len(param_sym_label_ae)):
+    fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
+    ax.scatter(np.nanmean(accuracy_animals[:, stim_trials-1], axis=1), np.abs(param_sym_bs[count_p, :, stim_trials[-1]+1]), color='black')
+    ax.set_xlabel('Accuracy', fontsize=16)
+    ax.set_ylabel(param_sym_label_ae[count_p], fontsize=16)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.savefig(path_save + param_sym_name[count_p] + 'after_effect_accuracy_quantification', dpi=256)
+param_sym_label_delta = ['Change over stim. of\ncenter of oscillation symmetry (mm)', 'Change over stim. of\nstep length symmetry (mm)', 'Change over stim. of\npercentage of double support symmetry', 'Change over stim. of\ncenter of oscillation stance symmetry (mm)',
+        'Change over stim. of\nswing length symmetry (mm)']
+for count_p in range(len(param_sym_label_delta)):
+    fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
+    ax.scatter(np.nanmean(accuracy_animals[:, stim_trials-1], axis=1), param_sym_bs[count_p, :, stim_trials[-1]-3]-param_sym_bs[count_p, :, stim_trials[0]-1], color='black')
+    ax.set_xlabel('Accuracy', fontsize=16)
+    ax.set_ylabel(param_sym_label_delta[count_p], fontsize=16)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.savefig(path_save + param_sym_name[count_p] + 'delta_stim_accuracy_quantification', dpi=256)
 plt.close('all')
