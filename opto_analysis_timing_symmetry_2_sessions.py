@@ -6,10 +6,10 @@ import seaborn as sns
 import scipy
 
 #path inputs
-path_st = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
-path_sw = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
-experiment_type = 'split'
-save_path = 'J:\\Thesis\\for figures\\fig split left fast opto\\'
+path_st = 'J:\\Opto JAWS Data\\tied stance stim\\'
+path_sw = 'J:\\Opto JAWS Data\\tied swing stim\\'
+experiment_type = 'tied'
+save_path = 'J:\\Thesis\\for figures\\fig tied opto\\'
 experiment_st = path_st.split('\\')[-2].replace(' ', '_')
 experiment_sw = path_sw.split('\\')[-2].replace(' ', '_')
 param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length']
@@ -44,8 +44,9 @@ if experiment_type == 'tied':
     param_phase_sw = np.take(param_phase_sw_withnan,
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 24, 25], axis=2)
     stim_trials = np.arange(9, 17)
-    animals = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
-    Nanimals = len(animals)-1 #because of bad trackig took one animal in each session
+    animals_st = ['MC16851', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+    animals_sw = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+    Nanimals = len(animals_st) #because of bad trackig took one animal in each session
     Ntrials = 24
 else:
     param_sym_bs_st = param_sym_bs_st_withnan
@@ -54,9 +55,10 @@ else:
     param_paw_bs_sw = param_paw_bs_sw_withnan
     param_phase_st = param_phase_st_withnan
     param_phase_sw = param_phase_sw_withnan
-    animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
+    animals_st = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
+    animals_sw = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
     stim_trials = np.arange(9, 19)
-    Nanimals = len(animals)
+    Nanimals = len(animals_st)
     Ntrials = 28
 
 min_plot = [-1, -2.5, -4, -2, -2.5]
@@ -261,28 +263,30 @@ plt.close('all')
 # Timing
 for p in range(3):
     fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
-    for count_animal, animal in enumerate(animals):
+    for count_animal, animal in enumerate(animals_st):
         offtracks_phase_stim_st = pd.read_csv(
             os.path.join(path_st, 'grouped output', 'offtracks_phase_stim_' + experiment_st + '_' + animal + '.csv'))
+        ax.scatter(offtracks_phase_stim_st['onset'], offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
+    for count_animal, animal in enumerate(animals_sw):
         offtracks_phase_stim_sw = pd.read_csv(
             os.path.join(path_sw, 'grouped output', 'offtracks_phase_stim_' + experiment_sw + '_' + animal + '.csv'))
-        ax.scatter(offtracks_phase_stim_st['onset'], offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
         ax.scatter(offtracks_phase_stim_sw['onset'], offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
-        ax.set_ylabel(param_sym_label[p] + '\n for stim onset', fontsize=20)
-        ax.tick_params(axis='both', labelsize=20)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
+    ax.set_ylabel(param_sym_label[p] + '\n for stim onset', fontsize=20)
+    ax.tick_params(axis='both', labelsize=20)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.png')
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.svg')
     fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
-    for count_animal, animal in enumerate(animals):
+    for count_animal, animal in enumerate(animals_st):
         ax.scatter(offtracks_phase_stim_st['offset'], offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
+    for count_animal, animal in enumerate(animals_sw):
         ax.scatter(offtracks_phase_stim_sw['offset'], offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
-        ax.set_xlabel('stride phase (%)', fontsize=20)
-        ax.set_ylabel(param_sym_label[p] + '\n for stim offset', fontsize=20)
-        ax.tick_params(axis='both', labelsize=20)
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
+    ax.set_xlabel('stride phase (%)', fontsize=20)
+    ax.set_ylabel(param_sym_label[p] + '\n for stim offset', fontsize=20)
+    ax.tick_params(axis='both', labelsize=20)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.png')
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.svg')
 plt.close('all')
