@@ -154,7 +154,7 @@ for p in range(np.shape(param_sym_name)[0]):
     print(stats_mannwhitney_ds)
 
 # Individual limbs - st
-for p in range(np.shape(param_sym_name)[0]-2):
+for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
     mean_data = np.vstack((np.nanmean(param_paw_bs_st[p, :, 0, :], axis=0), np.nanmean(param_paw_bs_st[p, :, 1, :], axis=0),
         np.nanmean(param_paw_bs_st[p, :, 2, :], axis=0), np.nanmean(param_paw_bs_st[p, :, 3, :], axis=0)))
@@ -183,7 +183,7 @@ for p in range(np.shape(param_sym_name)[0]-2):
 plt.close('all')
 
 # Individual limbs - sw
-for p in range(np.shape(param_sym_name)[0]-2):
+for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
     mean_data = np.vstack((np.nanmean(param_paw_bs_sw[p, :, 0, :], axis=0), np.nanmean(param_paw_bs_sw[p, :, 1, :], axis=0),
         np.nanmean(param_paw_bs_sw[p, :, 2, :], axis=0), np.nanmean(param_paw_bs_sw[p, :, 3, :], axis=0)))
@@ -213,8 +213,8 @@ plt.close('all')
 
 # Stance phase - st
 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, 70), 10,
-                          230-70, fc='lightblue', alpha=0.3, zorder=-1)
+rectangle = plt.Rectangle((stim_trials[0] - 0.5, 50), 10,
+                          230-50, fc='lightblue', alpha=0.3, zorder=-1)
 plt.gca().add_patch(rectangle)
 for paw in range(4):
     plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase_st[paw, :, :], axis=0)), linewidth=2,
@@ -227,7 +227,7 @@ for paw in range(4):
                      color=paw_colors[paw], alpha=0.5)
 ax.set_xlabel('Trial', fontsize=20)
 ax.set_ylabel('Stance phasing\n(degrees)', fontsize=20)
-ax.set_ylim([70, 230])
+ax.set_ylim([50, 230])
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 ax.spines['right'].set_visible(False)
@@ -237,8 +237,8 @@ plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_st.svg'), dpi=128
 
 # Stance phase - sw
 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, 70), 10,
-                          230-70, fc='lightblue', alpha=0.3, zorder=-1)
+rectangle = plt.Rectangle((stim_trials[0] - 0.5, 50), 10,
+                          230-50, fc='lightblue', alpha=0.3, zorder=-1)
 plt.gca().add_patch(rectangle)
 for paw in range(4):
     plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase_sw[paw, :, :], axis=0)), linewidth=2,
@@ -251,7 +251,7 @@ for paw in range(4):
                      color=paw_colors[paw], alpha=0.5)
 ax.set_xlabel('Trial', fontsize=20)
 ax.set_ylabel('Stance phasing\n(degrees)', fontsize=20)
-ax.set_ylim([70, 230])
+ax.set_ylim([50, 230])
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 ax.spines['right'].set_visible(False)

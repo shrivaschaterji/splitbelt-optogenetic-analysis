@@ -1304,9 +1304,159 @@ class otrack_class:
             ax.spines['top'].set_visible(False)
         return tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial
 
+    def laser_presentation_phase_all(self, trial, trials, event, offtracks_st, offtracks_sw, laser_on, timestamps_session, final_tracks_phase, time_bool):
+        """From all the times the laser was on it checks when the laser onset and offset happened in relation to either
+        the stance or swing duration. It gets all the phases (correct and incorrect ones)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            laser_on: dataframe with laser on
+            timestamps_session: (list) with frame timestamps for each trial
+            final_tracks_phase: (list) with paws excursion in phase
+            time_bool: boolean to decide if output is time or phase around stance or swing"""
+        paw_idx = 0  # always the FR paw
+        trial_idx = np.where(trials == trial)[0][0]
+        final_tracks_phase_paw = self.inpaint_nans(final_tracks_phase[trial_idx][0, paw_idx, :])
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            offtrack_other_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = laser_on.loc[st_led_on['trial'] == trial]
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            offtrack_other_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = laser_on.loc[sw_led_on['trial'] == trial]
+        light_onset_phase = []
+        light_offset_phase = []
+        for t in range(len(offtrack_trial['time'])):
+            # light started after stance onset and ended before swing (stance-like stim example)
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            # light started before stance onset and ended before swing (stance-like stim example)
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            if event == 'stance':
+                # light started before stance and ended after swing (following period) (stance-like stim example)
+                offset_other_idx = np.where((offtrack_other_trial['time'].iloc[t] > light_trial['time_on'])
+                                            & (offtrack_other_trial['time'].iloc[t] < light_trial['time_off'])
+                                            & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                            & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+                # light started after swing and ended before the other stance (following period) (stance-like stim example)
+                full_other_idx = np.where((offtrack_other_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_other_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                          & (offtrack_other_trial['time'].iloc[t] < light_trial['time_on'])
+                                          & (offtrack_other_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            if event == 'swing':
+                if t < len(offtrack_trial['time']) - 1:
+                    # light started before stance and ended after swing (following period) (stance-like stim example)
+                    offset_other_idx = np.where((offtrack_other_trial['time'].iloc[t + 1] > light_trial['time_on'])
+                                                & (offtrack_other_trial['time'].iloc[t + 1] < light_trial['time_off'])
+                                                & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                                & (offtrack_trial['time_off'].iloc[t] < light_trial['time_off'])
+                                                & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                                & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+                    # light started after swing and ended before the other stance (following period) (stance-like stim example)
+                    full_other_idx = np.where((offtrack_other_trial['time_off'].iloc[t + 1] > light_trial['time_on'])
+                                              & (offtrack_other_trial['time_off'].iloc[t + 1] > light_trial['time_off'])
+                                              & (offtrack_other_trial['time'].iloc[t + 1] < light_trial['time_on'])
+                                              & (offtrack_other_trial['time'].iloc[t + 1] < light_trial['time_off'])
+                                              & (offtrack_trial['time_off'].iloc[t] < light_trial['time_on'])
+                                              & (offtrack_trial['time_off'].iloc[t] < light_trial['time_off'])
+                                              & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                              & (offtrack_trial['time'].iloc[t] < light_trial['time_on']))[0]
+            light_onset_arr = np.array(light_trial['time_on'])
+            light_offset_arr = np.array(light_trial['time_off'])
+            if len(full_hit_idx) > 0:  # for when light started in the right period and ended before period offset
+                light_full_hit_onset = light_onset_arr[full_hit_idx[0]]
+                light_full_hit_onset_idx = np.argmin(
+                    np.abs(light_full_hit_onset - timestamps_session[trial_idx]))
+                # get phase of onset times
+                # light came after stance or after swing
+                if (light_full_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
+                # light came before stance (previous stride)
+                elif (light_full_hit_onset - offtrack_trial['time'].iloc[
+                    t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx] - 1)
+                # light came before swing (same stride)
+                else:
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
+                light_full_hit_offset = light_offset_arr[full_hit_idx[0]]
+                light_full_hit_offset_idx = np.argmin(
+                    np.abs(light_full_hit_offset - timestamps_session[trial_idx]))
+                if (light_full_hit_offset - offtrack_trial['time'].iloc[t]) > 0:  # same as for onset
+                    light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
+                elif (light_full_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx] - 1)
+                else:
+                    light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
+            if len(before_hit_idx) > 0:
+                light_before_hit_onset = light_onset_arr[before_hit_idx[0]]
+                light_before_hit_onset_idx = np.argmin(
+                    np.abs(light_before_hit_onset - timestamps_session[trial_idx]))
+                if (light_before_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
+                elif (light_before_hit_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx] - 1)
+                else:
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
+                light_before_hit_offset = light_offset_arr[before_hit_idx[0]]
+                light_before_hit_offset_idx = np.argmin(
+                    np.abs(light_before_hit_offset - timestamps_session[trial_idx]))
+                if (light_before_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
+                    light_offset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
+                elif (light_before_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx] - 1)
+                else:
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
+            if len(offset_other_idx) > 0:
+                light_offset_other_onset = light_onset_arr[offset_other_idx[0]]
+                light_offset_other_onset_idx = np.argmin(
+                    np.abs(light_offset_other_onset - timestamps_session[trial_idx]))
+                if (light_offset_other_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'swing':
+                    light_onset_phase.append(final_tracks_phase_paw[light_offset_other_onset_idx])
+                if (light_offset_other_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_offset_other_onset_idx] - 1)
+                light_offset_other_offset = light_offset_arr[offset_other_idx[0]]
+                light_offset_other_offset_idx = np.argmin(
+                    np.abs(light_offset_other_offset - timestamps_session[trial_idx]))
+                if (light_offset_other_offset - offtrack_trial['time'].iloc[t]) > 0 and event == 'stance':
+                    light_offset_phase.append(final_tracks_phase_paw[light_offset_other_offset_idx])
+                if t < len(offtrack_trial['time']) - 1:
+                    if (light_offset_other_offset - offtrack_other_trial['time'].iloc[t + 1]) > 0 and event == 'swing':
+                        light_offset_phase.append(final_tracks_phase_paw[light_offset_other_offset_idx] + 1)
+            if len(full_other_idx) > 0:
+                light_full_other_onset = light_onset_arr[full_other_idx[0]]
+                light_full_other_onset_idx = np.argmin(
+                    np.abs(light_full_other_onset - timestamps_session[trial_idx]))
+                if (light_full_other_onset - offtrack_trial['time'].iloc[t]) > 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_other_onset_idx])
+                if t < len(offtrack_trial['time']) - 1:
+                    if (light_full_other_onset - offtrack_other_trial['time'].iloc[t + 1]) > 0 and event == 'swing':
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_other_onset_idx] + 1)
+                light_full_other_offset = light_offset_arr[full_other_idx[0]]
+                light_full_other_offset_idx = np.argmin(
+                    np.abs(light_full_other_offset - timestamps_session[trial_idx]))
+                if (light_full_other_offset - offtrack_trial['time'].iloc[t]) > 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_other_offset_idx])
+                if t < len(offtrack_trial['time']) - 1:
+                    if (light_full_other_offset - offtrack_other_trial['time'].iloc[t + 1]) > 0 and event == 'swing':
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_other_offset_idx] + 1)
+        if event == 'swing':  # there might be a difference of 1 in the lengths because it's looking in the next stride
+            if len(light_onset_phase) - 1 == len(light_offset_phase):
+                light_onset_phase = light_onset_phase[:-1]
+        stim_nr = len(light_trial)
+        stride_nr = len(offtrack_trial)
+        return light_onset_phase, light_offset_phase, stim_nr, stride_nr
+
     def laser_presentation_phase(self, trial, trials, event, offtracks_st, offtracks_sw, laser_on, timestamps_session, final_tracks_phase, time_bool):
         """From all the times the laser was on it checks when the laser onset and offset happened in relation to either
-        the stance or swing duration
+        the stance or swing duration. It gets the phases wher laser offset landed on the correct place.
         Inputs:
             trial: int
             event: (str) stance or swing
@@ -1394,6 +1544,158 @@ class otrack_class:
             stride_nr = len(offtrack_trial)
         return light_onset_phase, light_offset_phase, stim_nr, stride_nr
 
+    def light_presentation_phase_all(self, trial, trials, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                                     timestamps_session, final_tracks_phase, time_bool):
+        """From all the times the LED was on it checks when the laser onset and offset happened in relation to either
+        the stance or swing duration. It gets all the phases (correct and incorrect ones)
+        Inputs:
+            trial: int
+            event: (str) stance or swing
+            offtracks_st: dataframe with offline tracks for stance
+            offtracks_sw: dataframe with offline tracks for swing
+            st_led_on: dataframe with left LED on
+            sw_led_on: dataframe with right LED on
+            timestamps_session: (list) with frame timestamps for each trial
+            final_tracks_phase: (list) with paws excursion in phase
+            time_bool: boolean to decide if output is time or phase around stance or swing"""
+        paw_idx = 0  # always the FR paw
+        trial_idx = np.where(trials == trial)[0][0]
+        final_tracks_phase_paw = self.inpaint_nans(final_tracks_phase[trial_idx][0, paw_idx, :])
+        if event == 'stance':
+            offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            offtrack_other_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            light_trial = st_led_on.loc[st_led_on['trial'] == trial]
+        if event == 'swing':
+            offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
+            offtrack_other_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
+            light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
+        light_onset_phase = []
+        light_offset_phase = []
+        for t in range(len(offtrack_trial['time'])):
+            # light started after stance onset and ended before swing (stance-like stim example)
+            full_hit_idx = np.where((offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                    & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                    & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            # light started before stance onset and ended before swing (stance-like stim example)
+            before_hit_idx = np.where((offtrack_trial['time'].iloc[t] < light_trial['time_off'])
+                                      & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                      & (offtrack_trial['time_off'].iloc[t] > light_trial['time_off']))[0]
+            if event == 'stance':
+                # light started before stance and ended after swing (following period) (stance-like stim example)
+                offset_other_idx = np.where((offtrack_other_trial['time'].iloc[t] > light_trial['time_on'])
+                                            & (offtrack_other_trial['time'].iloc[t] < light_trial['time_off'])
+                                            & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                            & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+                # light started after swing and ended before the other stance (following period) (stance-like stim example)
+                full_other_idx = np.where((offtrack_other_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                          & (offtrack_other_trial['time_off'].iloc[t] > light_trial['time_off'])
+                                          & (offtrack_other_trial['time'].iloc[t] < light_trial['time_on'])
+                                          & (offtrack_other_trial['time'].iloc[t] < light_trial['time_off']))[0]
+            if event == 'swing':
+                if t < len(offtrack_trial['time']) - 1:
+                    # light started before stance and ended after swing (following period) (stance-like stim example)
+                    offset_other_idx = np.where((offtrack_other_trial['time'].iloc[t + 1] > light_trial['time_on'])
+                                                & (offtrack_other_trial['time'].iloc[t + 1] < light_trial['time_off'])
+                                                & (offtrack_trial['time_off'].iloc[t] > light_trial['time_on'])
+                                                & (offtrack_trial['time_off'].iloc[t] < light_trial['time_off'])
+                                                & (offtrack_trial['time'].iloc[t] > light_trial['time_on'])
+                                                & (offtrack_trial['time'].iloc[t] < light_trial['time_off']))[0]
+                    # light started after swing and ended before the other stance (following period) (stance-like stim example)
+                    full_other_idx = np.where((offtrack_other_trial['time_off'].iloc[t + 1] > light_trial['time_on'])
+                                              & (offtrack_other_trial['time_off'].iloc[t + 1] > light_trial['time_off'])
+                                              & (offtrack_other_trial['time'].iloc[t + 1] < light_trial['time_on'])
+                                              & (offtrack_other_trial['time'].iloc[t + 1] < light_trial['time_off'])
+                                              & (offtrack_trial['time_off'].iloc[t] < light_trial['time_on'])
+                                              & (offtrack_trial['time_off'].iloc[t] < light_trial['time_off'])
+                                              & (offtrack_trial['time'].iloc[t] < light_trial['time_on'])
+                                              & (offtrack_trial['time'].iloc[t] < light_trial['time_on']))[0]
+            light_onset_arr = np.array(light_trial['time_on'])
+            light_offset_arr = np.array(light_trial['time_off'])
+            if len(full_hit_idx) > 0:  # for when light started in the right period and ended before period offset
+                light_full_hit_onset = light_onset_arr[full_hit_idx[0]]
+                light_full_hit_onset_idx = np.argmin(
+                    np.abs(light_full_hit_onset - timestamps_session[trial_idx]))
+                # get phase of onset times
+                # light came after stance or after swing
+                if (light_full_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
+                # light came before stance (previous stride)
+                elif (light_full_hit_onset - offtrack_trial['time'].iloc[
+                    t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx] - 1)
+                # light came before swing (same stride)
+                else:
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
+                light_full_hit_offset = light_offset_arr[full_hit_idx[0]]
+                light_full_hit_offset_idx = np.argmin(
+                    np.abs(light_full_hit_offset - timestamps_session[trial_idx]))
+                if (light_full_hit_offset - offtrack_trial['time'].iloc[t]) > 0:  # same as for onset
+                    light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
+                elif (light_full_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx] - 1)
+                else:
+                    light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
+            if len(before_hit_idx) > 0:
+                light_before_hit_onset = light_onset_arr[before_hit_idx[0]]
+                light_before_hit_onset_idx = np.argmin(
+                    np.abs(light_before_hit_onset - timestamps_session[trial_idx]))
+                if (light_before_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
+                elif (light_before_hit_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx] - 1)
+                else:
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
+                light_before_hit_offset = light_offset_arr[before_hit_idx[0]]
+                light_before_hit_offset_idx = np.argmin(
+                    np.abs(light_before_hit_offset - timestamps_session[trial_idx]))
+                if (light_before_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
+                    light_offset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
+                elif (light_before_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx] - 1)
+                else:
+                    light_onset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
+            if len(offset_other_idx) > 0:
+                light_offset_other_onset = light_onset_arr[offset_other_idx[0]]
+                light_offset_other_onset_idx = np.argmin(
+                    np.abs(light_offset_other_onset - timestamps_session[trial_idx]))
+                if (light_offset_other_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'swing':
+                    light_onset_phase.append(final_tracks_phase_paw[light_offset_other_onset_idx])
+                if (light_offset_other_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_offset_other_onset_idx] - 1)
+                light_offset_other_offset = light_offset_arr[offset_other_idx[0]]
+                light_offset_other_offset_idx = np.argmin(
+                    np.abs(light_offset_other_offset - timestamps_session[trial_idx]))
+                if (light_offset_other_offset - offtrack_trial['time'].iloc[t]) > 0 and event == 'stance':
+                    light_offset_phase.append(final_tracks_phase_paw[light_offset_other_offset_idx])
+                if t < len(offtrack_trial['time']) - 1:
+                    if (light_offset_other_offset - offtrack_other_trial['time'].iloc[t + 1]) > 0 and event == 'swing':
+                        light_offset_phase.append(final_tracks_phase_paw[light_offset_other_offset_idx] + 1)
+            if len(full_other_idx) > 0:
+                light_full_other_onset = light_onset_arr[full_other_idx[0]]
+                light_full_other_onset_idx = np.argmin(
+                    np.abs(light_full_other_onset - timestamps_session[trial_idx]))
+                if (light_full_other_onset - offtrack_trial['time'].iloc[t]) > 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_other_onset_idx])
+                if t < len(offtrack_trial['time']) - 1:
+                    if (light_full_other_onset - offtrack_other_trial['time'].iloc[t + 1]) > 0 and event == 'swing':
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_other_onset_idx] + 1)
+                light_full_other_offset = light_offset_arr[full_other_idx[0]]
+                light_full_other_offset_idx = np.argmin(
+                    np.abs(light_full_other_offset - timestamps_session[trial_idx]))
+                if (light_full_other_offset - offtrack_trial['time'].iloc[t]) > 0 and event == 'stance':
+                    light_onset_phase.append(final_tracks_phase_paw[light_full_other_offset_idx])
+                if t < len(offtrack_trial['time']) - 1:
+                    if (light_full_other_offset - offtrack_other_trial['time'].iloc[t + 1]) > 0 and event == 'swing':
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_other_offset_idx] + 1)
+        if event == 'swing':  # there might be a difference of 1 in the lengths because it's looking in the next stride
+            if len(light_onset_phase) - 1 == len(light_offset_phase):
+                light_onset_phase = light_onset_phase[:-1]
+        stim_nr = len(light_trial)
+        stride_nr = len(offtrack_trial)
+        return light_onset_phase, light_offset_phase, stim_nr, stride_nr
+
     def light_presentation_phase(self, trial, trials, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on,
                                  timestamps_session, final_tracks_phase, time_bool):
         """From all the times the LED was on it checks when the laser onset and offset happened in relation to either
@@ -1457,7 +1759,7 @@ class otrack_class:
                     if (light_full_hit_onset - offtrack_trial['time'].iloc[t]) > 0: #light came after stance or after swing
                         light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
                     elif (light_full_hit_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance': #light came before stance (previous stride)
-                        light_onset_phase.append(-final_tracks_phase_paw[light_full_hit_onset_idx])
+                        light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx]-1)
                     else: #light came before swing (same stride)
                         light_onset_phase.append(final_tracks_phase_paw[light_full_hit_onset_idx])
                     light_full_hit_offset = light_offset_arr[full_hit_idx[0]]
@@ -1466,7 +1768,7 @@ class otrack_class:
                     if (light_full_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
                         light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
                     elif (light_full_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
-                        light_offset_phase.append(-final_tracks_phase_paw[light_full_hit_offset_idx])
+                        light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx]-1)
                     else:
                         light_offset_phase.append(final_tracks_phase_paw[light_full_hit_offset_idx])
                 if len(before_hit_idx) > 0:
@@ -1476,7 +1778,7 @@ class otrack_class:
                     if (light_before_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
                         light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
                     elif (light_before_hit_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
-                        light_onset_phase.append(-final_tracks_phase_paw[light_before_hit_onset_idx])
+                        light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx]-1)
                     else:
                         light_onset_phase.append(final_tracks_phase_paw[light_before_hit_onset_idx])
                     light_before_hit_offset = light_offset_arr[before_hit_idx[0]]
@@ -1485,7 +1787,7 @@ class otrack_class:
                     if (light_before_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
                         light_offset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
                     elif (light_before_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
-                        light_onset_phase.append(-final_tracks_phase_paw[light_before_hit_offset_idx])
+                        light_onset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx]-1)
                     else:
                         light_onset_phase.append(final_tracks_phase_paw[light_before_hit_offset_idx])
             stim_nr = len(light_trial)
@@ -1508,23 +1810,9 @@ class otrack_class:
             plot_name: (str) plot name that can include animal name and session
             print_plots: boolean"""
         # Compute histograms of onset and offsets
-        light_onset_phase_viz = []
-        light_duration_phase = []
-        for count_on, on in enumerate(light_onset_phase):
-            if on < 0:  # for viz purposes for phase to be between 0 and 1 - if onset was before st
-                light_onset_phase_viz.append(np.abs(on))
-                light_duration_phase.append(
-                    on + 1 + light_offset_phase[count_on])  # because of sign this is the way to get right duration
-            if on >= 0:  # for viz purposes for phase to be between 1 and 2 - if onset was after st
-                light_onset_phase_viz.append(on + 1)
-                light_duration_phase.append(
-                    light_offset_phase[count_on] - on)  # with positive phase if offset-onset
-        light_offset_phase_viz = []
-        for off in light_offset_phase:
-            if off < 0:  # for viz purposes for phase to be between 0 and 1 - if offset was before st
-                light_offset_phase_viz.append(np.abs(off))
-            if off >= 0:  # for viz purposes for phase to be between 1 and 2 - if offset was after st
-                light_offset_phase_viz.append(off + 1)
+        light_onset_phase_viz = np.array(light_onset_phase)
+        light_offset_phase_viz = np.array(light_offset_phase)
+        light_duration_phase = light_offset_phase_viz-light_onset_phase_viz
         # histogram of onset phases
         light_onset_phase_viz_hist = np.histogram(light_onset_phase_viz, range=(
         np.min(light_onset_phase_viz), np.max(light_onset_phase_viz)))
@@ -1547,7 +1835,7 @@ class otrack_class:
         if event == 'swing':
             cmap_on = plt.get_cmap('Greens')
         color_bars = [cmap_on(i) for i in np.linspace(0, 1, 11)]
-        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        time = np.arange(-1, 2, np.round(1 / self.sr, 3))
         FR = 5 * np.sin(2 * np.pi * time + (np.pi / 2)) + 5
         FR_sawtooth = 5 * sig.sawtooth(2 * np.pi * time) + 5
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
@@ -1563,11 +1851,11 @@ class otrack_class:
                          label='fraction correct\nstimulations')
         if norm_stride:
             plt.colorbar(ScalarMappable(cmap=cmap_on, norm=plt.Normalize(0, np.round(
-                np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1))),
+                np.max(light_onset_phase_viz_hist[0]) / stride_nr, 1))),
                          ticks=np.linspace(0, np.round(np.max(light_onset_phase_viz_hist[0]) / stride_nr, 1), 11),
                          label='fraction correct\nstrides')
-        ax.set_xticks([0, 0.5, 1, 1.5, 2])
-        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
         ax.set_title(event + '-like stimulation onset', fontsize=fontsize_plot+2)
         ax.get_yaxis().set_visible(False)
@@ -1583,7 +1871,7 @@ class otrack_class:
         if event == 'swing':
             cmap_off = plt.get_cmap('Greens')
         color_bars = [cmap_off(i) for i in np.linspace(0, 1, 11)]
-        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        time = np.arange(-1, 2, np.round(1 / self.sr, 3))
         FR = np.sin(2 * np.pi * time + (np.pi / 2)) + 1
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
         plt.plot(time, FR, color='black')
@@ -1597,11 +1885,11 @@ class otrack_class:
                          label='fraction correct\nstimulations')
         if norm_stride:
             plt.colorbar(ScalarMappable(cmap=cmap_off, norm=plt.Normalize(0, np.round(
-                np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
+                np.max(light_offset_phase_viz_hist[0]) / stride_nr, 1))),
                          ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stride_nr, 1), 11),
                          label='fraction correct\nstrides')
-        ax.set_xticks([0, 0.5, 1, 1.5, 2])
-        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
         ax.set_title(event + '-like stimulation offset', fontsize=fontsize_plot + 2)
         ax.get_yaxis().set_visible(False)
@@ -1630,23 +1918,9 @@ class otrack_class:
             path_save: (str) with path to save plots
             plot_name: (str) plot name that can include animal name and session"""
         # Compute histograms of onset and offsets
-        light_onset_phase_viz = []
-        light_duration_phase = []
-        for count_on, on in enumerate(light_onset_phase):
-            if on < 0:  # for viz purposes for phase to be between 0 and 1 - if onset was before st
-                light_onset_phase_viz.append(np.abs(on))
-                light_duration_phase.append(
-                    on + 1 + light_offset_phase[count_on])  # because of sign this is the way to get right duration
-            if on >= 0:  # for viz purposes for phase to be between 1 and 2 - if onset was after st
-                light_onset_phase_viz.append(on + 1)
-                light_duration_phase.append(
-                    light_offset_phase[count_on] - on)  # with positive phase if offset-onset
-        light_offset_phase_viz = []
-        for off in light_offset_phase:
-            if off < 0:  # for viz purposes for phase to be between 0 and 1 - if offset was before st
-                light_offset_phase_viz.append(np.abs(off))
-            if off >= 0:  # for viz purposes for phase to be between 1 and 2 - if offset was after st
-                light_offset_phase_viz.append(off + 1)
+        light_onset_phase_viz = np.array(light_onset_phase)
+        light_offset_phase_viz = np.array(light_offset_phase)
+        light_duration_phase = light_offset_phase_viz-light_onset_phase_viz
         # histogram of onset phases
         light_onset_phase_viz_hist = np.histogram(light_onset_phase_viz, range=(
         np.min(light_onset_phase_viz), np.max(light_onset_phase_viz)))
@@ -1669,7 +1943,7 @@ class otrack_class:
         if event == 'swing':
             cmap_on = plt.get_cmap(cmap_name)
         color_bars = [cmap_on(i) for i in np.linspace(0, 1, 11)]
-        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        time = np.arange(-1, 2, np.round(1 / self.sr, 3))
         FR = 5 * np.sin(2 * np.pi * time + (np.pi / 2)) + 5
         FR_sawtooth = 5 * sig.sawtooth(2 * np.pi * time) + 5
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
@@ -1682,8 +1956,8 @@ class otrack_class:
             np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1))),
                      ticks=np.linspace(0, np.round(np.max(light_onset_phase_viz_hist[0]) / stim_nr, 1), 11),
                      label='fraction correct\nstimulations')
-        ax.set_xticks([0, 0.5, 1, 1.5, 2])
-        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
         #ax.set_title(event + '-like stimulation onset', fontsize=fontsize_plot+2)
         ax.get_yaxis().set_visible(False)
@@ -1699,7 +1973,7 @@ class otrack_class:
         if event == 'swing':
             cmap_off = plt.get_cmap(cmap_name)
         color_bars = [cmap_off(i) for i in np.linspace(0, 1, 11)]
-        time = np.arange(0, 2, np.round(1 / self.sr, 3))
+        time = np.arange(-1, 2, np.round(1 / self.sr, 3))
         FR = np.sin(2 * np.pi * time + (np.pi / 2)) + 1
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
         plt.plot(time, FR, color='black')
@@ -1710,8 +1984,8 @@ class otrack_class:
             np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1))),
                      ticks=np.linspace(0, np.round(np.max(light_offset_phase_viz_hist[0]) / stim_nr, 1), 11),
                      label='fraction correct\nstimulations')
-        ax.set_xticks([0, 0.5, 1, 1.5, 2])
-        ax.set_xticklabels(['-1', '-0.5', '0', '0.5', '1'])
+        ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
+        ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
         #ax.set_title(event + '-like stimulation offset', fontsize=fontsize_plot + 2)
         ax.get_yaxis().set_visible(False)

@@ -457,8 +457,8 @@ for p in range(3):
     fig, ax = plt.subplots(2, 1, figsize=(12, 7), tight_layout=True, sharex=True, sharey=True)
     ax = ax.ravel()
     for count_animal, animal in enumerate(animals):
-        ax[0].scatter(offtracks_phase_stim_animals[count_animal]['onset'], offtracks_phase_stim_animals[count_animal][param_sym_name[p]], s=5, color=color_cond)
-        ax[1].scatter(offtracks_phase_stim_animals[count_animal]['offset'], offtracks_phase_stim_animals[count_animal][param_sym_name[p]], s=5, color=color_cond)
+        ax[0].scatter(offtracks_phase_stim_animals[count_animal]['onset'], offtracks_phase_stim_animals[count_animal][param_sym_name[p]]*100, s=5, color=color_cond)
+        ax[1].scatter(offtracks_phase_stim_animals[count_animal]['offset'], offtracks_phase_stim_animals[count_animal][param_sym_name[p]]*100, s=5, color=color_cond)
         ax[1].set_xlabel('stride phase (%)', fontsize=20)
         ax[1].set_ylabel(param_sym_label[p] + '\n for stim offset', fontsize=20)
         ax[0].set_ylabel(param_sym_label[p] + '\n for stim onset', fontsize=20)

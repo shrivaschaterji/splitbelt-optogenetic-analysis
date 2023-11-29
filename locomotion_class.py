@@ -163,7 +163,7 @@ class loco_class:
                         light_onset_phase[t] = final_tracks_phase_paw[light_full_hit_onset_idx]
                     elif (light_full_hit_onset - offtrack_trial['time'].iloc[
                         t]) < 0 and event == 'stance':  # light came before stance (previous stride)
-                        light_onset_phase[t] = -final_tracks_phase_paw[light_full_hit_onset_idx]
+                        light_onset_phase[t] = final_tracks_phase_paw[light_full_hit_onset_idx]-1
                     else:  # light came before swing (same stride)
                         light_onset_phase[t] = final_tracks_phase_paw[light_full_hit_onset_idx]
                     light_full_hit_offset = light_offset_arr[full_hit_idx[0]]
@@ -172,7 +172,7 @@ class loco_class:
                     if (light_full_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
                         light_offset_phase[t] = final_tracks_phase_paw[light_full_hit_offset_idx]
                     elif (light_full_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
-                        light_offset_phase[t] = -final_tracks_phase_paw[light_full_hit_offset_idx]
+                        light_offset_phase[t] = final_tracks_phase_paw[light_full_hit_offset_idx]-1
                     else:
                         light_offset_phase[t] = final_tracks_phase_paw[light_full_hit_offset_idx]
                 if len(before_hit_idx) > 0:
@@ -182,7 +182,7 @@ class loco_class:
                     if (light_before_hit_onset - offtrack_trial['time'].iloc[t]) > 0:
                         light_onset_phase[t] = final_tracks_phase_paw[light_before_hit_onset_idx]
                     elif (light_before_hit_onset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
-                        light_onset_phase[t] = -final_tracks_phase_paw[light_before_hit_onset_idx]
+                        light_onset_phase[t] = final_tracks_phase_paw[light_before_hit_onset_idx]-1
                     else:
                         light_onset_phase[t] = final_tracks_phase_paw[light_before_hit_onset_idx]
                     light_before_hit_offset = light_offset_arr[before_hit_idx[0]]
@@ -191,7 +191,7 @@ class loco_class:
                     if (light_before_hit_offset - offtrack_trial['time'].iloc[t]) > 0:
                         light_offset_phase[t] = final_tracks_phase_paw[light_before_hit_offset_idx]
                     elif (light_before_hit_offset - offtrack_trial['time'].iloc[t]) < 0 and event == 'stance':
-                        light_onset_phase[t] = -final_tracks_phase_paw[light_before_hit_offset_idx]
+                        light_onset_phase[t] = final_tracks_phase_paw[light_before_hit_offset_idx]-1
                     else:
                         light_onset_phase[t] = final_tracks_phase_paw[light_before_hit_offset_idx]
             light_onset_phase_list.extend(light_onset_phase)
