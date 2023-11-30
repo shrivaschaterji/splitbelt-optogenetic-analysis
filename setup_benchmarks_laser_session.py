@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
-path = 'C:\\Users\\Ana\\Desktop\\\Data OPTO\\CM tests\\75percent\\'
+path = 'J:\\Opto Benchmarks\\Tailbase tests\\75percent\\'
 condition = path.split('\\')[-2]
 animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923', 'VIV40924']
 colors_animals = ['blue', 'orange', 'darkgreen', 'crimson', 'purple', 'gray']
@@ -76,10 +76,10 @@ for count_a, animal in enumerate(animals):
     fp_sw_laser = np.zeros(len(trials))
     event = 'swing'
     for count_t, trial in enumerate(trials):
-        if animal == 'MC18089' or  animal == 'MC18090' or animal == 'MC18091':
+        if animal == 'MC18089' or animal == 'MC18090' or animal == 'MC18091':
             [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw, st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
         else:
-            [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
+            [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_light(trial, event, offtracks_st, offtracks_sw,  st_led_on, sw_led_on, final_tracks_trials, timestamps_session, 0)
         tp_sw_laser[count_t] = tp_trial
         tn_sw_laser[count_t] = tn_trial
         f1_sw_laser[count_t] = f1_trial
@@ -125,12 +125,17 @@ for count_a, animal in enumerate(animals):
             stim_duration_st_trialtype.extend((laser_on.loc[laser_on['trial'] == trial]['time_off']-laser_on.loc[laser_on['trial'] == trial]['time_on']))
             stim_duration_sw_trialtype.extend((sw_led_on.loc[sw_led_on['trial'] == trial]['time_off']-sw_led_on.loc[sw_led_on['trial'] == trial]['time_on']))
             #stim phase
-            [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
-                otrack_class.laser_presentation_phase(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
-                                                      timestamps_session, final_tracks_phase, 0)
+            if animal[0] == 'M':
+                [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                    otrack_class.laser_presentation_phase_all(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
+                                                          timestamps_session, final_tracks_phase, 'FR')
+            if animal[0] == 'V':
+                [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                    otrack_class.light_presentation_phase_all(trial, trials, 'stance', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                                                          timestamps_session, final_tracks_phase, 'FR')
             [light_onset_phase_sw_trial, light_offset_phase_sw_trial, stim_nr_sw, stride_nr_sw] = \
-                otrack_class.light_presentation_phase(trial, trials, 'swing', offtracks_st, offtracks_sw, st_led_on,  sw_led_on,
-                                                      timestamps_session, final_tracks_phase, 0)
+                otrack_class.light_presentation_phase_all(trial, trials, 'swing', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                                                      timestamps_session, final_tracks_phase, 'FR')
             stim_nr_st_trial[count_t] = stim_nr_st
             stride_nr_st_trial[count_t] = stride_nr_st
             stim_nr_sw_trial[count_t] = stim_nr_sw
@@ -309,7 +314,7 @@ ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'fp_sw_' + condition), dpi=128)
 plt.close('all')
 
-# STIMULATION DURATION
+# STIMULATION DURATION - VIOLIN
 xaxis = np.array([0, 3, 6, 9, 12])
 fig, ax = plt.subplots(tight_layout=True, figsize=(15,5))
 for count_a in range(len(animals)):
@@ -348,8 +353,25 @@ ax.spines['top'].set_visible(False)
 plt.savefig(os.path.join(path, 'plots', 'stim_duration_sw_' + condition), dpi=128)
 plt.close('all')
 
-# STIMULATION ONSET AND OFFSET IN %STRIDE
+# STIMULATION ONSET AND OFFSET IN %STRIDE - HISTOGRAM
 speeds = ['0,175', '0,275', '0,375', 'split_ipsi_fast', 'split_contra_fast']
+for i in range(len(trials_reshape)):
+    light_onset_phase_st_plot_animals = []
+    light_offset_phase_st_plot_animals = []
+    light_onset_phase_sw_plot_animals = []
+    light_offset_phase_sw_plot_animals = []
+    for count_a in range(len(animals)):
+        light_onset_phase_st_plot_animals.extend(light_onset_phase_st[count_a][i])
+        light_offset_phase_st_plot_animals.extend(light_offset_phase_st[count_a][i])
+        light_onset_phase_sw_plot_animals.extend(light_onset_phase_sw[count_a][i])
+        light_offset_phase_sw_plot_animals.extend(light_offset_phase_sw[count_a][i])
+    otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_st_plot_animals, light_offset_phase_st_plot_animals,
+                                          16, os.path.join(path, 'plots'), '\\stance_time_hist_'+speeds[i], 1)
+    otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_sw_plot_animals, light_offset_phase_sw_plot_animals,
+                                          16, os.path.join(path, 'plots'), '\\swing_time_hist_'+speeds[i], 1)
+plt.close('all')
+
+# STIMULATION ONSET AND OFFSET IN %STRIDE - HISTOGRAM WITH DURATION
 for i in range(len(trials_reshape)):
     light_onset_phase_st_plot_animals = []
     light_offset_phase_st_plot_animals = []
@@ -368,10 +390,10 @@ for i in range(len(trials_reshape)):
         stride_nr_st_animals.append(np.sum(stride_nr_st_all[count_a][i]))
         stim_nr_sw_animals.append(np.sum(stim_nr_sw_all[count_a][i]))
         stride_nr_sw_animals.append(np.sum(stride_nr_sw_all[count_a][i]))
-    otrack_class.plot_laser_presentation_phase(light_onset_phase_st_plot_animals, light_offset_phase_st_plot_animals, 'stance',
-                16, np.sum(stim_nr_st_animals), np.sum(stride_nr_st_animals), 0, 1,
+    otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_st_plot_animals, light_offset_phase_st_plot_animals, 'stance',
+                16, np.sum(stim_nr_st_animals), np.sum(stride_nr_st_animals), 'Greys',
                 os.path.join(path, 'plots'), '\\stance_'+speeds[i])
-    otrack_class.plot_laser_presentation_phase(light_onset_phase_sw_plot_animals, light_offset_phase_sw_plot_animals, 'swing',
-                16, np.sum(stim_nr_sw_animals), np.sum(stride_nr_sw_animals), 0, 1,
+    otrack_class.plot_laser_presentation_phase_benchmark(light_onset_phase_sw_plot_animals, light_offset_phase_sw_plot_animals, 'swing',
+                16, np.sum(stim_nr_sw_animals), np.sum(stride_nr_sw_animals), 'Greys',
                 os.path.join(path, 'plots'), '\\swing_'+speeds[i])
 plt.close('all')

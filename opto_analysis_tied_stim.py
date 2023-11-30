@@ -16,11 +16,14 @@ paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 animals = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 animals_triggers = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 animals_short_session = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+# animals = ['MC16851', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+# animals_triggers = ['MC16851', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+# animals_short_session = ['MC16851', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 # animals = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 # animals_triggers = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 # animals_short_session = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
 #BAD RT TRACKING IN STANCE FOR MC17319
-#BAD RT TRACKING IN STANCE FOR MC16851
+#BAD RT TRACKING IN SWING FOR MC16851
 stim_trials = np.arange(9, 19)
 
 #import classes
@@ -363,8 +366,8 @@ for count_a, animal in enumerate(animals_triggers):
     stride_nr_trials = np.zeros(len(stim_trials_in))
     for count_t, trial in enumerate(stim_trials_in):
         [light_onset_phase, light_offset_phase, stim_nr, stride_nr] = \
-            otrack_class.laser_presentation_phase(trial, trials, event_stim, offtracks_st, offtracks_sw, laser_on,
-                                                  timestamps_session, final_tracks_phase, 0)
+            otrack_class.laser_presentation_phase_all(trial, trials, event_stim, offtracks_st, offtracks_sw, laser_on,
+                                                  timestamps_session, final_tracks_phase, 'FR')
         stim_nr_trials[count_t] = stim_nr
         stride_nr_trials[count_t] = stride_nr
         light_onset_phase_all.extend(light_onset_phase)
@@ -381,8 +384,8 @@ for count_a, animal in enumerate(animals_triggers):
     # Get fraction strides stimulated for each trial
     for count_t, trial in enumerate(trials):
         [light_onset_phase, light_offset_phase, stim_nr, stride_nr] = \
-            otrack_class.laser_presentation_phase(trial, trials, event_stim, offtracks_st, offtracks_sw, laser_on,
-                                                  timestamps_session, final_tracks_phase, 0)
+            otrack_class.laser_presentation_phase_all(trial, trials, event_stim, offtracks_st, offtracks_sw, laser_on,
+                                                  timestamps_session, final_tracks_phase, 'FR')
         [fraction_strides_stim_on, fraction_strides_stim_off] = otrack_class.plot_laser_presentation_phase(
             light_onset_phase, light_onset_phase, event_stim, 16, stim_nr, stride_nr, 1, 0,
             path_save, 'ind_animals_' + animal + '_' + event_stim, 0)
@@ -415,10 +418,14 @@ ax.set_ylabel('Accuracy', fontsize=20)
 plt.savefig(path_save + 'mean_animals_laser_' + event_stim + '_performance_accuracy.png')
 plt.savefig(path_save + 'mean_animals_laser_' + event_stim + '_performance_accuracy.svg')
 
-# MEAN LASER TIMING
+# MEAN LASER TIMING - HISTOGRAM WITH DURATION
 [fraction_strides_stim_on_all, fraction_strides_stim_off_all] = \
     otrack_class.plot_laser_presentation_phase(light_onset_phase_animals, light_offset_phase_animals, event_stim,
     20, np.sum(stim_nr_animals), np.sum(stride_nr_animals), 1, 0, path_save, 'mean_animals_' + event_stim, 1)
+
+# MEAN LASER TIMING - HISTOGRAM
+otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_animals, light_offset_phase_animals,
+                                          20, path_save, 'mean_animals_hist_' + event_stim, 1)
 
 # FRACTION OF STIMULATED STRIDES - MEAN
 fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))

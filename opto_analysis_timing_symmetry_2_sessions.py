@@ -46,6 +46,9 @@ if experiment_type == 'tied':
     stim_trials = np.arange(9, 17)
     animals_st = ['MC16851', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
     animals_sw = ['MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+    #when all animals are included
+    # animals_st = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
+    # animals_sw = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
     Nanimals = len(animals_st) #because of bad trackig took one animal in each session
     Ntrials = 24
 else:
@@ -266,11 +269,11 @@ for p in range(3):
     for count_animal, animal in enumerate(animals_st):
         offtracks_phase_stim_st = pd.read_csv(
             os.path.join(path_st, 'grouped output', 'offtracks_phase_stim_' + experiment_st + '_' + animal + '.csv'))
-        ax.scatter(offtracks_phase_stim_st['onset'], offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
+        ax.scatter(offtracks_phase_stim_st['onset']*100, offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
     for count_animal, animal in enumerate(animals_sw):
         offtracks_phase_stim_sw = pd.read_csv(
             os.path.join(path_sw, 'grouped output', 'offtracks_phase_stim_' + experiment_sw + '_' + animal + '.csv'))
-        ax.scatter(offtracks_phase_stim_sw['onset'], offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
+        ax.scatter(offtracks_phase_stim_sw['onset']*100, offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
     ax.set_ylabel(param_sym_label[p] + '\n for stim onset', fontsize=20)
     ax.tick_params(axis='both', labelsize=20)
     ax.spines['right'].set_visible(False)
@@ -279,9 +282,9 @@ for p in range(3):
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.svg')
     fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
     for count_animal, animal in enumerate(animals_st):
-        ax.scatter(offtracks_phase_stim_st['offset'], offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
+        ax.scatter(offtracks_phase_stim_st['offset']*100, offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
     for count_animal, animal in enumerate(animals_sw):
-        ax.scatter(offtracks_phase_stim_sw['offset'], offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
+        ax.scatter(offtracks_phase_stim_sw['offset']*100, offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
     ax.set_xlabel('stride phase (%)', fontsize=20)
     ax.set_ylabel(param_sym_label[p] + '\n for stim offset', fontsize=20)
     ax.tick_params(axis='both', labelsize=20)
