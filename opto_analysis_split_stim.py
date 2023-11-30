@@ -360,6 +360,8 @@ for count_a, animal in enumerate(animals_triggers):
     [fraction_strides_stim_on, fraction_strides_stim_off] = otrack_class.plot_laser_presentation_phase(light_onset_phase_all,
                     light_offset_phase_all, event_stim, 16, np.sum(stim_nr_trials), np.sum(stride_nr_trials), 1, 0,
                     path_save, 'ind_animals_' + animal + '_' + event_stim, 1)
+    otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_all, light_offset_phase_all,
+                                                    20, path_save, 'ind_animals_hist_' + animal + '_' + event_stim, 1)
     light_onset_phase_animals.extend(light_onset_phase_all)
     light_offset_phase_animals.extend(light_offset_phase_all)
     stim_nr_animals.append(np.sum(stim_nr_trials))
