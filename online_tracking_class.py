@@ -1771,13 +1771,15 @@ class otrack_class:
             np.min(onset_data), np.max(onset_data)))
         hist_offset = np.histogram(offset_data, range=(
             np.min(offset_data), np.max(offset_data)))
-        amp_plot = np.max([hist_onset[0], hist_offset[0]]) / 2
+        weights_onset = np.ones_like(onset_data) / np.max(hist_onset[0])
+        weights_offset = np.ones_like(offset_data) / np.max(hist_offset[0])
+        amp_plot = 0.5
         time = np.arange(-1, 2, np.round(1 / self.sr, 3))
         FR = amp_plot * np.sin(2 * np.pi * time + (np.pi / 2)) + amp_plot
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
         ax.plot(time, FR, color='lightgray', zorder=0)
-        ax.hist(onset_data, histtype='step', color='black', linewidth=4)
-        ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4)
+        ax.hist(onset_data, histtype='step', color='black', linewidth=4, weights=weights_onset)
+        ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4, weights=weights_offset)
         ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)

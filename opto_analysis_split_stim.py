@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
+path_loco = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
 split_side = path_loco.split('\\')[-2].split(' ')[1]
 event_stim = path_loco.split('\\')[-2].split(' ')[-2]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')

@@ -9,8 +9,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
-summary_path = 'C:\\Users\\Ana\\Desktop\\\Data OPTO\\Benchmark plots\\Examples\\'
-path = 'C:\\Users\\Ana\\Desktop\\\Data OPTO\\HR tests\\25percent\\'
+summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\Examples\\'
+path = 'J:\\Opto Benchmarks\\HR tests\\75percent\\'
 condition = path.split('\\')[-2]
 network = path.split('\\')[-3]
 session = 1
@@ -31,7 +31,7 @@ trials = otrack_class.get_trials(animal)
 # READ OFFLINE PAW EXCURSIONS
 [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
 
-# # LASER ACCURACY
+# LASER ACCURACY
 # time_on = 11
 # time_off = 12
 # yaxis = np.array([-100, 200])
@@ -58,8 +58,8 @@ trials = otrack_class.get_trials(animal)
 # plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_st'), dpi=128)
 
 # LED ACCURACY - stance
-# time_on = 11
-# time_off = 12
+time_on = 14.5
+time_off = 15.4
 yaxis = np.array([-100, 200])
 offtrack_trial = offtracks_st.loc[offtracks_st['trial'] == trial]
 light_trial = st_led_on.loc[st_led_on['trial'] == trial]
@@ -77,18 +77,18 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 ax.set_xlabel('Time (s)', fontsize=14)
 ax.set_ylabel('FR paw excursion', fontsize=14)
-# ax.set_xlim([time_on, time_off])
-# ax.set_ylim(yaxis)
+ax.set_xlim([time_on, time_off])
+ax.set_ylim(yaxis)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-
+plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_st'), dpi=128)
 
 
 # LED ACCURACY - swing
-# time_on = 11
-# time_off = 12
+time_on = 14.5
+time_off = 15.3
 yaxis = np.array([-100, 200])
 offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
 light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
@@ -106,12 +106,12 @@ ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
 ax.set_xlabel('Time (s)', fontsize=14)
 ax.set_ylabel('FR paw excursion', fontsize=14)
-# ax.set_xlim([time_on, time_off])
-# ax.set_ylim(yaxis)
+ax.set_xlim([time_on, time_off])
+ax.set_ylim(yaxis)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_sw'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_sw'), dpi=128)
 
 

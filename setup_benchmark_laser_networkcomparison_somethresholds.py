@@ -65,7 +65,7 @@ for count_n, n in enumerate(networks):
         light_onset_phase_st_cond.append(list(itertools.chain(*light_onset_phase_st_list[:, s])))
         light_offset_phase_st_cond.append(list(itertools.chain(*light_offset_phase_st_list[:, s])))
         accuracy_measures_st[:, :, count_s, count_n] = np.array(benchmark_accuracy_st[benchmark_accuracy_st['trial'].isin(trials)].iloc[:,3::2])
-        path_sw = os.path.join('C:\\Users\\Ana\\Desktop\\\Data OPTO', n, c[1])
+        path_sw = os.path.join('J:\\Opto Benchmarks', n, c[1])
         import online_tracking_class
         otrack_class = online_tracking_class.otrack_class(path_sw)
         import locomotion_class
@@ -176,7 +176,7 @@ for count_n, n in enumerate(networks):
                                                                  16, np.sum(stim_nr_sw_net[count_n][count_s]),
                                                                  np.sum(stride_nr_sw_net[count_n][count_s]), 'Greys',
                                                                  summary_path,
-                                                                 '\\light_swing_hist_' + networks[count_n] + '_' +
+                                                                 '\\light_swing_' + networks[count_n] + '_' +
                                                                  speeds[count_s])
         otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_st_net[count_n][count_s], light_offset_phase_st_net[count_n][count_s],
                                                         16,  summary_path,
