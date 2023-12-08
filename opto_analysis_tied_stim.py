@@ -150,7 +150,7 @@ for p in range(np.shape(param_sym)[0]-2):
         np.nanstd(param_paw_bs[p, :, 1, :], axis=0)/np.sqrt(len(animals)),
         np.nanstd(param_paw_bs[p, :, 2, :], axis=0)/np.sqrt(len(animals)),
         np.nanstd(param_paw_bs[p, :, 3, :], axis=0)/np.sqrt(len(animals))))
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightblue', alpha=0.3)
+    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightgray', alpha=0.3)
     plt.gca().add_patch(rectangle)
     plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
     for paw in range(4):
@@ -160,8 +160,8 @@ for p in range(np.shape(param_sym)[0]-2):
             np.nanmean(param_paw_bs[p, :, paw, :], axis=0)+(np.nanstd(param_paw_bs[p, :, paw, :], axis=0)/np.sqrt(len(animals))), color=paw_colors[paw], alpha=0.5)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_label[p], fontsize=20)
-    if p == 2:
-        plt.gca().invert_yaxis()
+    # if p == 2:
+    #     plt.gca().invert_yaxis()
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
@@ -171,65 +171,17 @@ for p in range(np.shape(param_sym)[0]-2):
 plt.close('all')
 
 #plot stance phase - group mean
-fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-mean_data = np.vstack((np.nanmean(param_phase[0, :, :], axis=0), np.nanmean(param_phase[1, :, :], axis=0),
-                       np.nanmean(param_phase[2, :, :], axis=0), np.nanmean(param_phase[3, :, :], axis=0)))
-std_data = np.vstack((np.nanstd(param_phase[0, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(param_phase[1, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(param_phase[2, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(param_phase[3, :, :], axis=0) / np.sqrt(len(animals))))
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, np.rad2deg(np.nanmin(mean_data - std_data))), 10,
-                          np.rad2deg(np.nanmax(mean_data + std_data) - np.nanmin(mean_data - std_data)), fc='lightblue', alpha=0.3)
-plt.gca().add_patch(rectangle)
+#error bars in polar plot don't rotate well
+fig = plt.figure(figsize=(10, 10), tight_layout=True)
+ax = fig.add_subplot(111, projection='polar')
 for paw in range(4):
-    plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0)), linewidth=2,
-             color=paw_colors[paw])
-    plt.fill_between(np.arange(1, Ntrials + 1),
-                     np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0) - (
-                                 np.nanstd(param_phase[paw, :, :], axis=0) / np.sqrt(len(animals)))),
-                     np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0) + (
-                                 np.nanstd(param_phase[paw, :, :], axis=0) / np.sqrt(len(animals)))),
-                     color=paw_colors[paw], alpha=0.5)
-ax.set_xlabel('Trial', fontsize=20)
-ax.set_ylabel(phase_label, fontsize=20)
-ax.set_ylim([70, 230])
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.png'), dpi=128)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.svg'), dpi=128)
-plt.close('all')
-
-#plot stance phase - group mean
-fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-mean_data = np.vstack((np.nanmean(stance_speed[0, :, :], axis=0), np.nanmean(stance_speed[1, :, :], axis=0),
-                       np.nanmean(stance_speed[2, :, :], axis=0), np.nanmean(stance_speed[3, :, :], axis=0)))
-std_data = np.vstack((np.nanstd(stance_speed[0, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(stance_speed[1, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(stance_speed[2, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(stance_speed[3, :, :], axis=0) / np.sqrt(len(animals))))
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, np.nanmin(mean_data - std_data)), 10,
-                          np.nanmax(mean_data + std_data) - np.nanmin(mean_data - std_data), fc='lightblue', alpha=0.3)
-plt.gca().add_patch(rectangle)
-for paw in range(4):
-    plt.plot(np.arange(1, Ntrials + 1), np.nanmean(stance_speed[paw, :, :], axis=0), linewidth=2,
-             color=paw_colors[paw])
-    plt.fill_between(np.arange(1, Ntrials + 1),
-                     np.nanmean(stance_speed[paw, :, :], axis=0) - (
-                                 np.nanstd(stance_speed[paw, :, :], axis=0) / np.sqrt(len(animals))),
-                     np.nanmean(stance_speed[paw, :, :], axis=0) + (
-                                 np.nanstd(stance_speed[paw, :, :], axis=0) / np.sqrt(len(animals))),
-                     color=paw_colors[paw], alpha=0.5)
-ax.set_xlabel('Trial', fontsize=20)
-ax.set_ylabel(stance_speed_label, fontsize=20)
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_speed.png'), dpi=128)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_speed.svg'), dpi=128)
-plt.close('all')
+    data_mean = np.nanmean(param_phase[paw, :, :], axis=0)
+    ax.scatter(data_mean, np.arange(1, Ntrials + 1), c=paw_colors[paw], s=30)
+ax.set_yticks([8.5, 18.5])
+ax.set_yticklabels(['', ''])
+ax.tick_params(axis='both', which='major', labelsize=20)
+plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.png'), dpi=256)
+plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.svg'), dpi=256)
 
 #plot symmetry baseline subtracted - individual animals
 for p in range(np.shape(param_sym)[0]-2):
@@ -520,3 +472,81 @@ for count_p in range(len(param_sym_label_delta)):
     ax.spines['top'].set_visible(False)
     plt.savefig(path_save + param_sym_name[count_p] + 'delta_stim_accuracy_quantification', dpi=256)
 plt.close('all')
+
+light_onset_phase_animals = []
+light_offset_phase_animals = []
+for count_a, animal in enumerate(animals_triggers):
+    trials = otrack_class.get_trials(animal)
+    # LOAD PROCESSED DATA
+    [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)
+    # READ OFFLINE PAW EXCURSIONS
+    [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, np.int64(session_list[count_a]))
+    final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
+                                                 'st-sw-st')
+
+    # get trial list in filelist
+    trial_filelist = np.copy(trials)
+    #for the first animals the session was shorter was 8-8-8 instead of 8-10-10
+    if animal in animals_short_session:
+        #remove the 2 last in stimulation period
+        trial_filelist = np.delete(trial_filelist, [np.where(trial_filelist == 17)[0][0], np.where(trial_filelist == 18)[0][0]])
+        #move them to the post stimulation period
+        trial_filelist = np.append(trial_filelist, [25, 26])
+        stim_trials_in = trials[np.where(trials == 9)[0][0]:np.where(trials == 17)[0][0]]
+    else:
+        stim_trials_in = trials[np.where(trials == 9)[0][0]:np.where(trials == 19)[0][0]]
+    #account for missing trials and sessions of different lengths
+    trials_idx = np.arange(0, 28)
+    trials_ses = np.arange(1, 29)
+    trials_idx_corr = np.zeros(len(trial_filelist))
+    for count_t, t in enumerate(trial_filelist):
+        trials_idx_corr[count_t] = trials_idx[np.where(t == trials_ses)[0][0]]
+    trials_idx_corr = np.int64(trials_idx_corr)
+    stim_trials_in_idx = np.zeros(len(stim_trials_in))
+    for count_t, t in enumerate(stim_trials_in):
+        stim_trials_in_idx[count_t] = trials_idx[np.where(t == trials_ses)[0][0]]
+    stim_trials_in_idx = np.int64(stim_trials_in_idx)
+
+    #LASER ONSET AND OFFSET PHASE
+    light_onset_phase_all = []
+    light_offset_phase_all = []
+    stim_nr_trials = np.zeros(len(stim_trials_in))
+    stride_nr_trials = np.zeros(len(stim_trials_in))
+    for count_t, trial in enumerate(stim_trials_in):
+        [light_onset_phase, light_offset_phase, stim_nr, stride_nr] = \
+            otrack_class.laser_presentation_phase_all(trial, trials, event_stim, offtracks_st, offtracks_sw, laser_on,
+                                                  timestamps_session, final_tracks_phase, 'FR')
+        light_onset_phase_all.extend(light_onset_phase)
+        light_offset_phase_all.extend(light_offset_phase)
+    light_onset_phase_animals.append(light_onset_phase_all)
+    light_offset_phase_animals.append(light_offset_phase_all)
+
+if color_cond == 'green':
+    color_onset = 'green'
+    color_offset = 'lightgreen'
+if color_cond == 'orange':
+    color_onset = 'orange'
+    color_offset = 'gold'
+amp_plot = 0.5
+time = np.arange(-1, 2, np.round(1 / loco.sr, 3))
+FR = amp_plot * np.sin(2 * np.pi * time + (np.pi / 2)) + amp_plot
+fontsize_plot = 20
+fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
+ax.plot(time, FR, color='lightgray', zorder=0)
+for count_a in range(len(light_onset_phase_animals)):
+    hist_onset = np.histogram(light_onset_phase_animals[count_a], range=(
+        np.min(light_onset_phase_animals[count_a]), np.max(light_onset_phase_animals[count_a])))
+    hist_offset = np.histogram(light_offset_phase_animals[count_a], range=(
+        np.min(light_offset_phase_animals[count_a]), np.max(light_offset_phase_animals[count_a])))
+    weights_onset = np.ones_like(light_onset_phase_animals[count_a]) / np.max(hist_onset[0])
+    weights_offset = np.ones_like(light_offset_phase_animals[count_a]) / np.max(hist_offset[0])
+    ax.hist(light_onset_phase_animals[count_a], histtype='step', color=color_onset, alpha=1-(count_a)*0.2, linewidth=2, weights=weights_onset)
+    ax.hist(light_offset_phase_animals[count_a], histtype='step', color=color_offset, alpha=1-(count_a)*0.2, linewidth=2, weights=weights_offset)
+ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
+ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
+ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)
+plt.savefig(path_save + 'all_animals_hist_' + event_stim + '.png', dpi=256)
+plt.savefig(path_save + 'all_animals_hist_' + event_stim + '.svg', dpi=256)

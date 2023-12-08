@@ -51,6 +51,7 @@ if experiment_type == 'tied':
     # animals_sw = ['MC16851', 'MC17319', 'MC17665', 'MC17666', 'MC17668', 'MC17670']
     Nanimals = len(animals_st) #because of bad trackig took one animal in each session
     Ntrials = 24
+    rec_size = 8
 else:
     param_sym_bs_st = param_sym_bs_st_withnan
     param_sym_bs_sw = param_sym_bs_sw_withnan
@@ -63,18 +64,29 @@ else:
     stim_trials = np.arange(9, 19)
     Nanimals = len(animals_st)
     Ntrials = 28
+    rec_size = 10
 
-min_plot = [-1, -2.5, -4, -2, -2.5]
-max_plot = [1, 2.5, 4, 2, 2.5]
+# param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split right fast control\\grouped output\\param_sym_bs.npy')
+
+min_plot = [-3, -4, -6, -4, -4] #tied
+max_plot = [3, 4, 6, 4, 4] #tied
+# min_plot = [-5, -7, -7, -2, -3] #split right fast
+# max_plot = [5, 4, 11, 9, 8] #split right fast
+# min_plot = [-2, -3, -11, -6, -9] #split left fast
+# max_plot = [4, 6, 8, 2, 3] #split left fast
 for p in range(np.shape(param_sym_name)[0]):
     mean_data_st = np.nanmean(param_sym_bs_st[p, :, :], axis=0)
     std_data_st = np.nanstd(param_sym_bs_st[p, :, :], axis=0) / np.sqrt(Nanimals)
     mean_data_sw = np.nanmean(param_sym_bs_sw[p, :, :], axis=0)
     std_data_sw = np.nanstd(param_sym_bs_sw[p, :, :], axis=0) / np.sqrt(Nanimals)
+    # mean_data_control = np.nanmean(param_sym_bs_control[p, :, :], axis=0)
+    # std_data_control = np.nanstd(param_sym_bs_control[p, :, :], axis=0)
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, min_plot[p]), 8, max_plot[p]-min_plot[p], fc='lightblue', zorder=0, alpha=0.3)
+    rectangle = plt.Rectangle((stim_trials[0]-0.5, min_plot[p]), rec_size, max_plot[p]-min_plot[p], fc='lightblue', zorder=0, alpha=0.3)
     plt.gca().add_patch(rectangle)
     plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
+    # plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
+    # plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
     plt.plot(np.arange(1, Ntrials+1), mean_data_st, linewidth=2, marker='o', color='orange')
     plt.fill_between(np.arange(1, Ntrials+1), mean_data_st-std_data_st, mean_data_st+std_data_st, color='orange', alpha=0.5)
     plt.plot(np.arange(1, Ntrials+1), mean_data_sw, linewidth=2, marker='o', color='green')
@@ -157,26 +169,18 @@ for p in range(np.shape(param_sym_name)[0]):
     print(stats_mannwhitney_ds)
 
 # Individual limbs - st
+xaxis_trials = np.array([stim_trials[0]-1, stim_trials[0], stim_trials[-1], stim_trials[-1]+1])
 for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    mean_data = np.vstack((np.nanmean(param_paw_bs_st[p, :, 0, :], axis=0), np.nanmean(param_paw_bs_st[p, :, 1, :], axis=0),
-        np.nanmean(param_paw_bs_st[p, :, 2, :], axis=0), np.nanmean(param_paw_bs_st[p, :, 3, :], axis=0)))
-    std_data = np.vstack((np.nanstd(param_paw_bs_st[p, :, 0, :], axis=0)/np.sqrt(Nanimals),
-        np.nanstd(param_paw_bs_st[p, :, 1, :], axis=0)/np.sqrt(Nanimals),
-        np.nanstd(param_paw_bs_st[p, :, 2, :], axis=0)/np.sqrt(Nanimals),
-        np.nanstd(param_paw_bs_st[p, :, 3, :], axis=0)/np.sqrt(Nanimals)))
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightblue', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
     for paw in range(4):
-        plt.plot(np.arange(1, Ntrials+1), np.nanmean(param_paw_bs_st[p, :, paw, :], axis=0), linewidth=2, color=paw_colors[paw])
-        plt.fill_between(np.arange(1, Ntrials+1),
-            np.nanmean(param_paw_bs_st[p, :, paw, :], axis=0)-(np.nanstd(param_paw_bs_st[p, :, paw, :], axis=0)/np.sqrt(Nanimals)),
-            np.nanmean(param_paw_bs_st[p, :, paw, :], axis=0)+(np.nanstd(param_paw_bs_st[p, :, paw, :], axis=0)/np.sqrt(Nanimals)), color=paw_colors[paw], alpha=0.5)
+        param_paw_bs_st_mean = np.nanmean(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)
+        param_paw_bs_st_std = np.nanstd(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_st)[1])
+        ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_st_mean, param_paw_bs_st_std, color=paw_colors[paw], linewidth=1)
+        ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_st_mean, s=70, color=paw_colors[paw])
+    ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
+    ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_sym_label[p], fontsize=20)
-    # if p == 2:
-    #     plt.gca().invert_yaxis()
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
@@ -188,24 +192,15 @@ plt.close('all')
 # Individual limbs - sw
 for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    mean_data = np.vstack((np.nanmean(param_paw_bs_sw[p, :, 0, :], axis=0), np.nanmean(param_paw_bs_sw[p, :, 1, :], axis=0),
-        np.nanmean(param_paw_bs_sw[p, :, 2, :], axis=0), np.nanmean(param_paw_bs_sw[p, :, 3, :], axis=0)))
-    std_data = np.vstack((np.nanstd(param_paw_bs_sw[p, :, 0, :], axis=0)/np.sqrt(Nanimals),
-        np.nanstd(param_paw_bs_sw[p, :, 1, :], axis=0)/np.sqrt(Nanimals),
-        np.nanstd(param_paw_bs_sw[p, :, 2, :], axis=0)/np.sqrt(Nanimals),
-        np.nanstd(param_paw_bs_sw[p, :, 3, :], axis=0)/np.sqrt(Nanimals)))
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightblue', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
     for paw in range(4):
-        plt.plot(np.arange(1, Ntrials+1), np.nanmean(param_paw_bs_sw[p, :, paw, :], axis=0), linewidth=2, color=paw_colors[paw])
-        plt.fill_between(np.arange(1, Ntrials+1),
-            np.nanmean(param_paw_bs_sw[p, :, paw, :], axis=0)-(np.nanstd(param_paw_bs_sw[p, :, paw, :], axis=0)/np.sqrt(Nanimals)),
-            np.nanmean(param_paw_bs_sw[p, :, paw, :], axis=0)+(np.nanstd(param_paw_bs_sw[p, :, paw, :], axis=0)/np.sqrt(Nanimals)), color=paw_colors[paw], alpha=0.5)
+        param_paw_bs_sw_mean = np.nanmean(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)
+        param_paw_bs_sw_std = np.nanstd(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_sw)[1])
+        ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_sw_mean, param_paw_bs_sw_std, color=paw_colors[paw], linewidth=1)
+        ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_sw_mean, s=70, color=paw_colors[paw])
+    ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
+    ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_sym_label[p], fontsize=20)
-    # if p == 2:
-    #     plt.gca().invert_yaxis()
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
@@ -215,55 +210,30 @@ for p in range(np.shape(param_sym_name)[0]):
 plt.close('all')
 
 # Stance phase - st
-fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, 50), 10,
-                          230-50, fc='lightblue', alpha=0.3, zorder=-1)
-plt.gca().add_patch(rectangle)
+fig = plt.figure(figsize=(10, 10), tight_layout=True)
+ax = fig.add_subplot(111, projection='polar')
 for paw in range(4):
-    plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase_st[paw, :, :], axis=0)), linewidth=2,
-             color=paw_colors[paw])
-    plt.fill_between(np.arange(1, Ntrials + 1),
-                     np.rad2deg(np.nanmean(param_phase_st[paw, :, :], axis=0) - (
-                                 np.nanstd(param_phase_st[paw, :, :], axis=0) / np.sqrt(Nanimals))),
-                     np.rad2deg(np.nanmean(param_phase_st[paw, :, :], axis=0) + (
-                                 np.nanstd(param_phase_st[paw, :, :], axis=0) / np.sqrt(Nanimals))),
-                     color=paw_colors[paw], alpha=0.5)
-ax.set_xlabel('Trial', fontsize=20)
-ax.set_ylabel('Stance phasing\n(degrees)', fontsize=20)
-ax.set_ylim([50, 230])
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_st.png'), dpi=128)
-plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_st.svg'), dpi=128)
+    data_mean = np.nanmean(param_phase_st[paw, :, :], axis=0)
+    ax.scatter(data_mean[~np.isnan(data_mean)], np.arange(1, Ntrials+1), c=paw_colors[paw], s=30)
+ax.set_yticks([8.5, 8.5+rec_size])
+ax.set_yticklabels(['', ''])
+ax.tick_params(axis='both', which='major', labelsize=20)
+plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_st.png'), dpi=256)
+plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_st.svg'), dpi=256)
 
 # Stance phase - sw
-fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, 50), 10,
-                          230-50, fc='lightblue', alpha=0.3, zorder=-1)
-plt.gca().add_patch(rectangle)
+fig = plt.figure(figsize=(10, 10), tight_layout=True)
+ax = fig.add_subplot(111, projection='polar')
 for paw in range(4):
-    plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase_sw[paw, :, :], axis=0)), linewidth=2,
-             color=paw_colors[paw])
-    plt.fill_between(np.arange(1, Ntrials + 1),
-                     np.rad2deg(np.nanmean(param_phase_sw[paw, :, :], axis=0) - (
-                                 np.nanstd(param_phase_sw[paw, :, :], axis=0) / np.sqrt(Nanimals))),
-                     np.rad2deg(np.nanmean(param_phase_sw[paw, :, :], axis=0) + (
-                                 np.nanstd(param_phase_sw[paw, :, :], axis=0) / np.sqrt(Nanimals))),
-                     color=paw_colors[paw], alpha=0.5)
-ax.set_xlabel('Trial', fontsize=20)
-ax.set_ylabel('Stance phasing\n(degrees)', fontsize=20)
-ax.set_ylim([50, 230])
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_sw.png'), dpi=128)
-plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_sw.svg'), dpi=128)
-plt.close('all')
+    data_mean = np.nanmean(param_phase_sw[paw, :, :], axis=0)
+    ax.scatter(data_mean[~np.isnan(data_mean)], np.arange(1, Ntrials+1), c=paw_colors[paw], s=30)
+ax.set_yticks([8.5, 8.5+rec_size])
+ax.set_yticklabels(['', ''])
+ax.tick_params(axis='both', which='major', labelsize=20)
+plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_sw.png'), dpi=256)
+plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_sw.svg'), dpi=256)
 
-# Timing
+# Timing - single strides
 for p in range(3):
     fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
     for count_animal, animal in enumerate(animals_st):
@@ -293,4 +263,5 @@ for p in range(3):
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.png')
     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.svg')
 plt.close('all')
+
 

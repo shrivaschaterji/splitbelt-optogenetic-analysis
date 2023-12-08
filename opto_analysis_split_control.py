@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #path inputs
-path_loco = 'C:\\Users\\Ana\\Desktop\\Opto Data\\split left fast control\\'
+path_loco = 'J:\\Opto JAWS Data\\split right fast control\\'
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']

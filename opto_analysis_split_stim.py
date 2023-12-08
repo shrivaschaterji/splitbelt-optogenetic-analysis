@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
+path_loco = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
 split_side = path_loco.split('\\')[-2].split(' ')[1]
 event_stim = path_loco.split('\\')[-2].split(' ')[-2]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
@@ -106,6 +106,14 @@ if split_side == 'right':
 if split_side == 'left':
     param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split left fast control\\grouped output\\param_sym_bs.npy')
 
+# min_plot = [-5, -11, -7, -2, -3] #split right stance
+# max_plot = [5, 4, 10, 9, 8] #split right stance
+# min_plot = [-5, -11, -5, -2, -2] #split right swing
+# max_plot = [2, 4, 11, 5, 9] #split right swing
+min_plot = [-2, -4, -13, -6, -12] #split left swing
+max_plot = [4, 6, 8, 2, 3] #split left swing
+# min_plot = [-2, -3, -13, -6, -12] #split left stance
+# max_plot = [4, 6, 5, 2, 2] #split left stance
 #plot symmetry baseline subtracted - mean animals
 for p in range(np.shape(param_sym)[0]-2):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
@@ -113,10 +121,10 @@ for p in range(np.shape(param_sym)[0]-2):
     std_data = (np.nanstd(param_sym_bs[p, :, :], axis=0)/np.sqrt(len(animals)))
     mean_data_control = np.nanmean(param_sym_bs_control[p, :, :], axis=0)
     std_data_control = (np.nanstd(param_sym_bs_control[p, :, :], axis=0)/np.sqrt(len(animals)))
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data_control+std_data_control)-np.nanmin(mean_data_control-std_data_control), fc='lightblue', alpha=0.3)
+    rectangle = plt.Rectangle((stim_trials[0]-0.5, min_plot[p]), 10, max_plot[p]-min_plot[p], fc='lightblue', zorder=0, alpha=0.3)
     plt.gca().add_patch(rectangle)
     plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
-    plt.plot(np.arange(1, Ntrials+1), mean_data, linewidth=2, marker='o', color=color_cond)
+    plt.plot(np.arange(1, Ntrials+1), mean_data, linewidth=2, marker='o', color=color_cond, zorder=-1)
     plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
     plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
     plt.fill_between(np.arange(1, Ntrials+1), mean_data-std_data, mean_data+std_data, color=color_cond, alpha=0.5)
