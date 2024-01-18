@@ -22,7 +22,7 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 
 animal = 'VIV40924'
-trial = 1
+trial = 5
 trials = otrack_class.get_trials(animal)
 # LOAD PROCESSED DATA
 [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)
@@ -83,12 +83,14 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_st'), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_st'), dpi=128)
 
 
 # LED ACCURACY - swing
 time_on = 14.5
 time_off = 15.3
+time_on = 0
+time_off = 60
 yaxis = np.array([-100, 200])
 offtrack_trial = offtracks_sw.loc[offtracks_sw['trial'] == trial]
 light_trial = sw_led_on.loc[sw_led_on['trial'] == trial]
@@ -112,6 +114,6 @@ plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
 ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_sw'), dpi=128)
+# plt.savefig(os.path.join(summary_path, 'examples_GOOD_' + network + '_' + condition + '_sw'), dpi=128)
 
 

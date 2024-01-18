@@ -112,12 +112,16 @@ param = []
 for count_p, p in enumerate(param_sym_name):
     group_st_len = np.shape(param_sym_bs_st)[1]
     group_id.extend(np.repeat(0, group_st_len))
-    ae_amp.extend(param_sym_bs_st[count_p, :, stim_trials[-1]])
+    ae_st_data = np.vstack((param_sym_bs_st[count_p, :, stim_trials[-1]], param_sym_bs_st[count_p, :, stim_trials[-1]+1]))
+    ae_amp.extend(np.nanmean(ae_st_data, axis=0))
+    #ae_amp.extend(param_sym_bs_st[count_p, :, stim_trials[-1]])
     delta_split.extend(param_sym_bs_st[count_p, :, stim_trials[-1]-1]-param_sym_bs_st[count_p, :, stim_trials[0]-1])
     param.extend(np.repeat(p, group_st_len))
     group_sw_len = np.shape(param_sym_bs_sw)[1]
     group_id.extend(np.repeat(1, group_sw_len))
-    ae_amp.extend(np.abs(param_sym_bs_sw[count_p, :, stim_trials[-1]]))
+    ae_sw_data = np.vstack((param_sym_bs_sw[count_p, :, stim_trials[-1]], param_sym_bs_sw[count_p, :, stim_trials[-1]+1]))
+    ae_amp.extend(np.nanmean(ae_sw_data, axis=0))
+    #ae_amp.extend(param_sym_bs_sw[count_p, :, stim_trials[-1]])
     delta_split.extend(param_sym_bs_sw[count_p, :, stim_trials[-1]-1]-param_sym_bs_sw[count_p, :, stim_trials[0]-1])
     param.extend(np.repeat(p, group_sw_len))
 split_quant_df = pd.DataFrame({'param': param, 'group': group_id, 'after-effect': ae_amp, 'delta-split': delta_split})
@@ -168,52 +172,52 @@ for p in range(np.shape(param_sym_name)[0]):
     stats_mannwhitney_ds = scipy.stats.mannwhitneyu(data_stats.loc[data_stats['group']==0, 'delta-split'], data_stats.loc[data_stats['group']==1, 'delta-split'], method='exact')
     print(stats_mannwhitney_ds)
 
-# Individual limbs - st
-xaxis_trials = np.array([stim_trials[0]-1, stim_trials[0], stim_trials[-1], stim_trials[-1]+1])
-for p in range(np.shape(param_sym_name)[0]):
-    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    for paw in range(4):
-        param_paw_bs_st_mean = np.nanmean(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)
-        param_paw_bs_st_std = np.nanstd(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_st)[1])
-        ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_st_mean, param_paw_bs_st_std, color=paw_colors[paw], linewidth=1)
-        ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_st_mean, s=70, color=paw_colors[paw])
-    ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
-    ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
-    ax.set_xlabel('Trial', fontsize=20)
-    ax.set_ylabel(param_sym_label[p], fontsize=20)
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_st.png'), dpi=128)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_st.svg'), dpi=128)
-plt.close('all')
-
-# Individual limbs - sw
-for p in range(np.shape(param_sym_name)[0]):
-    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    for paw in range(4):
-        param_paw_bs_sw_mean = np.nanmean(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)
-        param_paw_bs_sw_std = np.nanstd(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_sw)[1])
-        ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_sw_mean, param_paw_bs_sw_std, color=paw_colors[paw], linewidth=1)
-        ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_sw_mean, s=70, color=paw_colors[paw])
-    ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
-    ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
-    ax.set_xlabel('Trial', fontsize=20)
-    ax.set_ylabel(param_sym_label[p], fontsize=20)
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_sw.png'), dpi=128)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_sw.svg'), dpi=128)
-plt.close('all')
-
+# # Individual limbs - st
+# xaxis_trials = np.array([stim_trials[0]-1, stim_trials[0], stim_trials[-1], stim_trials[-1]+1])
+# for p in range(np.shape(param_sym_name)[0]):
+#     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+#     for paw in range(4):
+#         param_paw_bs_st_mean = np.nanmean(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)
+#         param_paw_bs_st_std = np.nanstd(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_st)[1])
+#         ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_st_mean, param_paw_bs_st_std, color=paw_colors[paw], linewidth=1)
+#         ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_st_mean, s=70, color=paw_colors[paw])
+#     ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
+#     ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
+#     ax.set_xlabel('Trial', fontsize=20)
+#     ax.set_ylabel(param_sym_label[p], fontsize=20)
+#     plt.xticks(fontsize=20)
+#     plt.yticks(fontsize=20)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_st.png'), dpi=128)
+#     plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_st.svg'), dpi=128)
+# plt.close('all')
+#
+# # Individual limbs - sw
+# for p in range(np.shape(param_sym_name)[0]):
+#     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+#     for paw in range(4):
+#         param_paw_bs_sw_mean = np.nanmean(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)
+#         param_paw_bs_sw_std = np.nanstd(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_sw)[1])
+#         ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_sw_mean, param_paw_bs_sw_std, color=paw_colors[paw], linewidth=1)
+#         ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_sw_mean, s=70, color=paw_colors[paw])
+#     ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
+#     ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
+#     ax.set_xlabel('Trial', fontsize=20)
+#     ax.set_ylabel(param_sym_label[p], fontsize=20)
+#     plt.xticks(fontsize=20)
+#     plt.yticks(fontsize=20)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_sw.png'), dpi=128)
+#     plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_sw.svg'), dpi=128)
+# plt.close('all')
+#
 # Stance phase - st
 fig = plt.figure(figsize=(10, 10), tight_layout=True)
 ax = fig.add_subplot(111, projection='polar')
 for paw in range(4):
-    data_mean = np.nanmean(param_phase_st[paw, :, :], axis=0)
+    data_mean = scipy.stats.circmean(param_phase_st[paw, :, :], axis=0, nan_policy='omit')
     ax.scatter(data_mean[~np.isnan(data_mean)], np.arange(1, Ntrials+1), c=paw_colors[paw], s=30)
 ax.set_yticks([8.5, 8.5+rec_size])
 ax.set_yticklabels(['', ''])
@@ -225,43 +229,43 @@ plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_st.svg'), d
 fig = plt.figure(figsize=(10, 10), tight_layout=True)
 ax = fig.add_subplot(111, projection='polar')
 for paw in range(4):
-    data_mean = np.nanmean(param_phase_sw[paw, :, :], axis=0)
+    data_mean = scipy.stats.circmean(param_phase_sw[paw, :, :], axis=0)
     ax.scatter(data_mean[~np.isnan(data_mean)], np.arange(1, Ntrials+1), c=paw_colors[paw], s=30)
 ax.set_yticks([8.5, 8.5+rec_size])
 ax.set_yticklabels(['', ''])
 ax.tick_params(axis='both', which='major', labelsize=20)
 plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_sw.png'), dpi=256)
 plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_sw.svg'), dpi=256)
-
-# Timing - single strides
-for p in range(3):
-    fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
-    for count_animal, animal in enumerate(animals_st):
-        offtracks_phase_stim_st = pd.read_csv(
-            os.path.join(path_st, 'grouped output', 'offtracks_phase_stim_' + experiment_st + '_' + animal + '.csv'))
-        ax.scatter(offtracks_phase_stim_st['onset']*100, offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
-    for count_animal, animal in enumerate(animals_sw):
-        offtracks_phase_stim_sw = pd.read_csv(
-            os.path.join(path_sw, 'grouped output', 'offtracks_phase_stim_' + experiment_sw + '_' + animal + '.csv'))
-        ax.scatter(offtracks_phase_stim_sw['onset']*100, offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
-    ax.set_ylabel(param_sym_label[p] + '\n for stim onset', fontsize=20)
-    ax.tick_params(axis='both', labelsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.png')
-    plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.svg')
-    fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
-    for count_animal, animal in enumerate(animals_st):
-        ax.scatter(offtracks_phase_stim_st['offset']*100, offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
-    for count_animal, animal in enumerate(animals_sw):
-        ax.scatter(offtracks_phase_stim_sw['offset']*100, offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
-    ax.set_xlabel('stride phase (%)', fontsize=20)
-    ax.set_ylabel(param_sym_label[p] + '\n for stim offset', fontsize=20)
-    ax.tick_params(axis='both', labelsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.png')
-    plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.svg')
-plt.close('all')
+#
+# # Timing - single strides
+# for p in range(3):
+#     fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
+#     for count_animal, animal in enumerate(animals_st):
+#         offtracks_phase_stim_st = pd.read_csv(
+#             os.path.join(path_st, 'grouped output', 'offtracks_phase_stim_' + experiment_st + '_' + animal + '.csv'))
+#         ax.scatter(offtracks_phase_stim_st['onset']*100, offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
+#     for count_animal, animal in enumerate(animals_sw):
+#         offtracks_phase_stim_sw = pd.read_csv(
+#             os.path.join(path_sw, 'grouped output', 'offtracks_phase_stim_' + experiment_sw + '_' + animal + '.csv'))
+#         ax.scatter(offtracks_phase_stim_sw['onset']*100, offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
+#     ax.set_ylabel(param_sym_label[p] + '\n for stim onset', fontsize=20)
+#     ax.tick_params(axis='both', labelsize=20)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.png')
+#     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_onset.svg')
+#     fig, ax = plt.subplots(figsize=(12, 5), tight_layout=True, sharex=True, sharey=True)
+#     for count_animal, animal in enumerate(animals_st):
+#         ax.scatter(offtracks_phase_stim_st['offset']*100, offtracks_phase_stim_st[param_sym_name[p]], s=5, color='orange')
+#     for count_animal, animal in enumerate(animals_sw):
+#         ax.scatter(offtracks_phase_stim_sw['offset']*100, offtracks_phase_stim_sw[param_sym_name[p]], s=5, color='green')
+#     ax.set_xlabel('stride phase (%)', fontsize=20)
+#     ax.set_ylabel(param_sym_label[p] + '\n for stim offset', fontsize=20)
+#     ax.tick_params(axis='both', labelsize=20)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.png')
+#     plt.savefig(save_path + experiment_type + '_mean_animals_laser_phase_sym_' + param_sym_name[p] + '_offset.svg')
+# plt.close('all')
 
 

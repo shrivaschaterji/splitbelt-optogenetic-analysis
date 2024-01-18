@@ -280,6 +280,61 @@ for i in range(len(measure_name)):
     plt.savefig(os.path.join(summary_path, measure_name[i] + '_sw.svg'), dpi=128)
     plt.close('all')
 
+##### COEFFICIENT OF VARIATION ON TIMING ########
+def cv(data):
+    cv = np.nanstd(data)/np.abs(np.nanmean(data))
+    return cv
+# CV across speeds and networks - stance
+onset_cm = [cv(light_onset_phase_st_net[0][0]), cv(light_onset_phase_st_net[0][1]), cv(light_onset_phase_st_net[0][2])]
+offset_cm = [cv(light_offset_phase_st_net[0][0]), cv(light_offset_phase_st_net[0][1]), cv(light_offset_phase_st_net[0][2])]
+onset_hr = [cv(light_onset_phase_st_net[1][0]), cv(light_onset_phase_st_net[1][1]), cv(light_onset_phase_st_net[1][2])]
+offset_hr = [cv(light_offset_phase_st_net[1][0]), cv(light_offset_phase_st_net[1][1]), cv(light_offset_phase_st_net[1][2])]
+onset_tb = [cv(light_onset_phase_st_net[2][0]), cv(light_onset_phase_st_net[2][1]), cv(light_onset_phase_st_net[2][2])]
+offset_tb = [cv(light_offset_phase_st_net[2][0]), cv(light_offset_phase_st_net[2][1]), cv(light_offset_phase_st_net[2][2])]
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 5))
+ax.scatter(np.arange(3), onset_cm, s=120, c=colors_networks[0])
+ax.scatter(np.arange(3), offset_cm, s=120, facecolors='none', edgecolors=colors_networks[0])
+ax.scatter(np.arange(3), onset_hr, s=120, c=colors_networks[1])
+ax.scatter(np.arange(3), offset_hr, s=120, facecolors='none', edgecolors=colors_networks[1])
+ax.scatter(np.arange(3), onset_tb, s=120, c=colors_networks[2])
+ax.scatter(np.arange(3), offset_tb, s=120, facecolors='none', edgecolors=colors_networks[2])
+ax.set_xticks(np.arange(3))
+ax.set_xticklabels(speeds_label, fontsize=16, rotation=15)
+ax.set_ylabel('CV (abs. value) on\nstance-like stimulation', fontsize=16)
+ax.set_xlabel('Speed', fontsize=16)
+ax.set_ylim([0, 1.7])
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(summary_path, 'cv_timing_st'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'cv_timing_st.svg'), dpi=128)
+# CV across speeds and networks - swing
+onset_cm = [cv(light_onset_phase_sw_net[0][0]), cv(light_onset_phase_sw_net[0][1]), cv(light_onset_phase_sw_net[0][2])]
+offset_cm = [cv(light_offset_phase_sw_net[0][0]), cv(light_offset_phase_sw_net[0][1]), cv(light_offset_phase_sw_net[0][2])]
+onset_hr = [cv(light_onset_phase_sw_net[1][0]), cv(light_onset_phase_sw_net[1][1]), cv(light_onset_phase_sw_net[1][2])]
+offset_hr = [cv(light_offset_phase_sw_net[1][0]), cv(light_offset_phase_sw_net[1][1]), cv(light_offset_phase_sw_net[1][2])]
+onset_tb = [cv(light_onset_phase_sw_net[2][0]), cv(light_onset_phase_sw_net[2][1]), cv(light_onset_phase_sw_net[2][2])]
+offset_tb = [cv(light_offset_phase_sw_net[2][0]), cv(light_offset_phase_sw_net[2][1]), cv(light_offset_phase_sw_net[2][2])]
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 5))
+ax.scatter(np.arange(3), onset_cm, s=120, c=colors_networks[0])
+ax.scatter(np.arange(3), offset_cm, s=120, facecolors='none', edgecolors=colors_networks[0])
+ax.scatter(np.arange(3), onset_hr, s=120, c=colors_networks[1])
+ax.scatter(np.arange(3), offset_hr, s=120, facecolors='none', edgecolors=colors_networks[1])
+ax.scatter(np.arange(3), onset_tb, s=120, c=colors_networks[2])
+ax.scatter(np.arange(3), offset_tb, s=120, facecolors='none', edgecolors=colors_networks[2])
+ax.set_xticks(np.arange(3))
+ax.set_xticklabels(speeds_label, fontsize=16, rotation=15)
+ax.set_ylabel('CV (abs. value) on\nswing-like stimulation', fontsize=16)
+ax.set_xlabel('Speed', fontsize=16)
+ax.set_ylim([0, 1.7])
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(summary_path, 'cv_timing_sw'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'cv_timing_sw.svg'), dpi=128)
+
 # ###### STATS #######
 # #Mann-Whitney on accuracy for the three computed speeds - network comparison stance
 # accuracy_stats_st = accuracy_measures_st[:, 0, :, :].reshape((np.shape(accuracy_measures_st[:, 0, :, :])[0]*np.shape(accuracy_measures_st[:, 0, :, :])[1], np.shape(accuracy_measures_st[:, 0, :, :])[2]))
@@ -299,48 +354,162 @@ for i in range(len(measure_name)):
 # res_accuracy_sw_hr_tb = scipy.stats.mannwhitneyu(accuracy_stats_sw[:, 1], accuracy_stats_sw[:, 2], method='exact')
 # print(res_accuracy_sw_hr_tb)
 
-#ANOVA on onset times for 0,275m/s - network comparison stance
-fvalue_onset_st, pvalue_onset_st = scipy.stats.f_oneway(light_onset_phase_st_net[0][0], light_onset_phase_st_net[1][0], light_onset_phase_st_net[2][0])
-print(fvalue_onset_st, pvalue_onset_st)
-
-#ANOVA on offset times for 0,275m/s - network comparison stance
-fvalue_offset_st, pvalue_offset_st = scipy.stats.f_oneway(light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])
-print(fvalue_offset_st, pvalue_offset_st)
-#Tukey HSD test for multiple pairwise comparison
-median_networks_offset_st = np.round([np.nanmedian(light_offset_phase_st_net[0][0]), np.nanmedian(light_offset_phase_st_net[1][0]), np.nanmedian(light_offset_phase_st_net[2][0])], 3)
-print(median_networks_offset_st)
-dict_offset_st = {'value': np.concatenate((light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])),
-    'network': np.concatenate((np.repeat('CM', len(light_offset_phase_st_net[0][0])), np.repeat('HR', len(light_offset_phase_st_net[1][0])),
-        np.repeat('TB', len(light_offset_phase_st_net[2][0]))))}
-df_offset_st = pd.DataFrame(dict_offset_st)
-res_offset_st = stat()
-res_offset_st.tukey_hsd(df=df_offset_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
-res_offset_st.tukey_summary
-
-#ANOVA on onset times for 0,275m/s - network comparison swing
-fvalue_onset_sw, pvalue_onset_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])
-print(fvalue_onset_sw, pvalue_onset_sw)
-#Tukey HSD test for multiple pairwise comparison
-median_networks_onset_sw = np.round([np.nanmedian(light_onset_phase_sw_net[0][0]), np.nanmedian(light_onset_phase_sw_net[1][0]), np.nanmedian(light_onset_phase_sw_net[2][0])], 3)
-print(median_networks_onset_sw)
-dict_onset_sw = {'value': np.concatenate((light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])),
-    'network': np.concatenate((np.repeat('CM', len(light_onset_phase_sw_net[0][0])), np.repeat('HR', len(light_onset_phase_sw_net[1][0])),
-        np.repeat('TB', len(light_onset_phase_sw_net[2][0]))))}
-df_onset_sw = pd.DataFrame(dict_onset_sw)
-res_onset_sw = stat()
-res_onset_sw.tukey_hsd(df=df_onset_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
-res_onset_sw.tukey_summary
-
-#ANOVA on offset times for 0,275m/s - network comparison swing
-fvalue_offset_sw, pvalue_offset_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])
-print(fvalue_offset_sw, pvalue_offset_sw)
-#Tukey HSD test for multiple pairwise comparison
-median_networks_offset_sw = np.round([np.nanmedian(light_offset_phase_sw_net[0][0]), np.nanmedian(light_offset_phase_sw_net[1][0]), np.nanmedian(light_offset_phase_sw_net[2][0])], 3)
-print(median_networks_offset_sw)
-dict_offset_sw = {'value': np.concatenate((light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])),
-    'network': np.concatenate((np.repeat('CM', len(light_offset_phase_sw_net[0][0])), np.repeat('HR', len(light_offset_phase_sw_net[1][0])),
-        np.repeat('TB', len(light_offset_phase_sw_net[2][0]))))}
-df_offset_sw = pd.DataFrame(dict_offset_sw)
-res_offset_sw = stat()
-res_offset_sw.tukey_hsd(df=df_offset_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
-res_offset_sw.tukey_summary
+# #ANOVA on onset times across speeds - network comparison stance
+# #CM
+# fvalue_onset_cm_st, pvalue_onset_cm_st = scipy.stats.f_oneway(light_onset_phase_st_net[0][0], light_onset_phase_st_net[0][1], light_onset_phase_st_net[0][2])
+# print(fvalue_onset_cm_st, pvalue_onset_cm_st)
+# dict_onset_cm_st = {'value': np.concatenate((light_onset_phase_st_net[0][0], light_onset_phase_st_net[0][1], light_onset_phase_st_net[0][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_onset_phase_st_net[0][0])), np.repeat('splitright', len(light_onset_phase_st_net[0][1])),
+#         np.repeat('splitleft', len(light_onset_phase_st_net[0][2]))))}
+# df_onset_cm_st = pd.DataFrame(dict_onset_cm_st)
+# res_onset_cm_st = stat()
+# res_onset_cm_st.tukey_hsd(df=df_onset_cm_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_cm_st.tukey_summary
+# fvalue_offset_cm_st, pvalue_offset_cm_st = scipy.stats.f_oneway(light_offset_phase_st_net[0][0], light_offset_phase_st_net[0][1], light_offset_phase_st_net[0][2])
+# print(fvalue_offset_cm_st, pvalue_offset_cm_st)
+# dict_offset_cm_st = {'value': np.concatenate((light_offset_phase_st_net[0][0], light_offset_phase_st_net[0][1], light_offset_phase_st_net[0][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_offset_phase_st_net[0][0])), np.repeat('splitright', len(light_offset_phase_st_net[0][1])),
+#         np.repeat('splitleft', len(light_offset_phase_st_net[0][2]))))}
+# df_offset_cm_st = pd.DataFrame(dict_offset_cm_st)
+# res_offset_cm_st = stat()
+# res_offset_cm_st.tukey_hsd(df=df_offset_cm_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_cm_st.tukey_summary
+# #HR
+# fvalue_onset_hr_st, pvalue_onset_hr_st = scipy.stats.f_oneway(light_onset_phase_st_net[1][0], light_onset_phase_st_net[1][1], light_onset_phase_st_net[1][2])
+# print(fvalue_onset_hr_st, pvalue_onset_hr_st)
+# dict_onset_hr_st = {'value': np.concatenate((light_onset_phase_st_net[1][0], light_onset_phase_st_net[1][1], light_onset_phase_st_net[1][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_onset_phase_st_net[1][0])), np.repeat('splitright', len(light_onset_phase_st_net[1][1])),
+#         np.repeat('splitleft', len(light_onset_phase_st_net[1][2]))))}
+# df_onset_hr_st = pd.DataFrame(dict_onset_hr_st)
+# res_onset_hr_st = stat()
+# res_onset_hr_st.tukey_hsd(df=df_onset_hr_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_hr_st.tukey_summary
+# fvalue_offset_hr_st, pvalue_offset_hr_st = scipy.stats.f_oneway(light_offset_phase_st_net[1][0], light_offset_phase_st_net[1][1], light_offset_phase_st_net[1][2])
+# print(fvalue_offset_hr_st, pvalue_offset_hr_st)
+# #TB
+# fvalue_onset_tb_st, pvalue_onset_tb_st = scipy.stats.f_oneway(light_onset_phase_st_net[0][0], light_onset_phase_st_net[0][1], light_onset_phase_st_net[0][2])
+# print(fvalue_onset_tb_st, pvalue_onset_tb_st)
+# dict_onset_tb_st = {'value': np.concatenate((light_onset_phase_st_net[2][0], light_onset_phase_st_net[2][1], light_onset_phase_st_net[2][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_onset_phase_st_net[2][0])), np.repeat('splitright', len(light_onset_phase_st_net[2][1])),
+#         np.repeat('splitleft', len(light_onset_phase_st_net[2][2]))))}
+# df_onset_tb_st = pd.DataFrame(dict_onset_tb_st)
+# res_onset_tb_st = stat()
+# res_onset_tb_st.tukey_hsd(df=df_onset_tb_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_tb_st.tukey_summary
+# fvalue_offset_tb_st, pvalue_offset_tb_st = scipy.stats.f_oneway(light_offset_phase_st_net[2][0], light_offset_phase_st_net[2][1], light_offset_phase_st_net[2][2])
+# print(fvalue_offset_tb_st, pvalue_offset_tb_st)
+# dict_offset_tb_st = {'value': np.concatenate((light_offset_phase_st_net[2][0], light_offset_phase_st_net[2][1], light_offset_phase_st_net[2][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_offset_phase_st_net[2][0])), np.repeat('splitright', len(light_offset_phase_st_net[2][1])),
+#         np.repeat('splitleft', len(light_offset_phase_st_net[2][2]))))}
+# df_offset_tb_st = pd.DataFrame(dict_offset_tb_st)
+# res_offset_tb_st = stat()
+# res_offset_tb_st.tukey_hsd(df=df_offset_tb_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_tb_st.tukey_summary
+#
+# #ANOVA on onset times for 0,275m/s - network comparison stance
+# fvalue_onset_st, pvalue_onset_st = scipy.stats.f_oneway(light_onset_phase_st_net[0][0], light_onset_phase_st_net[1][0], light_onset_phase_st_net[2][0])
+# print(fvalue_onset_st, pvalue_onset_st)
+# #Tukey HSD test for multiple pairwise comparison
+# median_networks_onset_st = np.round([np.nanmedian(light_onset_phase_st_net[0][0]), np.nanmedian(light_onset_phase_st_net[1][0]), np.nanmedian(light_onset_phase_st_net[2][0])], 3)
+# print(median_networks_onset_st)
+# dict_onset_st = {'value': np.concatenate((light_onset_phase_st_net[0][0], light_onset_phase_st_net[1][0], light_onset_phase_st_net[2][0])),
+#     'network': np.concatenate((np.repeat('CM', len(light_onset_phase_st_net[0][0])), np.repeat('HR', len(light_onset_phase_st_net[1][0])),
+#         np.repeat('TB', len(light_onset_phase_st_net[2][0]))))}
+# df_onset_st = pd.DataFrame(dict_onset_st)
+# res_onset_st = stat()
+# res_onset_st.tukey_hsd(df=df_onset_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_st.tukey_summary
+#
+# #ANOVA on offset times for 0,275m/s - network comparison stance
+# fvalue_offset_st, pvalue_offset_st = scipy.stats.f_oneway(light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])
+# print(fvalue_offset_st, pvalue_offset_st)
+# #Tukey HSD test for multiple pairwise comparison
+# median_networks_offset_st = np.round([np.nanmedian(light_offset_phase_st_net[0][0]), np.nanmedian(light_offset_phase_st_net[1][0]), np.nanmedian(light_offset_phase_st_net[2][0])], 3)
+# print(median_networks_offset_st)
+# dict_offset_st = {'value': np.concatenate((light_offset_phase_st_net[0][0], light_offset_phase_st_net[1][0], light_offset_phase_st_net[2][0])),
+#     'network': np.concatenate((np.repeat('CM', len(light_offset_phase_st_net[0][0])), np.repeat('HR', len(light_offset_phase_st_net[1][0])),
+#         np.repeat('TB', len(light_offset_phase_st_net[2][0]))))}
+# df_offset_st = pd.DataFrame(dict_offset_st)
+# res_offset_st = stat()
+# res_offset_st.tukey_hsd(df=df_offset_st, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_st.tukey_summary
+#
+# #ANOVA on onset times across speeds - network comparison swing
+# #CM
+# fvalue_onset_cm_sw, pvalue_onset_cm_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[0][1], light_onset_phase_sw_net[0][2])
+# print(fvalue_onset_cm_sw, pvalue_onset_cm_sw)
+# dict_onset_cm_sw = {'value': np.concatenate((light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[0][1], light_onset_phase_sw_net[0][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_onset_phase_sw_net[0][0])), np.repeat('splitright', len(light_onset_phase_sw_net[0][1])),
+#         np.repeat('splitleft', len(light_onset_phase_sw_net[0][2]))))}
+# df_onset_cm_sw = pd.DataFrame(dict_onset_cm_sw)
+# res_onset_cm_sw = stat()
+# res_onset_cm_sw.tukey_hsd(df=df_onset_cm_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_cm_sw.tukey_summary
+# fvalue_offset_cm_sw, pvalue_offset_cm_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[0][1], light_offset_phase_sw_net[0][2])
+# print(fvalue_offset_cm_sw, pvalue_offset_cm_sw)
+# dict_offset_cm_sw = {'value': np.concatenate((light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[0][1], light_offset_phase_sw_net[0][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_offset_phase_sw_net[0][0])), np.repeat('splitright', len(light_offset_phase_sw_net[0][1])),
+#         np.repeat('splitleft', len(light_offset_phase_sw_net[0][2]))))}
+# df_offset_cm_sw = pd.DataFrame(dict_offset_cm_sw)
+# res_offset_cm_sw = stat()
+# res_offset_cm_sw.tukey_hsd(df=df_offset_cm_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_cm_sw.tukey_summary
+# #HR
+# fvalue_onset_hr_sw, pvalue_onset_hr_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[1][1], light_onset_phase_sw_net[1][2])
+# print(fvalue_onset_hr_sw, pvalue_onset_hr_sw)
+# fvalue_offset_hr_sw, pvalue_offset_hr_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[1][1], light_offset_phase_sw_net[1][2])
+# print(fvalue_offset_hr_sw, pvalue_offset_hr_sw)
+# dict_offset_hr_sw = {'value': np.concatenate((light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[1][1], light_offset_phase_sw_net[1][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_offset_phase_sw_net[1][0])), np.repeat('splitright', len(light_offset_phase_sw_net[1][1])),
+#         np.repeat('splitleft', len(light_offset_phase_sw_net[1][2]))))}
+# df_offset_hr_sw = pd.DataFrame(dict_offset_hr_sw)
+# res_offset_hr_sw = stat()
+# res_offset_hr_sw.tukey_hsd(df=df_offset_hr_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_hr_sw.tukey_summary
+# #TB
+# fvalue_onset_tb_sw, pvalue_onset_tb_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[0][1], light_onset_phase_sw_net[0][2])
+# print(fvalue_onset_tb_sw, pvalue_onset_tb_sw)
+# dict_onset_tb_sw = {'value': np.concatenate((light_onset_phase_sw_net[2][0], light_onset_phase_sw_net[2][1], light_onset_phase_sw_net[2][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_onset_phase_sw_net[2][0])), np.repeat('splitright', len(light_onset_phase_sw_net[2][1])),
+#         np.repeat('splitleft', len(light_onset_phase_sw_net[2][2]))))}
+# df_onset_tb_sw = pd.DataFrame(dict_onset_tb_sw)
+# res_onset_tb_sw = stat()
+# res_onset_tb_sw.tukey_hsd(df=df_onset_tb_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_tb_sw.tukey_summary
+# fvalue_offset_tb_sw, pvalue_offset_tb_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[2][0], light_offset_phase_sw_net[2][1], light_offset_phase_sw_net[2][2])
+# print(fvalue_offset_tb_sw, pvalue_offset_tb_sw)
+# dict_offset_tb_sw = {'value': np.concatenate((light_offset_phase_sw_net[2][0], light_offset_phase_sw_net[2][1], light_offset_phase_sw_net[2][2])),
+#     'network': np.concatenate((np.repeat('0,275', len(light_offset_phase_sw_net[2][0])), np.repeat('splitright', len(light_offset_phase_sw_net[2][1])),
+#         np.repeat('splitleft', len(light_offset_phase_sw_net[2][2]))))}
+# df_offset_tb_sw = pd.DataFrame(dict_offset_tb_sw)
+# res_offset_tb_sw = stat()
+# res_offset_tb_sw.tukey_hsd(df=df_offset_tb_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_tb_sw.tukey_summary
+#
+# #ANOVA on onset times for 0,275m/s - network comparison swing
+# fvalue_onset_sw, pvalue_onset_sw = scipy.stats.f_oneway(light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])
+# print(fvalue_onset_sw, pvalue_onset_sw)
+# #Tukey HSD test for multiple pairwise comparison
+# median_networks_onset_sw = np.round([np.nanmedian(light_onset_phase_sw_net[0][0]), np.nanmedian(light_onset_phase_sw_net[1][0]), np.nanmedian(light_onset_phase_sw_net[2][0])], 3)
+# print(median_networks_onset_sw)
+# dict_onset_sw = {'value': np.concatenate((light_onset_phase_sw_net[0][0], light_onset_phase_sw_net[1][0], light_onset_phase_sw_net[2][0])),
+#     'network': np.concatenate((np.repeat('CM', len(light_onset_phase_sw_net[0][0])), np.repeat('HR', len(light_onset_phase_sw_net[1][0])),
+#         np.repeat('TB', len(light_onset_phase_sw_net[2][0]))))}
+# df_onset_sw = pd.DataFrame(dict_onset_sw)
+# res_onset_sw = stat()
+# res_onset_sw.tukey_hsd(df=df_onset_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_onset_sw.tukey_summary
+#
+# #ANOVA on offset times for 0,275m/s - network comparison swing
+# fvalue_offset_sw, pvalue_offset_sw = scipy.stats.f_oneway(light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])
+# print(fvalue_offset_sw, pvalue_offset_sw)
+# #Tukey HSD test for multiple pairwise comparison
+# median_networks_offset_sw = np.round([np.nanmedian(light_offset_phase_sw_net[0][0]), np.nanmedian(light_offset_phase_sw_net[1][0]), np.nanmedian(light_offset_phase_sw_net[2][0])], 3)
+# print(median_networks_offset_sw)
+# dict_offset_sw = {'value': np.concatenate((light_offset_phase_sw_net[0][0], light_offset_phase_sw_net[1][0], light_offset_phase_sw_net[2][0])),
+#     'network': np.concatenate((np.repeat('CM', len(light_offset_phase_sw_net[0][0])), np.repeat('HR', len(light_offset_phase_sw_net[1][0])),
+#         np.repeat('TB', len(light_offset_phase_sw_net[2][0]))))}
+# df_offset_sw = pd.DataFrame(dict_offset_sw)
+# res_offset_sw = stat()
+# res_offset_sw.tukey_hsd(df=df_offset_sw, res_var='value', xfac_var='network', anova_model='value ~ C(network)')
+# res_offset_sw.tukey_summary

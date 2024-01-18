@@ -43,6 +43,7 @@ for paw in paws:
         [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
         final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
                                                      'st-sw-st')
+
         # STIMULATION DURATION OFFSETS AND ONSETS
         trials_reshape = np.reshape(np.arange(1, 11), (5, 2))
         light_onset_phase_st_animal = []
@@ -59,16 +60,32 @@ for paw in paws:
             for count_t, trial in enumerate(trials_reshape[i, :]):
                 #stim phase
                 if animal[0] == 'M':
-                    [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
-                        otrack_class.laser_presentation_phase_all(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
-                                                              timestamps_session, final_tracks_phase, paw)
+                    if paw == 'FR' or paw == 'HL':
+                        [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                            otrack_class.laser_presentation_phase_all(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
+                                                                  timestamps_session, final_tracks_phase, paw)
+                    if paw == 'FL' or paw == 'HR':
+                        [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                            otrack_class.laser_presentation_phase_contralateral_all(trial, trials, 'stance', offtracks_st, offtracks_sw, laser_on,
+                                                                  timestamps_session, final_tracks_phase, paw)
                 if animal[0] == 'V':
-                    [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
-                        otrack_class.light_presentation_phase_all(trial, trials, 'stance', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                    if paw == 'FR' or paw == 'HL':
+                        [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                            otrack_class.light_presentation_phase_all(trial, trials, 'stance', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                                                                  timestamps_session, final_tracks_phase, paw)
+                    if paw == 'FL' or paw == 'HR':
+                        [light_onset_phase_st_trial, light_offset_phase_st_trial, stim_nr_st, stride_nr_st] = \
+                            otrack_class.light_presentation_phase_contralateral_all(trial, trials, 'stance', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
+                                                                  timestamps_session, final_tracks_phase, paw)
+                if paw == 'FR' or paw == 'HL':
+                    [light_onset_phase_sw_trial, light_offset_phase_sw_trial, stim_nr_sw, stride_nr_sw] = \
+                        otrack_class.light_presentation_phase_all(trial, trials, 'swing', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
                                                               timestamps_session, final_tracks_phase, paw)
-                [light_onset_phase_sw_trial, light_offset_phase_sw_trial, stim_nr_sw, stride_nr_sw] = \
-                    otrack_class.light_presentation_phase_all(trial, trials, 'swing', offtracks_st, offtracks_sw, st_led_on, sw_led_on,
-                                                          timestamps_session, final_tracks_phase, paw)
+                if paw == 'FL' or paw == 'HR':
+                    [light_onset_phase_sw_trial, light_offset_phase_sw_trial, stim_nr_sw, stride_nr_sw] = \
+                        otrack_class.light_presentation_phase_contralateral_all(trial, trials, 'swing', offtracks_st, offtracks_sw,
+                                                                  st_led_on, sw_led_on,
+                                                                  timestamps_session, final_tracks_phase, paw)
                 light_onset_phase_st_trialtype.extend(light_onset_phase_st_trial)
                 light_offset_phase_st_trialtype.extend(light_offset_phase_st_trial)
                 light_onset_phase_sw_trialtype.extend(light_onset_phase_sw_trial)
