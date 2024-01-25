@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import scipy.stats as sp
 
 #path inputs
 path_loco = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
@@ -13,7 +15,7 @@ if event_stim == 'swing':
     color_cond = 'green'
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
-animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
+animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
 animals_triggers = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
 stim_trials = np.arange(9, 19)
 
@@ -38,6 +40,10 @@ for a in range(len(animal_session_list)):
     session_list.append(animal_session_list[a][1])
 session_list_plot = np.array(session_list)[animal_list_plot_idx]
 Ntrials = 28
+animals_triggers_idx = []
+for count_i, i in enumerate(animals):
+    if i in animals_triggers:
+        animals_triggers_idx.append(count_i)
 
 #summary gait parameters
 param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'phase_st', 'stance_speed']
@@ -76,7 +82,7 @@ for count_animal, animal in enumerate(animal_list_plot):
             param_mat = loco.compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
             if param == 'phase_st':
                 for p in range(4):
-                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[0][p])
+                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = sp.circmean(param_mat[0][p], nan_policy='omit')
             elif param == 'stance_speed':
                 for p in range(4):
                     stance_speed[p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[p])
@@ -101,18 +107,72 @@ np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs)
 np.save(os.path.join(path_loco, path_save, 'param_paw_bs.npy'), param_paw_bs)
 np.save(os.path.join(path_loco, path_save, 'param_phase.npy'), param_phase)
 
+# plot double support after-effect magnitude with fiber position
+fiber_coords = pd.read_csv('J:\\Opto JAWS Data\\fiber_coord.csv')
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 5))
+for animal_idx, a in enumerate(animal_list_plot):
+    ae_value = np.nanmean([param_sym_bs[2, animal_idx, 18], param_sym_bs[2, animal_idx, 19]])
+    ax.scatter(fiber_coords.loc[fiber_coords['animal'] == a, 'AP'], ae_value, s=60, color=fiber_coords.loc[fiber_coords['animal'] == a, 'color'])
+    ax.annotate(a, (fiber_coords.loc[fiber_coords['animal'] == a, 'AP'], ae_value))
+ax.set_xlabel('Fiber AP coordinate (mm)', fontsize=20)
+ax.set_ylabel('Double support\nafter-effect', fontsize=20)
+plt.xticks(fontsize=16, rotation=45)
+plt.yticks(fontsize=16)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym_annotation.png'), dpi=128)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym_annotation.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 5))
+for animal_idx, a in enumerate(animal_list_plot):
+    ae_value = np.nanmean([param_sym_bs[2, animal_idx, 18], param_sym_bs[2, animal_idx, 19]])
+    ax.scatter(fiber_coords.loc[fiber_coords['animal'] == a, 'ML'], ae_value, s=60, color=fiber_coords.loc[fiber_coords['animal'] == a, 'color'])
+    ax.annotate(a, (fiber_coords.loc[fiber_coords['animal'] == a, 'ML'], ae_value))
+ax.set_xlabel('Fiber ML coordinate (mm)', fontsize=20)
+ax.set_ylabel('Double support\nafter-effect', fontsize=20)
+plt.xticks(fontsize=16, rotation=45)
+plt.yticks(fontsize=16)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym_annotation_ML.png'), dpi=128)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym_annotation_ML.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 5))
+for animal_idx, a in enumerate(animal_list_plot):
+    ae_value = np.nanmean([param_sym_bs[2, animal_idx, 18], param_sym_bs[2, animal_idx, 19]])
+    ax.scatter(fiber_coords.loc[fiber_coords['animal'] == a, 'AP'], ae_value, s=60, color=fiber_coords.loc[fiber_coords['animal'] == a, 'color'])
+ax.set_xlabel('Fiber AP coordinate (mm)', fontsize=20)
+ax.set_ylabel('Double support\nafter-effect', fontsize=20)
+plt.xticks(fontsize=16, rotation=45)
+plt.yticks(fontsize=16)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym.png'), dpi=128)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 5))
+for animal_idx, a in enumerate(animal_list_plot):
+    ae_value = np.nanmean([param_sym_bs[2, animal_idx, 18], param_sym_bs[2, animal_idx, 19]])
+    ax.scatter(fiber_coords.loc[fiber_coords['animal'] == a, 'ML'], ae_value, s=60, color=fiber_coords.loc[fiber_coords['animal'] == a, 'color'])
+ax.set_xlabel('Fiber ML coordinate (mm)', fontsize=20)
+ax.set_ylabel('Double support\nafter-effect', fontsize=20)
+plt.xticks(fontsize=16, rotation=45)
+plt.yticks(fontsize=16)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym_ML.png'), dpi=128)
+plt.savefig(os.path.join(path_save, 'fiber_coord_ds_sym_ML.svg'), dpi=128)
+plt.close('all')
+
 if split_side == 'right':
     param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split right fast control\\grouped output\\param_sym_bs.npy')
 if split_side == 'left':
     param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split left fast control\\grouped output\\param_sym_bs.npy')
 
-# min_plot = [-5, -11, -7, -2, -3] #split right stance
-# max_plot = [5, 4, 10, 9, 8] #split right stance
+# min_plot = [-5, -11, -7, -2, -2] #split right stance
+# max_plot = [2, 4, 10, 6, 8] #split right stance
 # min_plot = [-5, -11, -5, -2, -2] #split right swing
 # max_plot = [2, 4, 11, 5, 9] #split right swing
-min_plot = [-2, -4, -13, -6, -12] #split left swing
-max_plot = [4, 6, 8, 2, 3] #split left swing
-# min_plot = [-2, -3, -13, -6, -12] #split left stance
+min_plot = [-2, -4, -10, -6, -12] #split left swing
+max_plot = [4, 6, 6, 2, 3] #split left swing
+# min_plot = [-2, -4, -10, -6, -12] #split left stance
 # max_plot = [4, 6, 5, 2, 2] #split left stance
 #plot symmetry baseline subtracted - mean animals
 for p in range(np.shape(param_sym)[0]-2):
@@ -235,7 +295,7 @@ for p in range(np.shape(param_sym)[0]-2):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
     rectangle = plt.Rectangle((stim_trials[0]-0.5, np.min(param_sym_bs[p, :, :].flatten())), 10, np.max(param_sym_bs[p, :, :].flatten())-np.min(param_sym_bs[p, :, :].flatten()), fc='lightblue', alpha=0.3)
     plt.gca().add_patch(rectangle)
-    plt.hlines(0, 1, len(param_sym_bs[p, a, :]), colors='grey', linestyles='--')
+    plt.hlines(0, 1, len(param_sym_bs[p, 0, :]), colors='grey', linestyles='--')
     for a in range(len(animals)):
         plt.plot(np.arange(1, Ntrials+1), param_sym_bs[p, a, :], label=animal_list_plot[a], linewidth=2)
     ax.set_xlabel('Trial', fontsize=20)
@@ -251,7 +311,7 @@ for p in range(np.shape(param_sym)[0]-2):
 plt.close('all')
 
 #plot stance speed - individual animals
-fig, ax = plt.subplots(3, 2, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
+fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
 ax = ax.ravel()
 for count_a in range(len(animals)):
     for p in range(4):
@@ -268,7 +328,7 @@ for count_a in range(len(animals)):
 plt.savefig(os.path.join(path_save, 'ind_animals_stance_speed.png'), dpi=128)
 
 #plot stance phase - individual animals
-fig, ax = plt.subplots(3, 2, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
+fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
 ax = ax.ravel()
 for count_a in range(len(animals)):
     for p in range(4):
@@ -300,7 +360,7 @@ for count_a, animal in enumerate(animals_triggers):
     # LOAD PROCESSED DATA
     [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)
     # READ OFFLINE PAW EXCURSIONS
-    [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, np.int64(session_list_plot[count_a]))
+    [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, np.int64(session_list_plot[[i for i, s in enumerate(animal_list_plot) if s == animal][0]]))
     final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
                                                  'st-sw-st')
     # LASER ACCURACY
@@ -386,7 +446,7 @@ for count_a, animal in enumerate(animals_triggers):
         fraction_strides_stim_on_animals[count_a, trials_idx_corr[count_t]] = fraction_strides_stim_on
         fraction_strides_stim_off_animals[count_a, trials_idx_corr[count_t]] = fraction_strides_stim_off
     # Laser timing with symmetry
-    offtracks_phase = loco.get_symmetry_laser_phase_offtracks_df(animal, np.int64(session_list_plot[count_a]), trials, final_tracks_phase, event_stim, laser_on,
+    offtracks_phase = loco.get_symmetry_laser_phase_offtracks_df(animal, np.int64(session_list_plot[[i for i, s in enumerate(animal_list_plot) if s == animal][0]]), trials, final_tracks_phase, event_stim, laser_on,
                 timestamps_session, offtracks_st, offtracks_sw, ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length'])
     offtracks_phase_stim = offtracks_phase.loc[(offtracks_phase['trial']>stim_trials[0]-1) & (offtracks_phase['trial']<stim_trials[-1]+1)]
     offtracks_phase_stim.to_csv(
@@ -456,7 +516,7 @@ plt.savefig(path_save + 'mean_animals_laser_' + event_stim + '_fraction_stim_str
 for p in range(3):
     fig, ax = plt.subplots(2, 1, figsize=(12, 7), tight_layout=True, sharex=True, sharey=True)
     ax = ax.ravel()
-    for count_animal, animal in enumerate(animals):
+    for count_animal, animal in enumerate(animals_triggers):
         ax[0].scatter(offtracks_phase_stim_animals[count_animal]['onset'], offtracks_phase_stim_animals[count_animal][param_sym_name[p]], s=5, color=color_cond)
         ax[1].scatter(offtracks_phase_stim_animals[count_animal]['offset'], offtracks_phase_stim_animals[count_animal][param_sym_name[p]], s=5, color=color_cond)
         ax[1].set_xlabel('stride phase (%)', fontsize=20)
@@ -473,7 +533,7 @@ for p in range(3):
 # FRACTION OF STIMULATED STRIDES - INDIVIDUAL ANIMALS
 fig, ax = plt.subplots(3, 2, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
 ax = ax.ravel()
-for count_a in range(len(animals)):
+for count_a in range(len(animals_triggers)):
     ax[count_a].axvline(x=stim_trials[0]-0.5, color='dimgray')
     ax[count_a].axvline(x=stim_trials[0]+10-0.5, color='dimgray')
     ax[count_a].plot(np.arange(1, Ntrials+1), fraction_strides_stim_on_animals[count_a, :], color='black', linewidth=2)
@@ -492,7 +552,7 @@ param_sym_label_ae = ['Center of oscillation\nafter-effect symmetry (mm)', 'Step
         'Swing length\nafter-effect symmetry (mm)']
 for count_p in range(len(param_sym_label_ae)):
     fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
-    ax.scatter(np.nanmean(accuracy_animals[:, stim_trials-1], axis=1), np.abs(param_sym_bs[count_p, :, stim_trials[-1]+1]), color='black')
+    ax.scatter(np.nanmean(accuracy_animals[:, stim_trials-1], axis=1), np.abs(param_sym_bs[count_p, animals_triggers_idx, stim_trials[-1]+1]), color='black')
     ax.set_xlabel('Accuracy', fontsize=16)
     ax.set_ylabel(param_sym_label_ae[count_p], fontsize=16)
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -503,7 +563,7 @@ param_sym_label_delta = ['Change over stim. of\ncenter of oscillation symmetry (
         'Change over stim. of\nswing length symmetry (mm)']
 for count_p in range(len(param_sym_label_delta)):
     fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
-    ax.scatter(np.nanmean(accuracy_animals[:, stim_trials-1], axis=1), param_sym_bs[count_p, :, stim_trials[-1]-3]-param_sym_bs[count_p, :, stim_trials[0]-1], color='black')
+    ax.scatter(np.nanmean(accuracy_animals[:, stim_trials-1], axis=1), param_sym_bs[count_p, animals_triggers_idx, stim_trials[-1]-3]-param_sym_bs[count_p, animals_triggers_idx, stim_trials[0]-1], color='black')
     ax.set_xlabel('Accuracy', fontsize=16)
     ax.set_ylabel(param_sym_label_delta[count_p], fontsize=16)
     ax.tick_params(axis='both', which='major', labelsize=16)

@@ -1,13 +1,13 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.stats as sp
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split right fast control\\'
+path_loco = 'J:\\Opto JAWS Data\\split left fast control\\'
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
-animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
-animals_triggers = ['MC16851', 'MC17319', 'MC17665', 'MC17670']
+animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
 stim_trials = np.arange(9, 19)
 
 #import classes
@@ -69,7 +69,7 @@ for count_animal, animal in enumerate(animal_list_plot):
             param_mat = loco.compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
             if param == 'phase_st':
                 for p in range(4):
-                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[0][p])
+                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = sp.circmean(param_mat[0][p], nan_policy='omit')
             elif param == 'stance_speed':
                 for p in range(4):
                     stance_speed[p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[p])
@@ -140,6 +140,19 @@ for p in range(np.shape(param_sym)[0]-2):
     plt.savefig(os.path.join(path_save, 'mean_animals_paws_' + param_sym_name[p] + '.png'), dpi=128)
 plt.close('all')
 
+#plot stance phase - group mean polar plot
+#error bars in polar plot don't rotate well
+fig = plt.figure(figsize=(10, 10), tight_layout=True)
+ax = fig.add_subplot(111, projection='polar')
+for paw in range(4):
+    data_mean = sp.circmean(param_phase[paw, :, :], axis=0)
+    ax.scatter(data_mean, np.arange(1, Ntrials + 1), c=paw_colors[paw], s=30)
+ax.set_yticks([8.5, 18.5])
+ax.set_yticklabels(['', ''])
+ax.tick_params(axis='both', which='major', labelsize=20)
+plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase_polar.png'), dpi=256)
+plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase_polar.svg'), dpi=256)
+
 #plot stance phase - group mean
 fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
 mean_data = np.vstack((np.nanmean(param_phase[0, :, :], axis=0), np.nanmean(param_phase[1, :, :], axis=0),
@@ -171,7 +184,7 @@ plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.png'), dpi=128)
 plt.close('all')
 
 #plot stance speed - individual animals
-fig, ax = plt.subplots(3, 2, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
+fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
 ax = ax.ravel()
 for count_a in range(len(animals)):
     for p in range(4):

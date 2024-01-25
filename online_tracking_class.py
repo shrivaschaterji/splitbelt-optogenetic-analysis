@@ -190,11 +190,11 @@ class otrack_class:
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
             if animal == 'MC16851':
                 # for split right stance and split left stance
-                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
-                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+                # [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
+                # [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
                 #for tied stance, tied swing, split right fast swing, split left fast swing is for sure ch2 for laser signal
-                #[sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-                #[sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 2)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
+                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 2)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
             else:
                 [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
                 [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
@@ -507,12 +507,12 @@ class otrack_class:
              'x': offtracks_sw_posx, 'y': offtracks_sw_posy})
         if not os.path.exists(os.path.join(self.path, 'processed files', animal)): #save csv
             os.mkdir(os.path.join(self.path, 'processed files', animal))
-        # offtracks_st.to_csv(
-        #     os.path.join(self.path, 'processed files', animal, 'offtracks_st.csv'), sep=',',
-        #     index=False)
-        # offtracks_sw.to_csv(
-        #     os.path.join(self.path, 'processed files', animal, 'offtracks_sw.csv'), sep=',',
-        #     index=False)
+        offtracks_st.to_csv(
+            os.path.join(self.path, 'processed files', animal, 'offtracks_st.csv'), sep=',',
+            index=False)
+        offtracks_sw.to_csv(
+            os.path.join(self.path, 'processed files', animal, 'offtracks_sw.csv'), sep=',',
+            index=False)
         return offtracks_st, offtracks_sw
 
     @staticmethod
