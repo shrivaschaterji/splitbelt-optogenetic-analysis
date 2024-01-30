@@ -223,7 +223,7 @@ class otrack_class:
                 plt.plot(sync_timestamps_p3/1000, sync_signal_p3)
                 plt.title('Laser trial sync data for trial ' + str(self.trials[t]))
                 plt.xlabel('Time (ms)')
-            camera_timestamps_in = timestamps_p1[frames_kept[t]] / 1000
+            camera_timestamps_in = timestamps_p1[frames_kept[t][frames_kept[t]<len(timestamps_p1)]] / 1000
             timestamps_session.append(camera_timestamps_in)
             frame_counter_session.append(frames_kept[t])
         if not os.path.exists(os.path.join(self.path, 'processed files', animal)):  # save camera timestamps and frame counter in processed files
