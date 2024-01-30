@@ -5,7 +5,7 @@ Created on Tue Feb  7 16:59:15 2023
 """
 import os
 paw_otrack = 'FR'
-path = 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\singletrial\\20230607 tied swing stim\\'
+path = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\singletrial\\20230607 tied swing stim\\'         #20230607 tied swing stim   20230606 tied stance stim
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -15,7 +15,7 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['MC17670']       # 'MC17666', 
+animals = ['MC17319']       # 'MC17666', 
 
 for animal in animals:
     trials = otrack_class.get_trials(animal)
