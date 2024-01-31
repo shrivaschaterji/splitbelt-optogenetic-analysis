@@ -110,7 +110,7 @@ for count_n, n in enumerate(networks):
             plt.close('all')
 
     # FRACTION OF STIMULATED STRIDES
-    speeds_label = ['0,175 m/s', '0,275 m/s', '0,375 m/s', 'split right fast', 'split left fast']
+    speeds_label = ['0.175 m/s', '0.275 m/s', '0.375 m/s', 'split right fast', 'split left fast']
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for s in range(len(speeds)):
         for a in range(12):
@@ -232,7 +232,7 @@ for count_n, n in enumerate(networks):
                 else:
                     ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*s)+np.random.rand(3), accuracy_measures_st[a, i, :, s],
                                s=10, color=colors_speeds[s], label='_nolegend_')
-        # ax.legend(speeds, frameon=False, fontsize=12)
+        ax.legend(speeds_label, frameon=False, fontsize=12)
         ax.set_xticks(np.arange(0, 30, 10)+2.5)
         ax.set_xticklabels(conditions_name, fontsize=14)
         #ax.set_title('Stance ' + measure_name[i].replace('_', ' ') + ' ' + n, fontsize=16)

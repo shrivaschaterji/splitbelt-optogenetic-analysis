@@ -103,6 +103,11 @@ for p in range(np.shape(param_sym)[0]-2):
             bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_trials[0]-1])
             param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
 
+for animal_idx, a in enumerate(animal_list_plot):
+    ae_value = np.nanmean([param_sym_bs[2, animal_idx, 18], param_sym_bs[2, animal_idx, 19]])
+    print(a)
+    print(ae_value)
+
 np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs)
 np.save(os.path.join(path_loco, path_save, 'param_paw_bs.npy'), param_paw_bs)
 np.save(os.path.join(path_loco, path_save, 'param_phase.npy'), param_phase)
