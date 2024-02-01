@@ -15,7 +15,7 @@ speeds_label = ['0.275 m/s', 'split right fast', 'split left fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 trials = trials_reshape[1, :].flatten()
 colors_networks = ['black', 'teal', 'orange']
-summary_path = 'C:\\Users\\Ana\\Desktop\\\Data OPTO\\Benchmark plots\\Network comparison\\'
+summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\Network comparison\\'
 
 latency_on_st_array = np.zeros((6, 3, len(networks)))
 latency_off_st_array = np.zeros((6, 3, len(networks)))
@@ -23,7 +23,7 @@ latency_on_sw_array = np.zeros((6, 3, len(networks)))
 latency_off_sw_array = np.zeros((6, 3, len(networks)))
 for count_n, n in enumerate(networks):
     c = conditions_plot[count_n]
-    path_st = os.path.join('C:\\Users\\Ana\\Desktop\\\Data OPTO', n, c[0])
+    path_st = os.path.join('J:\\Opto Benchmarks\\', n, c[0])
     for count_s, s in enumerate(np.array([1, 3, 4])):
         trials = trials_reshape[s, :].flatten()
         import online_tracking_class
@@ -36,7 +36,7 @@ for count_n, n in enumerate(networks):
             for count_t, t in enumerate(trials):
                 latency_on_st_array[count_a+(3*count_t), count_s, count_n] = latency_st_trials.loc[(latency_st_trials['animal'] == animal) & (latency_st_trials['trial'] == t)].median()[1]
                 latency_off_st_array[count_a+(3*count_t), count_s, count_n] = latency_st_trials.loc[(latency_st_trials['animal'] == animal) & (latency_st_trials['trial'] == t)].median()[2]
-        path_sw = os.path.join('C:\\Users\\Ana\\Desktop\\\Data OPTO', n, c[1])
+        path_sw = os.path.join('J:\\Opto Benchmarks', n, c[1])
         import online_tracking_class
         otrack_class = online_tracking_class.otrack_class(path_sw)
         import locomotion_class
@@ -48,66 +48,66 @@ for count_n, n in enumerate(networks):
                 latency_on_sw_array[count_a+(3*count_t), count_s, count_n] = latency_sw_trials.loc[(latency_sw_trials['animal'] == animal) & (latency_sw_trials['trial'] == t)].median()[1]
                 latency_off_sw_array[count_a+(3*count_t), count_s, count_n] = latency_sw_trials.loc[(latency_sw_trials['animal'] == animal) & (latency_sw_trials['trial'] == t)].median()[2]
 
-# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-# for count_n, n in enumerate(networks_label):
-#     for a in range(6):
-#         ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
-#                    latency_on_st_array[a, :, count_n], s=10, color=colors_networks[count_n])
-# ax.set_xticks(np.arange(0, 30, 10)+1)
-# ax.set_xticklabels(speeds_label, fontsize=14)
-# ax.set_ylabel('Latency for stance\nLED on (s)', fontsize=14)
-# ax.set_ylim([0, 0.15])
-# plt.xticks(fontsize=14)
-# plt.yticks(fontsize=14)
-# ax.spines['right'].set_visible(False)
-# ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'latency_on_st'), dpi=128)
-# plt.savefig(os.path.join(summary_path, 'latency_on_st.svg'), dpi=128)
-# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-# for count_n, n in enumerate(networks_label):
-#     for a in range(6):
-#         ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
-#                    latency_on_sw_array[a, :, count_n], s=10, color=colors_networks[count_n])
-# ax.set_xticks(np.arange(0, 30, 10)+1)
-# ax.set_xticklabels(speeds_label, fontsize=14)
-# ax.set_ylabel('Latency for swing\nLED on (s)', fontsize=14)
-# ax.set_ylim([0, 0.15])
-# plt.xticks(fontsize=14)
-# plt.yticks(fontsize=14)
-# ax.spines['right'].set_visible(False)
-# ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'latency_on_sw'), dpi=128)
-# plt.savefig(os.path.join(summary_path, 'latency_on_sw.svg'), dpi=128)
-# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-# for count_n, n in enumerate(networks_label):
-#     for a in range(6):
-#         ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
-#                    latency_off_st_array[a, :, count_n], s=10, color=colors_networks[count_n])
-# ax.set_xticks(np.arange(0, 30, 10)+1)
-# ax.set_xticklabels(speeds_label, fontsize=14)
-# ax.set_ylabel('Latency for stance\nLED off (s)', fontsize=14)
-# ax.set_ylim([0, 0.15])
-# plt.xticks(fontsize=14)
-# plt.yticks(fontsize=14)
-# ax.spines['right'].set_visible(False)
-# ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'latency_off_st'), dpi=128)
-# plt.savefig(os.path.join(summary_path, 'latency_off_st.svg'), dpi=128)
-# fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
-# for count_n, n in enumerate(networks_label):
-#     for a in range(6):
-#         ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
-#                    latency_off_sw_array[a, :, count_n], s=10, color=colors_networks[count_n])
-# ax.set_xticks(np.arange(0, 30, 10)+1)
-# ax.set_xticklabels(speeds_label, fontsize=14)
-# ax.set_ylabel('Latency for swing\nLED off (s)', fontsize=14)
-# ax.set_ylim([0, 0.15])
-# plt.xticks(fontsize=14)
-# plt.yticks(fontsize=14)
-# ax.spines['right'].set_visible(False)
-# ax.spines['top'].set_visible(False)
-# plt.savefig(os.path.join(summary_path, 'latency_off_sw'), dpi=128)
-# plt.savefig(os.path.join(summary_path, 'latency_off_sw.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+for count_n, n in enumerate(networks_label):
+    for a in range(6):
+        ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+                   latency_on_st_array[a, :, count_n], s=10, color=colors_networks[count_n])
+ax.set_xticks(np.arange(0, 30, 10)+1)
+ax.set_xticklabels(speeds_label, fontsize=14)
+ax.set_ylabel('Latency for stance\nLED on (s)', fontsize=14)
+ax.set_ylim([0, 0.15])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(summary_path, 'latency_on_st'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'latency_on_st.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+for count_n, n in enumerate(networks_label):
+    for a in range(6):
+        ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+                   latency_on_sw_array[a, :, count_n], s=10, color=colors_networks[count_n])
+ax.set_xticks(np.arange(0, 30, 10)+1)
+ax.set_xticklabels(speeds_label, fontsize=14)
+ax.set_ylabel('Latency for swing\nLED on (s)', fontsize=14)
+ax.set_ylim([0, 0.15])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(summary_path, 'latency_on_sw'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'latency_on_sw.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+for count_n, n in enumerate(networks_label):
+    for a in range(6):
+        ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+                   latency_off_st_array[a, :, count_n], s=10, color=colors_networks[count_n])
+ax.set_xticks(np.arange(0, 30, 10)+1)
+ax.set_xticklabels(speeds_label, fontsize=14)
+ax.set_ylabel('Latency for stance\nLED off (s)', fontsize=14)
+ax.set_ylim([0, 0.15])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(summary_path, 'latency_off_st'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'latency_off_st.svg'), dpi=128)
+fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
+for count_n, n in enumerate(networks_label):
+    for a in range(6):
+        ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
+                   latency_off_sw_array[a, :, count_n], s=10, color=colors_networks[count_n])
+ax.set_xticks(np.arange(0, 30, 10)+1)
+ax.set_xticklabels(speeds_label, fontsize=14)
+ax.set_ylabel('Latency for swing\nLED off (s)', fontsize=14)
+ax.set_ylim([0, 0.15])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+plt.savefig(os.path.join(summary_path, 'latency_off_sw'), dpi=128)
+plt.savefig(os.path.join(summary_path, 'latency_off_sw.svg'), dpi=128)
                 
 ###### STATS #######
 #Mann-Whitney on latency for the three computed speeds - network comparison stance on
