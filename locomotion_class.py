@@ -987,7 +987,7 @@ class loco_class:
         """Gets the trials in order"""
         trials_ordered = []
         for f in filelist:
-            trials_ordered.append(int(f.split('_')[8][:-3]))
+            trials_ordered.append(int(f.split('_')[7][:-3]))
         return np.array(trials_ordered)
    
     def plot_gait_catch(self,param_sym,param,animal,session,trials_split,print_plots):

@@ -39,6 +39,6 @@ final_tracks_trials = otrack_class.get_offtrack_paws(loco, animal, session)
 # PROCESS SYNCHRONIZER LASER SIGNALS
 laser_on = otrack_class.get_laser_on(laser_signal_session, timestamps_session)
 
-# OVERLAY WHEN LED SWING WAS ON
-for t in trials:
-    otrack_class.overlay_tracks_video(t, 'swing', final_tracks_trials, laser_on, st_led_on, sw_led_on)
+# # OVERLAY WHEN LED SWING WAS ON
+# for t in trials:
+#     otrack_class.overlay_tracks_video(t, 'swing', final_tracks_trials, laser_on, st_led_on, sw_led_on)
