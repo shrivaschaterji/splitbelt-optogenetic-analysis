@@ -4,15 +4,95 @@ import os
 
 # Inputs
 laser_event = 'swing'
-single_animal_analysis = 1
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\24042023 split right fast swing large stim\\MC16851\\'
-animal = 'MC16851'
-th_st = 100
-th_sw = 100
-session = 7
-Ntrials = 28
-stim_start = 4
-stim_duration = 14
+single_animal_analysis = 0
+if single_animal_analysis:
+    animal = 'VIV41329'
+plot_continuous = 0
+compare_baselines = 0
+compute_statistics = 0
+significance_threshold = 0.05
+
+#axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+#bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+axes_ranges = {'coo': [-3, 5], 'step_length': [-5, 12], 'double_support': [-13, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 17], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+uniform_ranges = 1
+
+# List of paths for each experiment - it is possible to have only one element
+experiment_names = ['swing stim', 'stance stim']                #'trial stim', 
+
+#paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\28092023 split right fast trial stim 30s\\']
+
+#paths = [
+   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\18092023 split right fast trial stim\\',
+ #      'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20092023 split right fast stance stim\\',
+  #   'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\22092023 split right fast swing stim\\'
+   #   ]
+
+paths = ['F:\\TRACKED\\20240125 tied swing stim\\','F:\\TRACKED\\20240126 tied stance stim\\']            #  'F:\\TRACKED\\20240129 tied swing stim IOcontrol\\']               #
+
+#paths = [
+#        'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20231005 tied stance stim\\',
+#        'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20231006 tied swing stim\\'
+#        ]
+
+#[
+  #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\19092023 split left fast trial stim\\',
+     #   'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\21092023 split left fast stance stim\\',
+     # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\25092023 split left fast swing stim\\'
+   #  ]
+
+
+#paths = [
+      #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\11092023 tied trial stim\\',
+       # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\12092023 tied stance stim\\',
+      #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\13092023 tied swing stim\\'
+ #       ]
+
+
+#paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
+#        'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\06062023 tied stance stim\\',
+#       'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\07062023 tied swing stim\\']
+
+#paths = [
+       # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\selected tied trial stim\\',
+      # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\selected tied stance stim\\',
+      #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\selected tied swing stim\\'
+ #       ]
+
+
+
+# ['E:\\090523 split right fast stance stim only split\\']
+#['E:\\tied trial stim\\','E:\\tied stance wide stim\\','E:\\tied swing wide stim\\']
+#['D:\\Ali\\19042023 split left fast trial stim\\']
+#['D:\\Ali\\tied belt stim trial\\','D:\\Ali\\tied belt stance wide stim\\','D:\\Ali\\tied belt swing wide stim\\']
+#paths = ['D:\\Ali\\19042023 split left fast trial stim\\', 'D:\\Ali\\21042023 split left fast stance large stim\\', 'D:\\Ali\\25042023 split left fast swing large stim\\']
+#paths = ['D:\\Ali\\18042023 split right fast trial stim\\', 'D:\\Ali\\20042023 split right fast stance large stim\\', 'D:\\Ali\\24042023 split right fast swing large stim\\']
+#['D:\\Ali\\25042023 split left fast swing large stim\\']
+#
+experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'swing control': 'black', 'stance control': 'black'}      # stim on: trial stance swing    'trial stim':'purple', 
+animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours
+import matplotlib.colors as mcolors
+animal_colors_dict = {'MC16851': animal_colors[0], 'MC17319': animal_colors[1],'MC17665': animal_colors[2],'MC17670': animal_colors[3],'MC17666': animal_colors[4],'MC17668': animal_colors[5],'MC17669': animal_colors[6],
+                      'MC19022': animal_colors[7],'MC19082': animal_colors[8],'MC19123': animal_colors[9],'MC19124': '#FF00FF', 'MC19130': '#00FFFF','MC19132': '#0000FF','MC19214': '#00FF00',
+                      'MC18737': animal_colors[0], 'MC19107': animal_colors[1], 'VIV41329': animal_colors[2], "VIV41330": animal_colors[3], "VIV41344": animal_colors[5],"VIV41345": animal_colors[6],"VIV40958": animal_colors[4]}
+
+#included_animal_list = [ 'MC17319','MC17665','MC17666','MC17668','MC17669','MC17670']
+included_animal_list = []
+    
+    
+    #'MC19022','MC19082','MC19123','MC19130','MC19132','MC19124','MC19214']             #  
+#included_animal_list = ['MC16851','MC17319','MC17665','MC17666','MC17669','MC17670']#, 'MC19022','MC19082','MC19123','MC19124','MC19214']
+#['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
+# ['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']
+#['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
+bs_bool = 1
+session = 1
+Ntrials = 28   #28    #56       # 28
+stim_start = 9 #9  #18 #9
+split_start = 9    #9 #18        #9
+stim_duration = 10  #10  #20      #8
+split_duration = 10 #10 #20         #8
 plot_rig_signals = 0
 print_plots = 1
 bs_bool = 0
