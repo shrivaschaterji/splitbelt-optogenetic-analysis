@@ -82,6 +82,7 @@ for p in range(np.shape(param_sym_name)[0]):
 plt.close('all')
 
 # Quantifications
+#TODO delta split is the difference between mean of the last 2 stim trials and the 2 last baseline (not beginning of stim)
 # Create dataframe for learning quantifications
 group_id = []
 ae_amp = []
