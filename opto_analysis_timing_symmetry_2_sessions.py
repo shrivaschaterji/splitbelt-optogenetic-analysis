@@ -6,10 +6,10 @@ import seaborn as sns
 import scipy
 
 #path inputs
-path_st = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
-path_sw = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
-experiment_type = 'split'
-save_path = 'J:\\Thesis\\for figures\\fig split left fast opto\\'
+path_st = 'J:\\Opto JAWS Data\\tied stance stim\\'
+path_sw = 'J:\\Opto JAWS Data\\tied swing stim\\'
+experiment_type = 'tied'
+save_path = 'J:\\Thesis\\for figures\\fig tied opto\\'
 experiment_st = path_st.split('\\')[-2].replace(' ', '_')
 experiment_sw = path_sw.split('\\')[-2].replace(' ', '_')
 param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length']
@@ -38,6 +38,11 @@ if experiment_type == 'tied':
     animals_sw = ['MC19130', 'MC19082', 'MC17670', 'MC17666', 'MC17665', 'MC19214']
     stim_trial_end_st = np.array([18, 18, 16, 18, 16, 16])
     stim_trial_end_sw = np.array([18, 18, 16, 16, 16, 18])
+    #if you want to cut stim to the shortest (8 trials instead of 10)
+    # param_sym_bs_st = param_sym_bs_st[:, :, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21,
+    #         22, 23, 24, 25]]
+    # param_sym_bs_sw = param_sym_bs_sw[:, :, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21,
+    #         22, 23, 24, 25]]
 else:
     animals_st = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
     animals_sw = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
@@ -63,12 +68,12 @@ for p in range(np.shape(param_sym_name)[0]):
     rectangle = plt.Rectangle((stim_trials[0]-0.5, min_plot[p]), rec_size, max_plot[p]-min_plot[p], fc='lightblue', zorder=0, alpha=0.3)
     plt.gca().add_patch(rectangle)
     plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
-    # plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
-    # plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
+    plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
+    plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
     plt.plot(np.arange(1, Ntrials+1), mean_data_st, linewidth=2, marker='o', color='orange')
     plt.fill_between(np.arange(1, Ntrials+1), mean_data_st-std_data_st, mean_data_st+std_data_st, color='orange', alpha=0.5)
-    plt.plot(np.arange(1, Ntrials+1), mean_data_sw, linewidth=2, marker='o', color='green')
-    plt.fill_between(np.arange(1, Ntrials+1), mean_data_sw-std_data_sw, mean_data_sw+std_data_sw, color='green', alpha=0.5)
+    # plt.plot(np.arange(1, Ntrials+1), mean_data_sw, linewidth=2, marker='o', color='green')
+    # plt.fill_between(np.arange(1, Ntrials+1), mean_data_sw-std_data_sw, mean_data_sw+std_data_sw, color='green', alpha=0.5)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_sym_label[p], fontsize=20)
     # if p == 2:
@@ -77,8 +82,8 @@ for p in range(np.shape(param_sym_name)[0]):
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(save_path, experiment_type + '_mean_animals_sym_' + param_sym_name[p] + '.png'))
-    plt.savefig(os.path.join(save_path, experiment_type + '_mean_animals_sym_' + param_sym_name[p] + '.svg'))
+    plt.savefig(os.path.join(save_path, experiment_type + '_mean_animals_sym' + param_sym_name[p] + '.png'))
+    plt.savefig(os.path.join(save_path, experiment_type + '_mean_animals_sym' + param_sym_name[p] + '.svg'))
 plt.close('all')
 
 # Quantifications

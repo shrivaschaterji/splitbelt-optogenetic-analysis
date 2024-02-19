@@ -16,7 +16,7 @@ trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, righ
 measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
 measure_name_label = ['Accuracy', 'F1 score', 'False negatives', 'False positives']
 colors_networks = ['black', 'teal', 'orange']
-summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\Network comparison\\'
+summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\For each speed comparison of marker for 50% threshold\\'
 
 stim_duration_st_net = []
 light_onset_phase_st_net = []
@@ -99,9 +99,10 @@ for count_n, n in enumerate(networks):
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
 for n in range(len(networks)):
     violin_parts = ax.violinplot(stim_duration_st_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
-        showextrema=False)
+        showextrema=False, showmeans=True)
     for pc in violin_parts['bodies']:
         pc.set_color(colors_networks[n])
+    violin_parts['cmeans'].set_color(colors_networks[n])
 ax.set_xticks(np.arange(0, 9, 3)+0.5)
 ax.set_xticklabels(speeds_label, fontsize=14)
 #ax.set_title('Stance stim duration', fontsize=16)
@@ -116,9 +117,10 @@ plt.savefig(os.path.join(summary_path, 'stim_duration_st.svg'), dpi=128)
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
 for n in range(len(networks)):
     violin_parts = ax.violinplot(stim_duration_sw_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
-        showextrema=False)
+        showextrema=False, showmeans=True)
     for pc in violin_parts['bodies']:
         pc.set_color(colors_networks[n])
+    violin_parts['cmeans'].set_color(colors_networks[n])
 ax.set_xticks(np.arange(0, 9, 3)+0.5)
 ax.set_xticklabels(speeds_label, fontsize=14)
 #ax.set_title('Swing stim duration', fontsize=16)
@@ -200,8 +202,9 @@ for count_n, n in enumerate(networks_label):
             ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
                        frac_strides_st[a, count_n, :],
                        s=10, color=colors_networks[count_n], label='_nolegend_')
+    ax.scatter(np.arange(0, 30, 10) + 1.5*count_n, np.nanmean(frac_strides_st[:, count_n, :], axis=0), s=200, marker='_', color=colors_networks[count_n])
 # ax.legend(networks_label, frameon=False, fontsize=14)
-ax.set_xticks(np.arange(0, 30, 10) + 2.5)
+ax.set_xticks(np.arange(0, 30, 10) + 2)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
 ax.set_ylim([0, 1.15])
@@ -222,8 +225,10 @@ for count_n, n in enumerate(networks_label):
             ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3),
                        frac_strides_sw[a, count_n, :],
                        s=10, color=colors_networks[count_n], label='_nolegend_')
+    ax.scatter(np.arange(0, 30, 10) + 1.5 * count_n, np.nanmean(frac_strides_sw[:, count_n, :], axis=0), s=200,
+               marker='_', color=colors_networks[count_n])
 # ax.legend(networks_label, frameon=False, fontsize=14)
-ax.set_xticks(np.arange(0, 30, 10) + 2.5)
+ax.set_xticks(np.arange(0, 30, 10) + 2)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
 ax.set_ylim([0, 1.15])
@@ -246,7 +251,9 @@ for i in range(len(measure_name)):
             else:
                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
                            s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
-    ax.set_xticks(np.arange(0, 30, 10))
+        ax.scatter(np.arange(0, 30, 10) + 1.5 * n, np.nanmean(accuracy_measures_st[:, i, :, n], axis=0), s=200,
+                   marker='_', color=colors_networks[n])
+    ax.set_xticks(np.arange(0, 30, 10)+2)
     ax.set_xticklabels(speeds_label, fontsize=14)
     ax.set_ylim([0, 1])
     #ax.set_title('Stance ' + measure_name[i].replace('_', ' '), fontsize=16)
@@ -267,7 +274,9 @@ for i in range(len(measure_name)):
             else:
                 ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
                            s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
-    ax.set_xticks(np.arange(0, 30, 10))
+        ax.scatter(np.arange(0, 30, 10) + 1.5 * n, np.nanmean(accuracy_measures_sw[:, i, :, n], axis=0), s=200,
+                   marker='_', color=colors_networks[n])
+    ax.set_xticks(np.arange(0, 30, 10)+2)
     ax.set_xticklabels(speeds_label, fontsize=14)
     #ax.set_title('Swing ' + measure_name[i].replace('_', ' '), fontsize=16)
     ax.set_ylabel(measure_name_label[i], fontsize=14)
