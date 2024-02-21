@@ -101,11 +101,11 @@ for count_n, n in enumerate(networks):
                     summary_path, '\\light_swing_'+n+'_'+speeds[i]+'_'+conditions[count_c])
             otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_st_net[i][count_c],
                                                             light_offset_phase_st_net[i][count_c],
-                                                            16, summary_path,
+                                                            20, summary_path,
                                                             '\\light_stance_hist_'+n+'_'+speeds[i]+'_'+conditions[count_c], 1)
             otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_sw_net[i][count_c],
                                                             light_offset_phase_sw_net[i][count_c],
-                                                            16, summary_path,
+                                                            20, summary_path,
                                                             '\\light_swing_hist_'+n+'_'+speeds[i]+'_'+conditions[count_c], 1)
             plt.close('all')
 
@@ -126,7 +126,7 @@ for count_n, n in enumerate(networks):
     # ax.legend(speeds_label, frameon=False, fontsize=14)
     ax.set_xticks(np.arange(0, 30, 10) + 2.5)
     ax.set_xticklabels(conditions_name, fontsize=14)
-    ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+    ax.set_ylabel('Fraction of LED-on\nstrides', fontsize=14)
     ax.set_ylim([0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -150,7 +150,7 @@ for count_n, n in enumerate(networks):
     # ax.legend(speeds, frameon=False, fontsize=12)
     ax.set_xticks(np.arange(0, 30, 10) + 2.5)
     ax.set_xticklabels(conditions_name, fontsize=14)
-    ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+    ax.set_ylabel('Fraction of LED-on\nstrides', fontsize=14)
     ax.set_ylim([0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -170,7 +170,7 @@ for count_n, n in enumerate(networks):
     ax.set_xticks(np.arange(0, 9, 3)+1)
     ax.set_xticklabels(conditions_name, fontsize=14)
     #ax.set_title('Stance stim duration ' + n, fontsize=16)
-    ax.set_ylabel('Time (s)', fontsize=14)
+    ax.set_ylabel('LED-on duration (s)', fontsize=14)
     ax.set_ylim([0, 0.4])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -188,7 +188,7 @@ for count_n, n in enumerate(networks):
     ax.set_xticks(np.arange(0, 9, 3)+1)
     ax.set_xticklabels(conditions_name, fontsize=14)
     #ax.set_title('Swing stim duration ' + n, fontsize=16)
-    ax.set_ylabel('Time (s)', fontsize=14)
+    ax.set_ylabel('LED-on duration (s)', fontsize=14)
     ax.set_ylim([-0.1, 0.85])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -202,7 +202,7 @@ for count_n, n in enumerate(networks):
         fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
         for s in range(len(speeds)):
             ax.hist(stim_duration_st_net[s][count_c], bins=100, histtype='step', color=colors_speeds[s], linewidth=4)
-        ax.set_xlabel('Time (s)', fontsize=14)
+        ax.set_xlabel('LED-on duration (s)', fontsize=14)
         ax.set_ylabel('Counts', fontsize=14)
         ax.set_xlim([0, 0.5])
         plt.xticks(fontsize=14)
@@ -214,7 +214,7 @@ for count_n, n in enumerate(networks):
         fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
         for s in range(len(speeds)):
             ax.hist(stim_duration_sw_net[s][count_c], bins=100, histtype='step', color=colors_speeds[s], linewidth=4)
-        ax.set_xlabel('Time (s)', fontsize=14)
+        ax.set_xlabel('LED-on duration (s)', fontsize=14)
         ax.set_ylabel('Counts', fontsize=14)
         ax.set_xlim([0, 0.5])
         plt.xticks(fontsize=14)
@@ -226,7 +226,7 @@ for count_n, n in enumerate(networks):
     plt.close('all')
 
     # ACCURACY
-    ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
+    ylabel_names = ['fraction correct hits', '% F1 score', 'fraction false negatives', 'fraction false positives']
     for i in range(len(measure_name)):
         fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
         for s in range(len(speeds)):

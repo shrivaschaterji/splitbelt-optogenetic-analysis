@@ -106,7 +106,7 @@ for n in range(len(networks)):
 ax.set_xticks(np.arange(0, 9, 3)+0.5)
 ax.set_xticklabels(speeds_label, fontsize=14)
 #ax.set_title('Stance stim duration', fontsize=16)
-ax.set_ylabel('Time (s)', fontsize=14)
+ax.set_ylabel('LED-on duration (s)', fontsize=14)
 ax.set_ylim([0, 0.3])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
@@ -124,7 +124,7 @@ for n in range(len(networks)):
 ax.set_xticks(np.arange(0, 9, 3)+0.5)
 ax.set_xticklabels(speeds_label, fontsize=14)
 #ax.set_title('Swing stim duration', fontsize=16)
-ax.set_ylabel('Time (s)', fontsize=14)
+ax.set_ylabel('LED-on duration (s)', fontsize=14)
 ax.set_ylim([0, 0.65])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
@@ -138,7 +138,7 @@ for count_c, c in enumerate(speeds):
     fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
     for n in range(len(networks)):
         ax.hist(stim_duration_st_net[n][count_c], bins=100, histtype='step', color=colors_networks[n], linewidth=4)
-    ax.set_xlabel('Time (s)', fontsize=14)
+    ax.set_xlabel('LED-on duration (s)', fontsize=14)
     ax.set_ylabel('Counts', fontsize=14)
     ax.set_xlim([0, 0.5])
     plt.xticks(fontsize=14)
@@ -150,7 +150,7 @@ for count_c, c in enumerate(speeds):
     fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
     for n in range(len(networks)):
         ax.hist(stim_duration_sw_net[n][count_c], bins=100, histtype='step', color=colors_networks[n], linewidth=4)
-    ax.set_xlabel('Time (s)', fontsize=14)
+    ax.set_xlabel('LED-on duration (s)', fontsize=14)
     ax.set_ylabel('Counts', fontsize=14)
     ax.set_xlim([0, 0.5])
     plt.xticks(fontsize=14)
@@ -181,11 +181,11 @@ for count_n, n in enumerate(networks):
                                                                  '\\light_swing_' + networks[count_n] + '_' +
                                                                  speeds[count_s])
         otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_st_net[count_n][count_s], light_offset_phase_st_net[count_n][count_s],
-                                                        16,  summary_path,
+                                                        20,  summary_path,
                                                                  '\\light_stance_hist_' + networks[count_n] + '_' +
                                                                  speeds[count_s], 1)
         otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_sw_net[count_n][count_s], light_offset_phase_sw_net[count_n][count_s],
-                                                        16,  summary_path,
+                                                        20,  summary_path,
                                                                  '\\light_swing_hist_' + networks[count_n] + '_' +
                                                                  speeds[count_s], 1)
         plt.close('all')
@@ -206,7 +206,7 @@ for count_n, n in enumerate(networks_label):
 # ax.legend(networks_label, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2)
 ax.set_xticklabels(speeds_label, fontsize=14)
-ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+ax.set_ylabel('Fraction of LED-on\nstrides', fontsize=14)
 ax.set_ylim([0, 1.15])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
@@ -230,7 +230,7 @@ for count_n, n in enumerate(networks_label):
 # ax.legend(networks_label, frameon=False, fontsize=14)
 ax.set_xticks(np.arange(0, 30, 10) + 2)
 ax.set_xticklabels(speeds_label, fontsize=14)
-ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+ax.set_ylabel('Fraction of LED-on\nstrides', fontsize=14)
 ax.set_ylim([0, 1.15])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
@@ -240,7 +240,7 @@ plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plo
 plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_' + conditions_plot[0][0] + '.svg'), dpi=128)
 
 # ACCURACY
-ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
+ylabel_names = ['fraction correct hits', '% F1 score', 'fraction false negatives', 'fraction false positives']
 for i in range(len(measure_name)):
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for n in range(len(networks)):
@@ -309,7 +309,7 @@ ax.scatter(np.arange(3), onset_tb, s=120, c=colors_networks[2])
 ax.scatter(np.arange(3), offset_tb, s=120, facecolors='none', edgecolors=colors_networks[2])
 ax.set_xticks(np.arange(3))
 ax.set_xticklabels(speeds_label, fontsize=16, rotation=15)
-ax.set_ylabel('CV (abs. value) on\nstance-like stimulation', fontsize=16)
+ax.set_ylabel('CV (abs. value) on\nstance onset condition', fontsize=16)
 ax.set_xlabel('Speed', fontsize=16)
 ax.set_ylim([0, 1.7])
 plt.xticks(fontsize=16)
@@ -334,7 +334,7 @@ ax.scatter(np.arange(3), onset_tb, s=120, c=colors_networks[2])
 ax.scatter(np.arange(3), offset_tb, s=120, facecolors='none', edgecolors=colors_networks[2])
 ax.set_xticks(np.arange(3))
 ax.set_xticklabels(speeds_label, fontsize=16, rotation=15)
-ax.set_ylabel('CV (abs. value) on\nswing-like stimulation', fontsize=16)
+ax.set_ylabel('CV (abs. value) on\nswing onset condition', fontsize=16)
 ax.set_xlabel('Speed', fontsize=16)
 ax.set_ylim([0, 1.7])
 plt.xticks(fontsize=16)

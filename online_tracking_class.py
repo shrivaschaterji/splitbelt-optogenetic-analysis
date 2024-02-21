@@ -1936,6 +1936,7 @@ class otrack_class:
         ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+        ax.set_ylabel('LED-on counts', fontsize=fontsize_plot)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)

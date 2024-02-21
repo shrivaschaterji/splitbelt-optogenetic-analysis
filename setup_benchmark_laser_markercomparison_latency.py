@@ -15,7 +15,7 @@ speeds_label = ['0.275 m/s', 'split right fast', 'split left fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 trials = trials_reshape[1, :].flatten()
 colors_networks = ['black', 'teal', 'orange']
-summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\Network comparison\\'
+summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\For each speed comparison of marker for 50% threshold\\'
 
 latency_on_st_array = np.zeros((6, 3, len(networks)))
 latency_off_st_array = np.zeros((6, 3, len(networks)))
@@ -48,6 +48,10 @@ for count_n, n in enumerate(networks):
                 latency_on_sw_array[count_a+(3*count_t), count_s, count_n] = latency_sw_trials.loc[(latency_sw_trials['animal'] == animal) & (latency_sw_trials['trial'] == t)].median()[1]
                 latency_off_sw_array[count_a+(3*count_t), count_s, count_n] = latency_sw_trials.loc[(latency_sw_trials['animal'] == animal) & (latency_sw_trials['trial'] == t)].median()[2]
 
+#LARGER LATENCIES ARE DUE TO THE MATCH BETWEEN OTRACKS BEING ON AND THE LED TURING ON - CODE FINDS THE CLOSEST, DOESN'T MEAN IT IS THE CORRECT
+#PROBABLY CAN HAPPEN THAT FOR VERY SHORT TRUE PULSES (2 FRAMES??) LED DOESN'T TURN ON
+#FOR THESIS WILL CROP PLOT BUT THIS CAN BE LOOKED INTO
+
 fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
 for count_n, n in enumerate(networks_label):
     for a in range(6):
@@ -56,7 +60,7 @@ for count_n, n in enumerate(networks_label):
 ax.set_xticks(np.arange(0, 30, 10)+1)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Latency for stance\nLED on (s)', fontsize=14)
-ax.set_ylim([0, 0.15])
+ax.set_ylim([0, 0.035])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
@@ -71,7 +75,7 @@ for count_n, n in enumerate(networks_label):
 ax.set_xticks(np.arange(0, 30, 10)+1)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Latency for swing\nLED on (s)', fontsize=14)
-ax.set_ylim([0, 0.15])
+ax.set_ylim([0, 0.035])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
@@ -86,7 +90,7 @@ for count_n, n in enumerate(networks_label):
 ax.set_xticks(np.arange(0, 30, 10)+1)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Latency for stance\nLED off (s)', fontsize=14)
-ax.set_ylim([0, 0.15])
+ax.set_ylim([0, 0.035])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)
@@ -101,7 +105,7 @@ for count_n, n in enumerate(networks_label):
 ax.set_xticks(np.arange(0, 30, 10)+1)
 ax.set_xticklabels(speeds_label, fontsize=14)
 ax.set_ylabel('Latency for swing\nLED off (s)', fontsize=14)
-ax.set_ylim([0, 0.15])
+ax.set_ylim([0, 0.035])
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
 ax.spines['right'].set_visible(False)

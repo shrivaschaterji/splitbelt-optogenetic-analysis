@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
-path = 'J:\\Opto Benchmarks\\HR tests\\25percent\\'
+path = 'J:\\Opto Benchmarks\\HR tests\\75percent\\'
 condition = path.split('\\')[-2]
 network = path.split('\\')[-3]
 animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923', 'VIV40924']
@@ -127,8 +127,8 @@ for paw in paws:
             light_onset_phase_sw_plot_animals.extend(light_onset_phase_sw[count_a][i])
             light_offset_phase_sw_plot_animals.extend(light_offset_phase_sw[count_a][i])
         otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_st_plot_animals, light_offset_phase_st_plot_animals,
-                                              16, save_path, 'stance_time_hist_'+condition+'_'+network+'_'+speeds[i]+'_'+paw, 1)
+                                              20, save_path, 'stance_time_hist_'+condition+'_'+network+'_'+speeds[i]+'_'+paw, 1)
         otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_sw_plot_animals, light_offset_phase_sw_plot_animals,
-                                              16, save_path, 'swing_time_hist_'+condition+'_'+network+'_'+speeds[i]+'_'+paw, 1)
+                                              20, save_path, 'swing_time_hist_'+condition+'_'+network+'_'+speeds[i]+'_'+paw, 1)
     plt.close('all')
 
