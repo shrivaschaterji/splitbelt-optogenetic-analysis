@@ -6,20 +6,27 @@ import seaborn as sns
 import scipy
 
 #path inputs
-path_st = 'J:\\Opto JAWS Data\\tied stance stim\\'
-path_sw = 'J:\\Opto JAWS Data\\tied swing stim\\'
-experiment_type = 'tied'
-save_path = 'J:\\Thesis\\for figures\\fig tied opto\\'
+path_st = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
+path_sw = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
+experiment_type = 'split'
+save_path = 'J:\\Thesis\\for figures\\fig split left fast opto\\'
 experiment_st = path_st.split('\\')[-2].replace(' ', '_')
 experiment_sw = path_sw.split('\\')[-2].replace(' ', '_')
-param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length']
+param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length']
 param_sym_label = ['Center of oscillation\nsymmetry (mm)', 'Step length\nsymmetry (mm)',
-    'Percentage of double\nsupport symmetry', 'Spatial motor output\nsymmetry (mm)', 'Swing length\nsymmetry (mm)']
+    'Percentage of double\nsupport symmetry', 'Spatial motor output\nsymmetry (mm)',
+        'Temporal motor output\nsymmetry (mm)', 'Swing length\nsymmetry (mm)']
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
-stim_trials = np.arange(9, 19)
-Ntrials = 28
-rec_size = 10
+
+if experiment_type == 'split':
+    stim_trials = np.arange(9, 19)
+    Ntrials = 28
+    rec_size = 10
+if experiment_type == 'tied':
+    stim_trials = np.arange(9, 17)
+    Ntrials = 24
+    rec_size = 8
 
 param_sym_bs_st = np.load(
     path_st + '\\grouped output\\param_sym_bs.npy')
@@ -36,13 +43,8 @@ param_phase_sw = np.load(
 if experiment_type == 'tied':
     animals_st = ['MC19214', 'MC19130', 'MC17665', 'MC19082', 'MC17670', 'MC17666']
     animals_sw = ['MC19130', 'MC19082', 'MC17670', 'MC17666', 'MC17665', 'MC19214']
-    stim_trial_end_st = np.array([18, 18, 16, 18, 16, 16])
-    stim_trial_end_sw = np.array([18, 18, 16, 16, 16, 18])
-    #if you want to cut stim to the shortest (8 trials instead of 10)
-    # param_sym_bs_st = param_sym_bs_st[:, :, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21,
-    #         22, 23, 24, 25]]
-    # param_sym_bs_sw = param_sym_bs_sw[:, :, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21,
-    #         22, 23, 24, 25]]
+    stim_trial_end_st = np.repeat(16, len(animals_st))
+    stim_trial_end_sw = np.repeat(16, len(animals_sw))
 else:
     animals_st = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
     animals_sw = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
@@ -51,12 +53,12 @@ else:
 # param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split right fast control\\grouped output\\param_sym_bs.npy')
 Nanimals = len(animals_st)
 
-min_plot = [-3, -4, -6, -4, -4] #tied
-max_plot = [3, 4, 6, 4, 4] #tied
-# min_plot = [-5, -7, -7, -2, -3] #split right fast
-# max_plot = [5, 4, 11, 9, 8] #split right fast
-# min_plot = [-2, -3, -11, -6, -9] #split left fast
-# max_plot = [4, 6, 8, 2, 3] #split left fast
+# min_plot = [-3, -4, -6, -4, -4, -4] #tied
+# max_plot = [3, 4, 6, 4, 4, 4] #tied
+# min_plot = [-5, -7, -7, -2, -2, -3] #split right fast
+# max_plot = [5, 4, 11, 9, 9, 8] #split right fast
+min_plot = [-2, -3, -11, -6, -6, -9] #split left fast
+max_plot = [4, 6, 8, 2, 2, 3] #split left fast
 for p in range(np.shape(param_sym_name)[0]):
     mean_data_st = np.nanmean(param_sym_bs_st[p, :, :], axis=0)
     std_data_st = np.nanstd(param_sym_bs_st[p, :, :], axis=0) / np.sqrt(Nanimals)
@@ -68,12 +70,13 @@ for p in range(np.shape(param_sym_name)[0]):
     rectangle = plt.Rectangle((stim_trials[0]-0.5, min_plot[p]), rec_size, max_plot[p]-min_plot[p], fc='lightblue', zorder=0, alpha=0.3)
     plt.gca().add_patch(rectangle)
     plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
-    plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
-    plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
+    # plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
+    # plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
     plt.plot(np.arange(1, Ntrials+1), mean_data_st, linewidth=2, marker='o', color='orange')
     plt.fill_between(np.arange(1, Ntrials+1), mean_data_st-std_data_st, mean_data_st+std_data_st, color='orange', alpha=0.5)
-    # plt.plot(np.arange(1, Ntrials+1), mean_data_sw, linewidth=2, marker='o', color='green')
-    # plt.fill_between(np.arange(1, Ntrials+1), mean_data_sw-std_data_sw, mean_data_sw+std_data_sw, color='green', alpha=0.5)
+    plt.plot(np.arange(1, Ntrials+1), mean_data_sw, linewidth=2, marker='o', color='green')
+    plt.fill_between(np.arange(1, Ntrials+1), mean_data_sw-std_data_sw, mean_data_sw+std_data_sw, color='green', alpha=0.5)
+    ax.legend(['stance onset\nstimulation', 'swing onset\nstimulation', '', ''], frameon=False, fontsize=16)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_sym_label[p], fontsize=20)
     # if p == 2:
@@ -110,14 +113,15 @@ for count_p, p in enumerate(param_sym_name):
     param.extend(np.repeat(p, group_sw_len))
 split_quant_df = pd.DataFrame({'param': param, 'group': group_id, 'after-effect': ae_amp, 'delta-split': delta_split})
 param_sym_label_ae = ['Center of oscillation\nafter-effect symmetry (mm)', 'Step length\nafter-effect symmetry(mm)', 'Percentage of double support\nafter-effect symmetry', 'Center of oscillation\n stance after-effect symmetry (mm)',
-        'Swing length\nafter-effect symmetry (mm)']
+        'Center of oscillation\n swing after-effect symmetry (mm)', 'Swing length\nafter-effect symmetry (mm)']
 for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
-    sns.barplot(x='group', y='after-effect', data=split_quant_df.loc[split_quant_df['param'] == param_sym_name[p]],
-               alpha=0.5, palette={0: 'orange', 1: 'green'}, ci=None)
+    sns.boxplot(x='group', y='after-effect', data=split_quant_df.loc[split_quant_df['param'] == param_sym_name[p]],
+              showmeans=True, meanline=True, ax=ax, medianprops={'visible': False}, meanprops={'ls': '-', 'lw': 3},
+                whiskerprops={'visible': False}, showfliers=False, showbox=False, showcaps=False, palette=['orange', 'green'])
     sns.stripplot(x='group', y='after-effect', data=split_quant_df.loc[split_quant_df['param'] == param_sym_name[p]],
-                  dodge=True, s=10, ax=ax, palette={0: 'orange', 1: 'green'}, edgecolor='None')
-    ax.set_xticklabels(['Stance-like\nstimulation', 'Swing-like\nstimulation'])
+              dodge=True, s=10, ax=ax, palette={0: 'orange', 1: 'green'}, edgecolor='None')
+    ax.set_xticklabels(['Stance onset\nstimulation', 'Swing onset\nstimulation'])
     ax.set_xlabel('')
     ax.set_ylabel(param_sym_label_ae[p], fontsize=16)
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -135,14 +139,15 @@ for p in range(np.shape(param_sym_name)[0]):
 # param_sym_label_delta = ['Change over split of\ncenter of oscillation symmetry (mm)', 'Change over split of\nstep length symmetry (mm)', 'Change over split of\npercentage of double support symmetry', 'Change over split of\ncenter of oscillation stance symmetry (mm)',
 #         'Change over split of\nswing length symmetry (mm)']
 param_sym_label_delta = ['Change over stim. of\ncenter of oscillation symmetry (mm)', 'Change over stim. of\nstep length symmetry (mm)', 'Change over stim. of\npercentage of double support symmetry', 'Change over stim. of\ncenter of oscillation stance symmetry (mm)',
-        'Change over stim. of\nswing length symmetry (mm)']
+        'Center of oscillation\n swing after-effect symmetry (mm)', 'Change over stim. of\nswing length symmetry (mm)']
 for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
-    sns.barplot(x='group', y='delta-split', data=split_quant_df.loc[split_quant_df['param'] == param_sym_name[p]],
-               alpha=0.5, palette={0: 'orange', 1: 'green'}, ci=None)
+    sns.boxplot(x='group', y='delta-split', data=split_quant_df.loc[split_quant_df['param'] == param_sym_name[p]],
+              showmeans=True, meanline=True, ax=ax, medianprops={'visible': False}, meanprops={'ls': '-', 'lw': 3},
+                whiskerprops={'visible': False}, showfliers=False, showbox=False, showcaps=False, palette=['orange', 'green'])
     sns.stripplot(x='group', y='delta-split', data=split_quant_df.loc[split_quant_df['param'] == param_sym_name[p]],
                   dodge=True, s=10, ax=ax, palette={0: 'orange', 1: 'green'}, edgecolor='None')
-    ax.set_xticklabels(['Stance-like\nstimulation', 'Swing-like\nstimulation'])
+    ax.set_xticklabels(['Stance onset\nstimulation', 'Swing onset\nstimulation'])
     ax.set_xlabel('')
     ax.set_ylabel(param_sym_label_delta[p], fontsize=16)
     ax.tick_params(axis='both', which='major', labelsize=16)
@@ -159,54 +164,56 @@ for p in range(np.shape(param_sym_name)[0]):
     print(stats_mannwhitney_ds)
 
 # Individual limbs - st
-xaxis_trials = np.array([stim_trials[0]-1, stim_trials[0], stim_trials[-1], stim_trials[-1]+1])
 for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+    rectangle = plt.Rectangle((stim_trials[0] - 0.5, min_plot[p]), rec_size, max_plot[p] - min_plot[p], fc='lightgray',
+                              zorder=0, alpha=0.3)
+    plt.gca().add_patch(rectangle)
     for paw in range(4):
-        param_paw_bs_st_mean = np.nanmean(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)
-        param_paw_bs_st_std = np.nanstd(param_paw_bs_st[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_st)[1])
-        ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_st_mean, param_paw_bs_st_std, color=paw_colors[paw], linewidth=1)
-        ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_st_mean, s=70, color=paw_colors[paw])
-    ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
-    ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
+        param_paw_st_bs_mean = np.nanmean(param_paw_bs_st[p, :, paw, :], axis=0)
+        param_paw_st_bs_std = np.nanstd(param_paw_bs_st[p, :, paw, :], axis=0) / np.sqrt(
+            np.shape(param_paw_bs_st)[1])
+        plt.plot(np.arange(1, Ntrials+1), param_paw_st_bs_mean, linewidth=2, marker='o', color=paw_colors[paw])
+        plt.fill_between(np.arange(1, Ntrials+1), param_paw_st_bs_mean-param_paw_st_bs_std,
+                    param_paw_st_bs_mean+param_paw_st_bs_std, color=paw_colors[paw], alpha=0.5)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_sym_label[p], fontsize=20)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_st.png'), dpi=128)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_st.svg'), dpi=128)
-plt.close('all')
+    plt.savefig(os.path.join(save_path, 'mean_animals_paws_bs_' + param_sym_name[p] + '_st.png'), dpi=128)
+    plt.savefig(os.path.join(save_path, 'mean_animals_paws_bs_' + param_sym_name[p] + '_st.svg'), dpi=128)
 
 # Individual limbs - sw
 for p in range(np.shape(param_sym_name)[0]):
     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+    rectangle = plt.Rectangle((stim_trials[0] - 0.5, min_plot[p]), rec_size, max_plot[p] - min_plot[p], fc='lightgray',
+                              zorder=0, alpha=0.3)
+    plt.gca().add_patch(rectangle)
     for paw in range(4):
-        param_paw_bs_sw_mean = np.nanmean(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)
-        param_paw_bs_sw_std = np.nanstd(param_paw_bs_sw[p, :, paw, xaxis_trials-1], axis=1)/np.sqrt(np.shape(param_paw_bs_sw)[1])
-        ax.errorbar(np.arange(0, len(xaxis_trials)*2, 2)+(paw*0.1), param_paw_bs_sw_mean, param_paw_bs_sw_std, color=paw_colors[paw], linewidth=1)
-        ax.scatter(np.arange(0, len(xaxis_trials) * 2, 2) + (paw * 0.1), param_paw_bs_sw_mean, s=70, color=paw_colors[paw])
-    ax.set_xticks(np.arange(0, len(xaxis_trials)*2, 2)+0.2)
-    ax.set_xticklabels(['baseline', 'first stim.', 'last stim.', 'post-stim.'], rotation=45)
+        param_paw_sw_bs_mean = np.nanmean(param_paw_bs_sw[p, :, paw, :], axis=0)
+        param_paw_sw_bs_std = np.nanstd(param_paw_bs_sw[p, :, paw, :], axis=0) / np.sqrt(
+            np.shape(param_paw_bs_sw)[1])
+        plt.plot(np.arange(1, Ntrials+1), param_paw_sw_bs_mean, linewidth=2, marker='o', color=paw_colors[paw])
+        plt.fill_between(np.arange(1, Ntrials+1), param_paw_sw_bs_mean-param_paw_st_bs_std,
+                    param_paw_sw_bs_mean+param_paw_st_bs_std, color=paw_colors[paw], alpha=0.5)
     ax.set_xlabel('Trial', fontsize=20)
     ax.set_ylabel(param_sym_label[p], fontsize=20)
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_sw.png'), dpi=128)
-    plt.savefig(os.path.join(save_path, 'mean_animals_paws_' + param_sym_name[p] + '_sw.svg'), dpi=128)
-plt.close('all')
+    plt.savefig(os.path.join(save_path, 'mean_animals_paws_bs_' + param_sym_name[p] + '_sw.png'), dpi=128)
+    plt.savefig(os.path.join(save_path, 'mean_animals_paws_bs_' + param_sym_name[p] + '_sw.svg'), dpi=128)
 
 # Stance phase - st
 fig = plt.figure(figsize=(10, 10), tight_layout=True)
 ax = fig.add_subplot(111, projection='polar')
-for paw in range(4):
+for paw in range(3):
     data_mean = scipy.stats.circmean(param_phase_st[paw, :, :], axis=0, nan_policy='omit')
     ax.scatter(data_mean[~np.isnan(data_mean)], np.arange(1, Ntrials+1), c=paw_colors[paw], s=30)
 ax.set_yticks([8.5, 8.5+rec_size])
-ax.set_yticklabels(['', ''])
 ax.tick_params(axis='both', which='major', labelsize=20)
 plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_st.png'), dpi=256)
 plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_st.svg'), dpi=256)
@@ -214,11 +221,10 @@ plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_st.svg'), d
 # Stance phase - sw
 fig = plt.figure(figsize=(10, 10), tight_layout=True)
 ax = fig.add_subplot(111, projection='polar')
-for paw in range(4):
+for paw in range(3):
     data_mean = scipy.stats.circmean(param_phase_sw[paw, :, :], axis=0, nan_policy='omit')
     ax.scatter(data_mean[~np.isnan(data_mean)], np.arange(1, Ntrials+1), c=paw_colors[paw], s=30)
 ax.set_yticks([8.5, 8.5+rec_size])
-ax.set_yticklabels(['', ''])
 ax.tick_params(axis='both', which='major', labelsize=20)
 plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_sw.png'), dpi=256)
 plt.savefig(os.path.join(save_path, 'mean_animals_stance_phase_polar_sw.svg'), dpi=256)

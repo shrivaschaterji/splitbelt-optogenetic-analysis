@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as sp
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split left fast control\\'
+path_loco = 'J:\\Opto JAWS Data\\split right fast control\\'
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
@@ -33,11 +33,12 @@ session_list_plot = np.array(session_list)[animal_list_plot_idx]
 Ntrials = 28
 
 #summary gait parameters
-param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'phase_st', 'stance_speed']
+param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length', 'phase_st', 'stance_speed']
 param_sym_label = ['Center of oscillation\nsymmetry (mm)', 'Step length\nsymmetry (mm)',
-    'Percentage of double\nsupport symmetry', 'Spatial motor output\nsymmetry (mm)', 'Swing length\nsymmetry (mm)']
+    'Percentage of double\nsupport symmetry', 'Spatial motor output\nsymmetry (mm)',
+        'Temporal motor output\nsymmetry (mm)', 'Swing length\nsymmetry (mm)']
 param_label = ['Center of\noscillation (mm)', 'Step length (mm)',
-    'Percentage of\ndouble support', 'Spatial motor\noutput (mm)', 'Swing length(mm)']
+    'Percentage of\ndouble support', 'Spatial motor\noutput (mm)', 'Temporal motor\noutput (mm)', 'Swing length(mm)']
 phase_label = 'Stance phasing\n(degrees)'
 stance_speed_label = 'Stance speed (m/s)'
 param_sym = np.zeros((len(param_sym_name), len(animal_list_plot), Ntrials))
@@ -68,8 +69,8 @@ for count_animal, animal in enumerate(animal_list_plot):
         for count_p, param in enumerate(param_sym_name):
             param_mat = loco.compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
             if param == 'phase_st':
-                for p in range(4):
-                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = sp.circmean(param_mat[0][p], nan_policy='omit')
+                for p in range(4): #HL as reference
+                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = sp.circmean(param_mat[3][p], nan_policy='omit')
             elif param == 'stance_speed':
                 for p in range(4):
                     stance_speed[p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[p])

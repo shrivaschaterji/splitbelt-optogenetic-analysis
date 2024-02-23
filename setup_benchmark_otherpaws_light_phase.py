@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
 
-path = 'J:\\Opto Benchmarks\\HR tests\\75percent\\'
+path = 'J:\\Opto Benchmarks\\HR tests\\50percent\\'
 condition = path.split('\\')[-2]
 network = path.split('\\')[-3]
 animals = ['MC18089', 'MC18090', 'MC18091', 'VIV40922', 'VIV40923', 'VIV40924']
