@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 paw_otrack = 'FR'
-path = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240221 tied swing stim\\'
+path = path_loco = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240126 tied stance stim\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -37,7 +37,7 @@ for count_a, animal in enumerate(animals):
     [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session, animal)
 
     # READ OFFLINE DLC TRACKS
-    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session)
+    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session, 1)
 
     ## READ OFFLINE PAW EXCURSIONS
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
