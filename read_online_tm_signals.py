@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 paw_otrack = 'FR'
-path = path_loco = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240125 tied swing stim\\'
+path = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240221 tied swing stim\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -12,8 +12,7 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['VIV41329', 'VIV41330']
-corr_latency = [0, 0]
+animals = ['VIV42375', 'VIV42376', 'VIV42428', 'VIV42429', 'VIV42430']
 
 animal_session_list = loco.animals_within_session()
 animal_list = []
