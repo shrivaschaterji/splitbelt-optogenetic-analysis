@@ -43,7 +43,8 @@ experiment_names = ['swing stim']      # 'control'] #         #'trial stim',
    #     ]
 
 paths = [
-    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240221 tied swing stim\\',
+   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240221 tied swing stim\\',
+    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim ChR2\\'
        # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20240202 split left fast stance stim\\',
       
      ]
@@ -87,7 +88,9 @@ animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              #
 animal_colors_dict = {'MC16851': animal_colors[0], 'MC17319': animal_colors[1],'MC17665': animal_colors[2],'MC17670': animal_colors[3],'MC17666': animal_colors[4],'MC17668': animal_colors[5],'MC17669': animal_colors[6],
                       'MC19022': animal_colors[7],'MC19082': animal_colors[8],'MC19123': animal_colors[9],'MC19124': '#FF00FF', 'MC19130': '#00FFFF','MC19132': '#0000FF','MC19214': '#00FF00',
                       'MC18737': animal_colors[0], 'MC19107': animal_colors[1], 'VIV41330': animal_colors[2], 'VIV41329': animal_colors[3],'VIV40958':animal_colors[4], 'VIV41344':animal_colors[5],'VIV41345':animal_colors[6],
-                      'VIV42375': animal_colors[4],'VIV42376': animal_colors[5],'VIV42428': animal_colors[7],'VIV42429': animal_colors[8],'VIV42430': animal_colors[9]}
+                      'VIV42375': animal_colors[4],'VIV42376': animal_colors[5],'VIV42428': animal_colors[7],'VIV42429': animal_colors[8],'VIV42430': animal_colors[9],
+                      'VIV42906': animal_colors[2], 'VIV42907': animal_colors[3],'VIV42908':animal_colors[4], 'VIV42974':animal_colors[5],'VIV42985':animal_colors[6],
+                      'VIV42992': animal_colors[7],'VIV42987': animal_colors[8]}
 
 #included_animal_list = [ 'MC17319','MC17665','MC17666','MC17668','MC17669','MC17670']
 included_animal_list = []
