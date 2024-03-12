@@ -44,7 +44,10 @@ for count_a, animal in enumerate(animals):
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
 
     # PROCESS SYNCHRONIZER LASER SIGNALS
-    laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
+    if 'ChR2' in path:
+        laser_on = otrack_class.get_laser_on(animal, laser_trial_signal_session, timestamps_session)
+    else:
+        laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
 
     # # GET LED INFORMATION
     # [st_led_on, sw_led_on] = otrack_class.get_led_information_trials(animal, timestamps_session, otracks_st, otracks_sw, corr_latency[count_a])
