@@ -16,12 +16,12 @@ significance_threshold = 0.05
 
 #axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 #bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-axes_ranges = {'coo': [-3, 5], 'step_length': [-5, 12], 'double_support': [-13, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 17], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+axes_ranges = {'coo': [-5, 5], 'step_length': [-12, 12], 'double_support': [-10, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+bars_ranges = {'coo': [-4, 4], 'step_length': [-12, 12], 'double_support': [-10, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 uniform_ranges = 1
 
 # List of paths for each experiment - it is possible to have only one element
-experiment_names = ['swing stim']      # 'control'] #         #'trial stim', 
+experiment_names = ['control','stance stim','swing stim']      # 'control'] #         #'trial stim', 'stance stim',
 
 #paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\28092023 split right fast trial stim 30s\\']
 
@@ -44,8 +44,15 @@ experiment_names = ['swing stim']      # 'control'] #         #'trial stim',
    #     ]
 
 paths = [
+   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240311 tied swing stim redone\\'
+   #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\ALL_ANIMALS\\tied stance stim\\',
+  # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\ALL_ANIMALS\\tied swing stim\\',
+    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast control\\',
+    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast stance stim\\',
+    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast swing stim\\',
+
    # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240221 tied swing stim\\',
-    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim ChR2\\'
+    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim ChR2\\'
        # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20240202 split left fast stance stim\\',
       
      ]
@@ -86,16 +93,46 @@ paths = [
 #
 experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black'}      # stim on: trial stance swing    'trial stim':'purple', 
 animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours
-animal_colors_dict = {'MC16851': animal_colors[0], 'MC17319': animal_colors[1],'MC17665': animal_colors[2],'MC17670': animal_colors[3],'MC17666': animal_colors[4],'MC17668': animal_colors[5],'MC17669': animal_colors[6],
-                      'MC19022': animal_colors[7],'MC19082': animal_colors[8],'MC19123': animal_colors[9],'MC19124': '#FF00FF', 'MC19130': '#00FFFF','MC19132': '#0000FF','MC19214': '#00FF00',
-                      'MC18737': animal_colors[0], 'MC19107': animal_colors[1], 'VIV41330': animal_colors[2], 'VIV41329': animal_colors[3],'VIV40958':animal_colors[4], 'VIV41344':animal_colors[5],'VIV41345':animal_colors[6],
-                      'VIV42375': animal_colors[4],'VIV42376': animal_colors[5],'VIV42428': animal_colors[7],'VIV42429': animal_colors[8],'VIV42430': animal_colors[9],
-                      'VIV42906': animal_colors[2], 'VIV42907': animal_colors[3],'VIV42908':animal_colors[4], 'VIV42974':animal_colors[5],'VIV42985':animal_colors[6],
-                      'VIV42992': animal_colors[7],'VIV42987': animal_colors[8]}
+animal_colors_dict = {'MC16846': "#FFD700",'MC16848':"#BBF90F",'MC16850': "#15B01A",'MC16851': animal_colors[0], 'MC17319': animal_colors[1],
+                      'MC17665': '#CCCCFF','MC17670': '#660033','MC17666': animal_colors[4], 'MC17668': animal_colors[5],'MC17669': animal_colors[6], 
+                      'MC19022': animal_colors[7],'MC19082': animal_colors[8],'MC19123': animal_colors[9], 'MC19124': '#FF00FF', 'MC19130': '#00FFFF',
+                      'MC19132': '#0000FF','MC19214': '#00FF00', 'MC18737': '#F08080', 'MC19107': '#FA8072', 'VIV41330': animal_colors[2], 
+                      'VIV41329': animal_colors[3], 'VIV41375': '#5C62D6', 'VIV41376': '#FF0000', 'VIV41428': '#BC8F8F', 'VIV41429': '#A9932CC',
+                      'VIV41430': '#FF4500',
+                      #IO fiber control
+                      'VIV40958':animal_colors[4], 'VIV41344':animal_colors[5], 'VIV41345':animal_colors[6], 
+                      #ChR2
+                      'VIV42375': animal_colors[4],'VIV42376': animal_colors[5],'VIV42428': animal_colors[7],'VIV42429': animal_colors[8],
+                      'VIV42430': animal_colors[9], 'VIV42906': animal_colors[2], 'VIV42907': animal_colors[3],'VIV42908':animal_colors[4], 'VIV42974':animal_colors[5],
+                      'VIV42985':animal_colors[6], 'VIV42992': animal_colors[7],'VIV42987': animal_colors[8]}
+'''
+# Not histo confirmed in gray
+animal_colors_dict = {'MC16846': "#BBBBBB",'MC16848':"#BBBBBB",'MC16850': "#BBBBBB",'MC16851': animal_colors[0], 'MC17319': animal_colors[1],
+                      'MC17665': '#CCCCFF','MC17670': '#660033','MC17666': animal_colors[4], 'MC17668': animal_colors[5],'MC17669': '#BBBBBB', 
+                      'MC19022': '#BBBBBB','MC19082': animal_colors[8],'MC19123': '#BBBBBB', 'MC19124': '#FF00FF', 'MC19130': '#00FFFF',
+                      'MC19132': '#BBBBBB','MC19214': '#00FF00', 'MC18737': '#BBBBBB', 'MC19107': '#FA8072', 'VIV41330': '#777777', 
+                      'VIV41329': '#777777', 'VIV41375': '#777777', 'VIV41376': '#777777', 'VIV41428': '#777777', 'VIV41429': '#777777',
+                      'VIV41430': '#777777',
+                      #IO fiber control
+                      'VIV40958':animal_colors[4], 'VIV41344':animal_colors[5], 'VIV41345':animal_colors[6], 
+                      #ChR2
+                      'VIV42375': animal_colors[4],'VIV42376': animal_colors[5],'VIV42428': animal_colors[7],'VIV42429': animal_colors[8],
+                      'VIV42430': animal_colors[9], 'VIV42906': animal_colors[2], 'VIV42907': animal_colors[3],'VIV42908':animal_colors[4], 'VIV42974':animal_colors[5],
+                      'VIV42985':animal_colors[6], 'VIV42992': animal_colors[7],'VIV42987': animal_colors[8]}
 
+'''
 #included_animal_list = [ 'MC17319','MC17665','MC17666','MC17668','MC17669','MC17670']
-included_animal_list = []
-    
+'''
+included_animal_list = []  
+
+['MC16846','MC16848','MC16850','MC16851', 'MC17319',
+   'MC17665','MC17670','MC17666', 'MC17668','MC17669', 
+   'MC19022','MC19082','MC19123', 'MC19124', 'MC19130',
+   'MC19132','MC19214', 'MC18737', 'MC19107', 'VIV41330', 
+   'VIV41329']          # 21 animals
+    '''
+included_animal_list =  ['MC16851', 'MC17319','MC17665','MC17670','MC17666', 'MC17668', 
+    'MC19082','MC19124', 'MC19130','MC19214']         # 11 animals
     
     #'MC19022','MC19082','MC19123','MC19130','MC19132','MC19124','MC19214']             #  
 #included_animal_list = ['MC16851','MC17319','MC17665','MC17666','MC17669','MC17670']#, 'MC19022','MC19082','MC19123','MC19124','MC19214']
