@@ -348,7 +348,7 @@ for path in paths:
                 plt.plot(np.linspace(1, len(param_sym_bs[p, a, :]), len(param_sym_bs[p, a, :])), param_sym_bs[p, a, :], color= animal_colors_dict[animal_list[a]],
                         label=animal_list[a], linewidth=2)
             ax.set_xlabel('Trial', fontsize=20)
-            ax.legend(frameon=False)
+            ax.legend(frameon=False,loc='center left', bbox_to_anchor=(1, 0.5)) 
             ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
             # if p == 2:
             #    plt.gca().invert_yaxis()
@@ -658,14 +658,18 @@ if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
                     current_experiment_names.append(experiment_name)
                     current_experiment_colors.append(experiment_colors_dict[exp])
                     current_bar_labels.append(exp)
-            
+            '''
             # Flip signs to have good control learning always positive
+                    
             if (param_sym_name[p] == 'double_support' and control_ses == 'right') or ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'left'):
                 initial_error.append(np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))  
                 learning.append(-(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1)))
                 aftereffect.append(-np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
             elif ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'right') or (param_sym_name[p] == 'double_support' and control_ses == 'left'):
                 initial_error.append(-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))         
+                learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
+                aftereffect.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
+            '''
             initial_error.append(np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))  
             learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
             aftereffect.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
