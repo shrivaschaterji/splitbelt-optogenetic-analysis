@@ -368,7 +368,7 @@ for path in paths:
     # PLOT ANIMAL AVERAGE FOR EACH SESSION
     param_sym_multi[path] = {}
     if single_animal_analysis == 0:
-        for p in range(np.shape(param_sym)[0] - 1):
+        for p in range(np.shape(param_sym)[0]):
             param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
             fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
             if uniform_ranges:
@@ -563,7 +563,7 @@ if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
         current_experiment_colors = ['black']
         current_bar_labels = ['control']
     
-    for p in range(np.shape(param_sym)[0] - 1):
+    for p in range(np.shape(param_sym)[0]):
         fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
         min_rect = 0
         max_rect = 0
@@ -740,7 +740,6 @@ if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
             if not os.path.exists(paths_save[0]):
                 os.mkdir(paths_save[0])
             plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session_barplot', dpi=96)       #_gray_not_confirmed
-
 
 
      
