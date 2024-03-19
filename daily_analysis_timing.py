@@ -71,15 +71,15 @@ for count_a, animal in enumerate(animal_list):
     stride_nr_trials = np.zeros(len(trials_plot))
     for count_t, trial in enumerate(trials_plot):
         [light_onset_phase, light_offset_phase, stim_nr, stride_nr] = \
-            otrack_class.laser_presentation_phase(trial, trials, laser_event, offtracks_st, offtracks_sw, laser_on,
-                                                  timestamps_session, final_tracks_phase, 0)
+            otrack_class.laser_presentation_phase_all(trial, trials, laser_event, offtracks_st, offtracks_sw, laser_on,
+                                                  timestamps_session, final_tracks_phase, "FR")
         stim_nr_trials[count_t] = stim_nr
         stride_nr_trials[count_t] = stride_nr
         light_onset_phase_all.extend(light_onset_phase)
         light_offset_phase_all.extend(light_offset_phase)
     otrack_class.plot_laser_presentation_phase(light_onset_phase_all, light_offset_phase_all, laser_event,
                     16, np.sum(stim_nr_trials), np.sum(stride_nr_trials), 0, 1,
-                    path_save, animal+'_'+laser_event+'_'+session_list[count_a])
+                    path_save, animal+'_'+laser_event+'_'+session_list[count_a], True)
     plt.close('all')
 
 
