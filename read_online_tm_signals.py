@@ -38,13 +38,16 @@ for count_a, animal in enumerate(animals):
     [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session, animal)
 
     # READ OFFLINE DLC TRACKS
-    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session)
+    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session, save_csv=True)
 
     ## READ OFFLINE PAW EXCURSIONS
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
 
     # PROCESS SYNCHRONIZER LASER SIGNALS
-    laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
+    if 'ChR2' in path:
+        laser_on = otrack_class.get_laser_on(animal, laser_trial_signal_session, timestamps_session)
+    else:
+        laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
 
     # # GET LED INFORMATION
     # [st_led_on, sw_led_on] = otrack_class.get_led_information_trials(animal, timestamps_session, otracks_st, otracks_sw, corr_latency[count_a])
