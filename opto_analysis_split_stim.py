@@ -5,7 +5,7 @@ import pandas as pd
 import scipy.stats as sp
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split right fast stance stim\\'
+path_loco = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
 split_side = path_loco.split('\\')[-2].split(' ')[1]
 event_stim = path_loco.split('\\')[-2].split(' ')[-2]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
@@ -172,10 +172,10 @@ if split_side == 'right':
 if split_side == 'left':
     param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split left fast control\\grouped output\\param_sym_bs.npy')
 
-min_plot = [-5, -11, -7, -2, -10, -2] #split right stance
-max_plot = [2, 4, 10, 6, 2, 8] #split right stance
-# min_plot = [-5, -11, -5, -2, -10, -2] #split right swing
-# max_plot = [2, 4, 11, 5, 2, 9] #split right swing
+# min_plot = [-5, -11, -7, -2, -10, -2] #split right stance
+# max_plot = [2, 4, 10, 6, 2, 8] #split right stance
+min_plot = [-5, -11, -5, -2, -10, -2] #split right swing
+max_plot = [2, 4, 11, 5, 2, 9] #split right swing
 # min_plot = [-2, -4, -10, -6, -2, -12] #split left swing
 # max_plot = [4, 6, 6, 2, 10, 3] #split left swing
 # min_plot = [-2, -4, -10, -6, -2, -12] #split left stance
@@ -194,161 +194,161 @@ for p in range(np.shape(param_sym)[0]-2):
     plt.fill_between(np.arange(1, Ntrials+1), mean_data_control-std_data_control, mean_data_control+std_data_control, color='black', alpha=0.5)
     plt.plot(np.arange(1, Ntrials+1), mean_data_control, linewidth=2, marker='o', color='black')
     plt.fill_between(np.arange(1, Ntrials+1), mean_data-std_data, mean_data+std_data, color=color_cond, alpha=0.5)
-    ax.set_xlabel('Trial', fontsize=20)
-    ax.set_ylabel(param_sym_label[p], fontsize=20)
+    ax.set_xlabel('Trial', fontsize=28)
+    ax.set_ylabel(param_sym_label[p], fontsize=28)
     # if p == 2:
     #     plt.gca().invert_yaxis()
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
+    plt.xticks(fontsize=28)
+    plt.yticks(fontsize=28)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     plt.savefig(os.path.join(path_save, 'mean_animals_symmetry_' + param_sym_name[p] + '.png'), dpi=128)
     plt.savefig(os.path.join(path_save, 'mean_animals_symmetry_' + param_sym_name[p] + '.svg'), dpi=128)
 plt.close('all')
 
-#plot individual limbs baseline subtracted - mean animals
-for p in range(np.shape(param_sym)[0]-2):
-    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    mean_data = np.vstack((np.nanmean(param_paw_bs[p, :, 0, :], axis=0), np.nanmean(param_paw_bs[p, :, 1, :], axis=0),
-        np.nanmean(param_paw_bs[p, :, 2, :], axis=0), np.nanmean(param_paw_bs[p, :, 3, :], axis=0)))
-    std_data = np.vstack((np.nanstd(param_paw_bs[p, :, 0, :], axis=0)/np.sqrt(len(animals)),
-        np.nanstd(param_paw_bs[p, :, 1, :], axis=0)/np.sqrt(len(animals)),
-        np.nanstd(param_paw_bs[p, :, 2, :], axis=0)/np.sqrt(len(animals)),
-        np.nanstd(param_paw_bs[p, :, 3, :], axis=0)/np.sqrt(len(animals))))
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightblue', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
-    for paw in range(4):
-        plt.plot(np.arange(1, Ntrials+1), np.nanmean(param_paw_bs[p, :, paw, :], axis=0), linewidth=2, color=paw_colors[paw])
-        plt.fill_between(np.arange(1, Ntrials+1),
-            np.nanmean(param_paw_bs[p, :, paw, :], axis=0)-(np.nanstd(param_paw_bs[p, :, paw, :], axis=0)/np.sqrt(len(animals))),
-            np.nanmean(param_paw_bs[p, :, paw, :], axis=0)+(np.nanstd(param_paw_bs[p, :, paw, :], axis=0)/np.sqrt(len(animals))), color=paw_colors[paw], alpha=0.5)
-    ax.set_xlabel('Trial', fontsize=20)
-    ax.set_ylabel(param_label[p], fontsize=20)
-    if p == 2:
-        plt.gca().invert_yaxis()
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(path_save, 'mean_animals_paws_' + param_sym_name[p] + '.png'), dpi=128)
-    plt.savefig(os.path.join(path_save, 'mean_animals_paws_' + param_sym_name[p] + '.svg'), dpi=128)
-plt.close('all')
-
-#plot stance phase - group mean
-fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-mean_data = np.vstack((np.nanmean(param_phase[0, :, :], axis=0), np.nanmean(param_phase[1, :, :], axis=0),
-                       np.nanmean(param_phase[2, :, :], axis=0), np.nanmean(param_phase[3, :, :], axis=0)))
-std_data = np.vstack((np.nanstd(param_phase[0, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(param_phase[1, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(param_phase[2, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(param_phase[3, :, :], axis=0) / np.sqrt(len(animals))))
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, np.rad2deg(np.nanmin(mean_data - std_data))), 10,
-                          np.rad2deg(np.nanmax(mean_data + std_data) - np.nanmin(mean_data - std_data)), fc='lightblue', alpha=0.3)
-plt.gca().add_patch(rectangle)
-for paw in range(4):
-    plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0)), linewidth=2,
-             color=paw_colors[paw])
-    plt.fill_between(np.arange(1, Ntrials + 1),
-                     np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0) - (
-                                 np.nanstd(param_phase[paw, :, :], axis=0) / np.sqrt(len(animals)))),
-                     np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0) + (
-                                 np.nanstd(param_phase[paw, :, :], axis=0) / np.sqrt(len(animals)))),
-                     color=paw_colors[paw], alpha=0.5)
-ax.set_xlabel('Trial', fontsize=20)
-ax.set_ylabel(phase_label, fontsize=20)
-plt.xticks(fontsize=20)
-ax.set_ylim([70, 230])
-plt.yticks(fontsize=20)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.png'), dpi=128)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.svg'), dpi=128)
-plt.close('all')
-
-#plot stance phase - group mean
-fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-mean_data = np.vstack((np.nanmean(stance_speed[0, :, :], axis=0), np.nanmean(stance_speed[1, :, :], axis=0),
-                       np.nanmean(stance_speed[2, :, :], axis=0), np.nanmean(stance_speed[3, :, :], axis=0)))
-std_data = np.vstack((np.nanstd(stance_speed[0, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(stance_speed[1, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(stance_speed[2, :, :], axis=0) / np.sqrt(len(animals)),
-                      np.nanstd(stance_speed[3, :, :], axis=0) / np.sqrt(len(animals))))
-rectangle = plt.Rectangle((stim_trials[0] - 0.5, np.nanmin(mean_data - std_data)), 10,
-                          np.nanmax(mean_data + std_data) - np.nanmin(mean_data - std_data), fc='lightblue', alpha=0.3)
-plt.gca().add_patch(rectangle)
-for paw in range(4):
-    plt.plot(np.arange(1, Ntrials + 1), np.nanmean(stance_speed[paw, :, :], axis=0), linewidth=2,
-             color=paw_colors[paw])
-    plt.fill_between(np.arange(1, Ntrials + 1),
-                     np.nanmean(stance_speed[paw, :, :], axis=0) - (
-                                 np.nanstd(stance_speed[paw, :, :], axis=0) / np.sqrt(len(animals))),
-                     np.nanmean(stance_speed[paw, :, :], axis=0) + (
-                                 np.nanstd(stance_speed[paw, :, :], axis=0) / np.sqrt(len(animals))),
-                     color=paw_colors[paw], alpha=0.5)
-ax.set_xlabel('Trial', fontsize=20)
-ax.set_ylabel(stance_speed_label, fontsize=20)
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_speed.png'), dpi=128)
-plt.savefig(os.path.join(path_save, 'mean_animals_stance_speed.svg'), dpi=128)
-plt.close('all')
-
-#plot symmetry baseline subtracted - individual animals
-for p in range(np.shape(param_sym)[0]-2):
-    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.min(param_sym_bs[p, :, :].flatten())), 10, np.max(param_sym_bs[p, :, :].flatten())-np.min(param_sym_bs[p, :, :].flatten()), fc='lightblue', alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    plt.hlines(0, 1, len(param_sym_bs[p, 0, :]), colors='grey', linestyles='--')
-    for a in range(len(animals)):
-        plt.plot(np.arange(1, Ntrials+1), param_sym_bs[p, a, :], label=animal_list_plot[a], linewidth=2)
-    ax.set_xlabel('Trial', fontsize=20)
-    ax.legend(frameon=False)
-    ax.set_ylabel(param_sym_label[p], fontsize=20)
-    if p == 2:
-        plt.gca().invert_yaxis()
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    plt.savefig(os.path.join(path_save, 'ind_animals_symmetry_' + param_sym_name[p] + '.png'), dpi=128)
-plt.close('all')
-
-#plot stance speed - individual animals
-fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
-ax = ax.ravel()
-for count_a in range(len(animals)):
-    for p in range(4):
-        ax[count_a].axvline(x=stim_trials[0]-0.5, color='dimgray', linestyle='--')
-        ax[count_a].axvline(x=stim_trials[0]+10-0.5, color='dimgray', linestyle='--')
-        ax[count_a].plot(np.arange(1, Ntrials+1), stance_speed[p, count_a, :], color=paw_colors[p], linewidth=2)
-        ax[count_a].axvline(x=8.5, color='black')
-        ax[count_a].axvline(x=18.5, color='black')
-        ax[count_a].spines['right'].set_visible(False)
-        ax[count_a].spines['top'].set_visible(False)
-        ax[count_a].tick_params(axis='x')
-        ax[count_a].tick_params(axis='y')
-        ax[count_a].set_title(animals[count_a])
-plt.savefig(os.path.join(path_save, 'ind_animals_stance_speed.png'), dpi=128)
-
-#plot stance phase - individual animals
-fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
-ax = ax.ravel()
-for count_a in range(len(animals)):
-    for p in range(4):
-        ax[count_a].axvline(x=stim_trials[0]-0.5, color='dimgray', linestyle='--')
-        ax[count_a].axvline(x=stim_trials[0]+10-0.5, color='dimgray', linestyle='--')
-        ax[count_a].plot(np.arange(1, Ntrials+1), np.rad2deg(param_phase[p, count_a, :]), color=paw_colors[p], linewidth=2)
-        ax[count_a].spines['right'].set_visible(False)
-        ax[count_a].spines['top'].set_visible(False)
-        # ax[count_a].set_ylim([70, 230])
-        ax[count_a].tick_params(axis='x')
-        ax[count_a].tick_params(axis='y')
-        ax[count_a].set_title(animals[count_a])
-plt.savefig(os.path.join(path_save, 'ind_animals_stance_phase.png'), dpi=128)
-plt.close('all')
+# #plot individual limbs baseline subtracted - mean animals
+# for p in range(np.shape(param_sym)[0]-2):
+#     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+#     mean_data = np.vstack((np.nanmean(param_paw_bs[p, :, 0, :], axis=0), np.nanmean(param_paw_bs[p, :, 1, :], axis=0),
+#         np.nanmean(param_paw_bs[p, :, 2, :], axis=0), np.nanmean(param_paw_bs[p, :, 3, :], axis=0)))
+#     std_data = np.vstack((np.nanstd(param_paw_bs[p, :, 0, :], axis=0)/np.sqrt(len(animals)),
+#         np.nanstd(param_paw_bs[p, :, 1, :], axis=0)/np.sqrt(len(animals)),
+#         np.nanstd(param_paw_bs[p, :, 2, :], axis=0)/np.sqrt(len(animals)),
+#         np.nanstd(param_paw_bs[p, :, 3, :], axis=0)/np.sqrt(len(animals))))
+#     rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightblue', alpha=0.3)
+#     plt.gca().add_patch(rectangle)
+#     plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
+#     for paw in range(4):
+#         plt.plot(np.arange(1, Ntrials+1), np.nanmean(param_paw_bs[p, :, paw, :], axis=0), linewidth=2, color=paw_colors[paw])
+#         plt.fill_between(np.arange(1, Ntrials+1),
+#             np.nanmean(param_paw_bs[p, :, paw, :], axis=0)-(np.nanstd(param_paw_bs[p, :, paw, :], axis=0)/np.sqrt(len(animals))),
+#             np.nanmean(param_paw_bs[p, :, paw, :], axis=0)+(np.nanstd(param_paw_bs[p, :, paw, :], axis=0)/np.sqrt(len(animals))), color=paw_colors[paw], alpha=0.5)
+#     ax.set_xlabel('Trial', fontsize=20)
+#     ax.set_ylabel(param_label[p], fontsize=20)
+#     if p == 2:
+#         plt.gca().invert_yaxis()
+#     plt.xticks(fontsize=20)
+#     plt.yticks(fontsize=20)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     plt.savefig(os.path.join(path_save, 'mean_animals_paws_' + param_sym_name[p] + '.png'), dpi=128)
+#     plt.savefig(os.path.join(path_save, 'mean_animals_paws_' + param_sym_name[p] + '.svg'), dpi=128)
+# plt.close('all')
+#
+# #plot stance phase - group mean
+# fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+# mean_data = np.vstack((np.nanmean(param_phase[0, :, :], axis=0), np.nanmean(param_phase[1, :, :], axis=0),
+#                        np.nanmean(param_phase[2, :, :], axis=0), np.nanmean(param_phase[3, :, :], axis=0)))
+# std_data = np.vstack((np.nanstd(param_phase[0, :, :], axis=0) / np.sqrt(len(animals)),
+#                       np.nanstd(param_phase[1, :, :], axis=0) / np.sqrt(len(animals)),
+#                       np.nanstd(param_phase[2, :, :], axis=0) / np.sqrt(len(animals)),
+#                       np.nanstd(param_phase[3, :, :], axis=0) / np.sqrt(len(animals))))
+# rectangle = plt.Rectangle((stim_trials[0] - 0.5, np.rad2deg(np.nanmin(mean_data - std_data))), 10,
+#                           np.rad2deg(np.nanmax(mean_data + std_data) - np.nanmin(mean_data - std_data)), fc='lightblue', alpha=0.3)
+# plt.gca().add_patch(rectangle)
+# for paw in range(4):
+#     plt.plot(np.arange(1, Ntrials + 1), np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0)), linewidth=2,
+#              color=paw_colors[paw])
+#     plt.fill_between(np.arange(1, Ntrials + 1),
+#                      np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0) - (
+#                                  np.nanstd(param_phase[paw, :, :], axis=0) / np.sqrt(len(animals)))),
+#                      np.rad2deg(np.nanmean(param_phase[paw, :, :], axis=0) + (
+#                                  np.nanstd(param_phase[paw, :, :], axis=0) / np.sqrt(len(animals)))),
+#                      color=paw_colors[paw], alpha=0.5)
+# ax.set_xlabel('Trial', fontsize=20)
+# ax.set_ylabel(phase_label, fontsize=20)
+# plt.xticks(fontsize=20)
+# ax.set_ylim([70, 230])
+# plt.yticks(fontsize=20)
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.png'), dpi=128)
+# plt.savefig(os.path.join(path_save, 'mean_animals_stance_phase.svg'), dpi=128)
+# plt.close('all')
+#
+# #plot stance phase - group mean
+# fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+# mean_data = np.vstack((np.nanmean(stance_speed[0, :, :], axis=0), np.nanmean(stance_speed[1, :, :], axis=0),
+#                        np.nanmean(stance_speed[2, :, :], axis=0), np.nanmean(stance_speed[3, :, :], axis=0)))
+# std_data = np.vstack((np.nanstd(stance_speed[0, :, :], axis=0) / np.sqrt(len(animals)),
+#                       np.nanstd(stance_speed[1, :, :], axis=0) / np.sqrt(len(animals)),
+#                       np.nanstd(stance_speed[2, :, :], axis=0) / np.sqrt(len(animals)),
+#                       np.nanstd(stance_speed[3, :, :], axis=0) / np.sqrt(len(animals))))
+# rectangle = plt.Rectangle((stim_trials[0] - 0.5, np.nanmin(mean_data - std_data)), 10,
+#                           np.nanmax(mean_data + std_data) - np.nanmin(mean_data - std_data), fc='lightblue', alpha=0.3)
+# plt.gca().add_patch(rectangle)
+# for paw in range(4):
+#     plt.plot(np.arange(1, Ntrials + 1), np.nanmean(stance_speed[paw, :, :], axis=0), linewidth=2,
+#              color=paw_colors[paw])
+#     plt.fill_between(np.arange(1, Ntrials + 1),
+#                      np.nanmean(stance_speed[paw, :, :], axis=0) - (
+#                                  np.nanstd(stance_speed[paw, :, :], axis=0) / np.sqrt(len(animals))),
+#                      np.nanmean(stance_speed[paw, :, :], axis=0) + (
+#                                  np.nanstd(stance_speed[paw, :, :], axis=0) / np.sqrt(len(animals))),
+#                      color=paw_colors[paw], alpha=0.5)
+# ax.set_xlabel('Trial', fontsize=20)
+# ax.set_ylabel(stance_speed_label, fontsize=20)
+# plt.xticks(fontsize=20)
+# plt.yticks(fontsize=20)
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# plt.savefig(os.path.join(path_save, 'mean_animals_stance_speed.png'), dpi=128)
+# plt.savefig(os.path.join(path_save, 'mean_animals_stance_speed.svg'), dpi=128)
+# plt.close('all')
+#
+# #plot symmetry baseline subtracted - individual animals
+# for p in range(np.shape(param_sym)[0]-2):
+#     fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+#     rectangle = plt.Rectangle((stim_trials[0]-0.5, np.min(param_sym_bs[p, :, :].flatten())), 10, np.max(param_sym_bs[p, :, :].flatten())-np.min(param_sym_bs[p, :, :].flatten()), fc='lightblue', alpha=0.3)
+#     plt.gca().add_patch(rectangle)
+#     plt.hlines(0, 1, len(param_sym_bs[p, 0, :]), colors='grey', linestyles='--')
+#     for a in range(len(animals)):
+#         plt.plot(np.arange(1, Ntrials+1), param_sym_bs[p, a, :], label=animal_list_plot[a], linewidth=2)
+#     ax.set_xlabel('Trial', fontsize=20)
+#     ax.legend(frameon=False)
+#     ax.set_ylabel(param_sym_label[p], fontsize=20)
+#     if p == 2:
+#         plt.gca().invert_yaxis()
+#     plt.xticks(fontsize=20)
+#     plt.yticks(fontsize=20)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     plt.savefig(os.path.join(path_save, 'ind_animals_symmetry_' + param_sym_name[p] + '.png'), dpi=128)
+# plt.close('all')
+#
+# #plot stance speed - individual animals
+# fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
+# ax = ax.ravel()
+# for count_a in range(len(animals)):
+#     for p in range(4):
+#         ax[count_a].axvline(x=stim_trials[0]-0.5, color='dimgray', linestyle='--')
+#         ax[count_a].axvline(x=stim_trials[0]+10-0.5, color='dimgray', linestyle='--')
+#         ax[count_a].plot(np.arange(1, Ntrials+1), stance_speed[p, count_a, :], color=paw_colors[p], linewidth=2)
+#         ax[count_a].axvline(x=8.5, color='black')
+#         ax[count_a].axvline(x=18.5, color='black')
+#         ax[count_a].spines['right'].set_visible(False)
+#         ax[count_a].spines['top'].set_visible(False)
+#         ax[count_a].tick_params(axis='x')
+#         ax[count_a].tick_params(axis='y')
+#         ax[count_a].set_title(animals[count_a])
+# plt.savefig(os.path.join(path_save, 'ind_animals_stance_speed.png'), dpi=128)
+#
+# #plot stance phase - individual animals
+# fig, ax = plt.subplots(3, 3, figsize=(20, 20), tight_layout=True, sharey=True, sharex=True)
+# ax = ax.ravel()
+# for count_a in range(len(animals)):
+#     for p in range(4):
+#         ax[count_a].axvline(x=stim_trials[0]-0.5, color='dimgray', linestyle='--')
+#         ax[count_a].axvline(x=stim_trials[0]+10-0.5, color='dimgray', linestyle='--')
+#         ax[count_a].plot(np.arange(1, Ntrials+1), np.rad2deg(param_phase[p, count_a, :]), color=paw_colors[p], linewidth=2)
+#         ax[count_a].spines['right'].set_visible(False)
+#         ax[count_a].spines['top'].set_visible(False)
+#         # ax[count_a].set_ylim([70, 230])
+#         ax[count_a].tick_params(axis='x')
+#         ax[count_a].tick_params(axis='y')
+#         ax[count_a].set_title(animals[count_a])
+# plt.savefig(os.path.join(path_save, 'ind_animals_stance_phase.png'), dpi=128)
+# plt.close('all')
 
 # accuracy_animals = np.zeros((len(animals_triggers), Ntrials))
 # accuracy_animals[:] = np.nan
