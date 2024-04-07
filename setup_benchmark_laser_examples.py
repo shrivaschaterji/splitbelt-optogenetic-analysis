@@ -9,8 +9,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 np.warnings.filterwarnings('ignore')
-summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\Examples\\'
-path = 'J:\\Opto Benchmarks\\HR tests\\25percent\\'
+summary_path = 'J:\\LocoCF\\Fig2 - split swing stim jaws\\'
+path = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
 condition = path.split('\\')[-2]
 network = path.split('\\')[-3]
 session = 1
@@ -23,8 +23,8 @@ loco = locomotion_class.loco_class(path)
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 
-animal = 'VIV40924'
-trial = 5
+animal = 'MC17670'
+trial = 9
 trials = otrack_class.get_trials(animal)
 # LOAD PROCESSED DATA
 [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)

@@ -6,10 +6,10 @@ import seaborn as sns
 import scipy
 
 #path inputs
-path_st = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
-path_sw = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
-experiment_type = 'split'
-save_path = 'J:\\Thesis\\for figures\\fig split left fast opto\\'
+path_st = 'J:\\Opto JAWS Data\\tied stance stim\\'
+path_sw = 'J:\\Opto JAWS Data\\tied swing stim\\'
+experiment_type = 'tied'
+save_path = 'J:\\Thesis\\for figures\\fig tied opto\\'
 experiment_st = path_st.split('\\')[-2].replace(' ', '_')
 experiment_sw = path_sw.split('\\')[-2].replace(' ', '_')
 param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length']
@@ -50,15 +50,14 @@ else:
     animals_sw = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
     stim_trial_end_st = np.repeat(18, len(animals_st))
     stim_trial_end_sw = np.repeat(18, len(animals_sw))
-# param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split right fast control\\grouped output\\param_sym_bs.npy')
 Nanimals = len(animals_st)
 
-# min_plot = [-3, -4, -6, -4, -4, -4] #tied
-# max_plot = [3, 4, 6, 4, 4, 4] #tied
+min_plot = [-3, -4, -6, -4, -4, -4] #tied
+max_plot = [3, 4, 6, 4, 4, 4] #tied
 # min_plot = [-5, -7, -7, -2, -2, -3] #split right fast
 # max_plot = [2, 4, 11, 9, 9, 8] #split right fast
-min_plot = [-2, -3, -11, -6, -6, -9] #split left fast
-max_plot = [4, 6, 8, 2, 2, 3] #split left fast
+# min_plot = [-2, -3, -11, -6, -6, -9] #split left fast
+# max_plot = [4, 6, 8, 2, 2, 3] #split left fast
 for p in range(np.shape(param_sym_name)[0]):
     mean_data_st = np.nanmean(param_sym_bs_st[p, :, :], axis=0)
     std_data_st = np.nanstd(param_sym_bs_st[p, :, :], axis=0) / np.sqrt(Nanimals)
@@ -89,7 +88,58 @@ for p in range(np.shape(param_sym_name)[0]):
     plt.savefig(os.path.join(save_path, experiment_type + '_mean_animals_sym' + param_sym_name[p] + '.svg'))
 plt.close('all')
 
-# Quantifications
+#For thesis presentation plots
+# param_sym_bs_control = np.load('J:\\Opto JAWS Data\\split right fast control\\grouped output\\param_sym_bs.npy')
+# fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+# mean_data_control = np.nanmean(param_sym_bs_control[2, :, :], axis=0)
+# std_data_control = (np.nanstd(param_sym_bs_control[2, :, :], axis=0) / np.sqrt(Nanimals))
+# mean_data_st = np.nanmean(param_sym_bs_st[2, :, :], axis=0)
+# std_data_st = (np.nanstd(param_sym_bs_st[2, :, :], axis=0) / np.sqrt(Nanimals))
+# mean_data_sw = np.nanmean(param_sym_bs_sw[2, :, :], axis=0)
+# std_data_sw = (np.nanstd(param_sym_bs_sw[2, :, :], axis=0) / np.sqrt(Nanimals))
+# # plt.vlines(8.5, -6, 10, colors='grey', linestyle='--')
+# # plt.vlines(18.5, -6, 10, colors='grey', linestyle='--')
+# rectangle = plt.Rectangle((stim_trials[0] - 0.5, -6), rec_size, 16, fc='lightblue',
+#                           zorder=0, alpha=0.3)
+# plt.gca().add_patch(rectangle)
+# plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
+# plt.plot(np.arange(1, Ntrials + 1), mean_data_control, linewidth=2, marker='o', color='black')
+# plt.fill_between(np.arange(1, Ntrials + 1), mean_data_control - std_data_control, mean_data_control + std_data_control, color='black', alpha=0.5)
+# plt.plot(np.arange(1, Ntrials + 1), mean_data_st, linewidth=2, marker='o', color='orange')
+# plt.fill_between(np.arange(1, Ntrials + 1), mean_data_st - std_data_st, mean_data_st + std_data_st, color='orange', alpha=0.5)
+# plt.plot(np.arange(1, Ntrials + 1), mean_data_sw, linewidth=2, marker='o', color='green')
+# plt.fill_between(np.arange(1, Ntrials + 1), mean_data_sw - std_data_sw, mean_data_sw + std_data_sw, color='green', alpha=0.5)
+# ax.set_xlabel('Trial', fontsize=20)
+# ax.set_ylabel('Front paws\nrelative timing', fontsize=20)
+# plt.xticks(fontsize=20)
+# plt.yticks(fontsize=20)
+# plt.ylim([-6, 10])
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# plt.savefig(os.path.join('J:\\Thesis\\Presentation\\split_right_fast_sw.png'), dpi=256)
+# fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+# mean_data_st = np.nanmean(param_sym_bs_st[2, :, :], axis=0)
+# std_data_st = (np.nanstd(param_sym_bs_st[2, :, :], axis=0) / np.sqrt(Nanimals))
+# mean_data_sw = np.nanmean(param_sym_bs_sw[2, :, :], axis=0)
+# std_data_sw = (np.nanstd(param_sym_bs_sw[2, :, :], axis=0) / np.sqrt(Nanimals))
+# rectangle = plt.Rectangle((stim_trials[0] - 0.5, -6), rec_size, 12, fc='lightblue',
+#                           zorder=0, alpha=0.3)
+# plt.gca().add_patch(rectangle)
+# plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
+# plt.plot(np.arange(1, Ntrials + 1), mean_data_st, linewidth=2, marker='o', color='orange')
+# plt.fill_between(np.arange(1, Ntrials + 1), mean_data_st - std_data_st, mean_data_st + std_data_st, color='orange', alpha=0.5)
+# plt.plot(np.arange(1, Ntrials + 1), mean_data_sw, linewidth=2, marker='o', color='green')
+# plt.fill_between(np.arange(1, Ntrials + 1), mean_data_sw - std_data_sw, mean_data_sw + std_data_sw, color='green', alpha=0.5)
+# ax.set_xlabel('Trial', fontsize=20)
+# ax.set_ylabel('Front paws\nrelative timing', fontsize=20)
+# plt.xticks(fontsize=20)
+# plt.yticks(fontsize=20)
+# plt.ylim([-6, 6])
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# plt.savefig(os.path.join('J:\\Thesis\\Presentation\\tied_stim.png'), dpi=256)
+
+# Quantifications - seaborn
 #TODO delta split is the difference between mean of the last 2 stim trials and the 2 last baseline (not beginning of stim)
 group_id = []
 group_name = []
