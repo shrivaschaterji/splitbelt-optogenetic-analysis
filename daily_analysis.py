@@ -21,7 +21,7 @@ bars_ranges = {'coo': [-4, 4], 'step_length': [-12, 12], 'double_support': [-10,
 uniform_ranges = 1
 
 # List of paths for each experiment - it is possible to have only one element
-experiment_names = ['control','stance stim','swing stim']      # 'control'] #         #'trial stim', 'stance stim',
+experiment_names = ['chr2']   #'right fast', 'left fast' ]      # 'control'] #         #'trial stim', 'stance stim', swing stim
 
 #paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\28092023 split right fast trial stim 30s\\']
 
@@ -47,13 +47,16 @@ paths = [
    # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240311 tied swing stim redone\\'
    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\ALL_ANIMALS\\tied stance stim\\',
   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\ALL_ANIMALS\\tied swing stim\\',
-    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast control\\',
-    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast stance stim\\',
-    'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast swing stim\\',
-
-   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240221 tied swing stim\\',
-    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim ChR2\\'
+   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast control\\',
+    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast stance stim\\',
+    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast swing stim\\',
+   # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\LocoCF-internal\\Tout_data\\20230606 tied stance stim\\'
+    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20230608 split right fast control\\'
+ 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240401 tied stance stim chr2IO 10ms 25th\\',
+   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim IOchr2\\'
        # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20240202 split left fast stance stim\\',
+   # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\Susd4KO project\\20240212 20240221 20240304 split right fast Susd4KO\\',
+   # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\Susd4KO project\\20240216 20240226 20240308 split left fast Susd4KO\\'
       
      ]
 
@@ -91,7 +94,7 @@ paths = [
 #paths = ['D:\\Ali\\18042023 split right fast trial stim\\', 'D:\\Ali\\20042023 split right fast stance large stim\\', 'D:\\Ali\\24042023 split right fast swing large stim\\']
 #['D:\\Ali\\25042023 split left fast swing large stim\\']
 #
-experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black'}      # stim on: trial stance swing    'trial stim':'purple', 
+experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black', 'right fast': 'red', 'left fast': 'blue', 'chr2': 'cyan'}      # stim on: trial stance swing    'trial stim':'purple', 
 animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours
 animal_colors_dict = {'MC16846': "#FFD700",'MC16848':"#BBF90F",'MC16850': "#15B01A",'MC16851': animal_colors[0], 'MC17319': animal_colors[1],
                       'MC17665': '#CCCCFF','MC17670': '#660033','MC17666': animal_colors[4], 'MC17668': animal_colors[5],'MC17669': animal_colors[6], 
@@ -122,18 +125,18 @@ animal_colors_dict = {'MC16846': "#BBBBBB",'MC16848':"#BBBBBB",'MC16850': "#BBBB
 
 '''
 #included_animal_list = [ 'MC17319','MC17665','MC17666','MC17668','MC17669','MC17670']
-'''
-included_animal_list = []  
 
+included_animal_list = []               #'VIV42906', 'VIV42974', 'VIV42908','VIV42985','VIV42987']  
+'''
 ['MC16846','MC16848','MC16850','MC16851', 'MC17319',
    'MC17665','MC17670','MC17666', 'MC17668','MC17669', 
    'MC19022','MC19082','MC19123', 'MC19124', 'MC19130',
    'MC19132','MC19214', 'MC18737', 'MC19107', 'VIV41330', 
    'VIV41329']          # 21 animals
-    '''
+  
 included_animal_list =  ['MC16851', 'MC17319','MC17665','MC17670','MC17666', 'MC17668', 
     'MC19082','MC19124', 'MC19130','MC19214']         # 11 animals
-    
+      '''
     #'MC19022','MC19082','MC19123','MC19130','MC19132','MC19124','MC19214']             #  
 #included_animal_list = ['MC16851','MC17319','MC17665','MC17666','MC17669','MC17670']#, 'MC19022','MC19082','MC19123','MC19124','MC19214']
 #['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
