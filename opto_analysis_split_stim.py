@@ -5,7 +5,7 @@ import pandas as pd
 import scipy.stats as sp
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
+path_loco = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
 split_side = path_loco.split('\\')[-2].split(' ')[1]
 event_stim = path_loco.split('\\')[-2].split(' ')[-2]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
@@ -114,6 +114,7 @@ for p in range(np.shape(param_sym)[0]-2):
 np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs)
 np.save(os.path.join(path_loco, path_save, 'param_paw_bs.npy'), param_paw_bs)
 np.save(os.path.join(path_loco, path_save, 'param_phase.npy'), param_phase)
+np.save(os.path.join(path_loco, path_save, 'animal_order.npy'), animal_list_plot)
 
 if split_side == 'right':
     param_phase_control = np.load('J:\\Opto JAWS Data\\split right fast control\\grouped output\\param_phase.npy')

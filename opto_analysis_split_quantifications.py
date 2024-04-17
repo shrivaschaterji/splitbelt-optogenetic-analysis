@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #path inputs
-path_st = 'J:\\Opto JAWS Data\\tied stance stim\\'
-path_sw = 'J:\\Opto JAWS Data\\tied swing stim\\'
-experiment_type = 'tied'
-save_path = 'J:\\Thesis\\for figures\\fig tied opto\\'
+path_st = 'J:\\Opto JAWS Data\\split right fast stance stim\\'
+path_sw = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
+path_control = 'J:\\Opto JAWS Data\\split right fast control\\'
+experiment_type = 'split'
+save_path = 'J:\\Thesis\\for figures\\fig split right fast opto\\'
 experiment_st = path_st.split('\\')[-2].replace(' ', '_')
 experiment_sw = path_sw.split('\\')[-2].replace(' ', '_')
 param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length']
@@ -16,10 +17,14 @@ param_sym_label = ['Center of oscillation\nsymmetry (mm)', 'Step length\nsymmetr
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 
-stim_trials = np.arange(9, 17)
-Ntrials = 24
-rec_size = 8
+stim_trials = np.arange(9, 19)
+Ntrials = 28
+rec_size = 10
 
+param_sym_bs_control = np.load(
+    path_control + '\\grouped output\\param_sym_bs.npy')
+animal_order_control = np.load(
+    path_control + '\\grouped output\\animal_order.npy')
 param_sym_bs_st = np.load(
     path_st + '\\grouped output\\param_sym_bs.npy')
 animal_order_st = np.load(
@@ -35,13 +40,20 @@ param_sym_label_ae = ['Center of oscillation\nafter-effect symmetry (mm)', 'Step
         'Center of oscillation\n swing after-effect symmetry (mm)', 'Swing length\nafter-effect symmetry (mm)']
 param_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length']
 for p in np.array([0, 2]):
+    # param_sym_bs_ae_control = np.nanmean(param_sym_bs_control[p, :, [stim_trials[-1] + 1, stim_trials[-1]]], axis=0)
     param_sym_bs_ae_st = np.nanmean(param_sym_bs_st[p, :, [stim_trials[-1]+1, stim_trials[-1]]], axis=0)
     param_sym_bs_ae_sw = np.nanmean(param_sym_bs_sw[p, :, [stim_trials[-1]+1, stim_trials[-1]]], axis=0)
     fig, ax = plt.subplots(figsize=(5, 5), tight_layout=True)
+    # ax.scatter(np.repeat(0, len(param_sym_bs_ae_control)), param_sym_bs_ae_control, color='black', s=40)
     ax.scatter(np.repeat(1, len(param_sym_bs_ae_st)), param_sym_bs_ae_st, color='orange', s=40)
     ax.scatter(np.repeat(2, len(param_sym_bs_ae_sw)), param_sym_bs_ae_sw, color='green', s=40)
+    # ax.scatter(0, np.nanmean(param_sym_bs_ae_control), marker='_', color='black', s=5000, linewidth=3)
     ax.scatter(1, np.nanmean(param_sym_bs_ae_st), marker='_', color='orange', s=5000, linewidth=3)
     ax.scatter(2, np.nanmean(param_sym_bs_ae_sw), marker='_', color='green', s=5000, linewidth=3)
+    # for count_a1, a1 in enumerate(animal_order_control):
+    #     for count_a2, a2 in enumerate(animal_order_st):
+    #         if a2 == a1:
+    #             ax.plot([1, 0], [param_sym_bs_ae_st[count_a2], param_sym_bs_ae_control[count_a1]], color='darkgray', linewidth=0.5)
     for count_a1, a1 in enumerate(animal_order_st):
         for count_a2, a2 in enumerate(animal_order_sw):
             if a2 == a1:
@@ -57,7 +69,7 @@ for p in np.array([0, 2]):
     ax.spines['top'].set_visible(False)
     if p == 2:
         ax.set_ylabel('Temporal asymmetry\nafter-effect (% stride cycle)', fontsize=20)
-        plt.savefig(os.path.join('J:\\Thesis\\Presentation\\tied_stim_st_sw_quantification.png'), dpi=256)
+        plt.savefig(os.path.join('J:\\Thesis\\Presentation\\split_stim_st_sw_quantification.png'), dpi=256)
     plt.savefig(os.path.join(save_path, param_name[p] + '_animals_symmetry_after_effect_quantification.png'), dpi=128)
     plt.savefig(os.path.join(save_path, param_name[p] + '_animals_symmetry_after_effect_quantification.svg'), dpi=128)
 #delta split

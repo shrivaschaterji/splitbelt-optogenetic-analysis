@@ -14,7 +14,7 @@ session = np.int64(filename.split('_')[-2])
 sr = 333
 frame_width = 1088
 frame_height = 420
-out = cv2.VideoWriter(path + filename[:-4] + '_overlay.mp4', cv2.VideoWriter_fourcc(*'XVID'), sr, (frame_width, frame_height))
+out = cv2.VideoWriter(path + filename[:-4] + '_overlay_mp4codec_test2.mp4', cv2.VideoWriter_fourcc(*'MP4V'), sr, (frame_width, frame_height))
 vidObj = VideoReader(path + filename, ctx=cpu(0))  # read the video
 frames_total = len(vidObj)
 
@@ -43,15 +43,20 @@ for count_i, i in enumerate(led_sw['frames_on']):
     frames_sw.extend(np.arange(led_sw['frames_on'].iloc[count_i], led_sw['frames_off'].iloc[count_i]+1))
 frames_sw_arr = np.array(frames_sw)
 
+# frame_np[:60, 980:1050, :]
+# frame_np[:60, 1050:, :]
+
 for frameNr in range(frames_total):
     frame = vidObj[frameNr]
     frame_np = frame.asnumpy()
+    cv2.circle(frame_np, (1009, 28), radius=15, color=(0, 165, 255), thickness=2) #left LED
+    cv2.circle(frame_np, (1061, 30), radius=12, color=(0, 255, 0), thickness=2) #right LED
     if frameNr in frames_st_arr:
-        frame_st = cv2.circle(frame_np, (np.int64(FR_y[frameNr]), np.int64(FR_z[frameNr])), radius=3, color=(0, 165, 255), thickness=5)
-        out.write(frame_st)
+        cv2.circle(frame_np, (np.int64(FR_y[frameNr]), np.int64(FR_z[frameNr])), radius=3, color=(0, 165, 255), thickness=5)
+        out.write(frame_np)
     elif frameNr in frames_sw_arr:
-        frame_sw = cv2.circle(frame_np, (np.int64(FR_y[frameNr]), np.int64(FR_z[frameNr])), radius=3, color=(0, 255, 0), thickness=5)
-        out.write(frame_sw)
+        cv2.circle(frame_np, (np.int64(FR_y[frameNr]), np.int64(FR_z[frameNr])), radius=3, color=(0, 255, 0), thickness=5)
+        out.write(frame_np)
     else:
         out.write(frame_np)
 out.release()
