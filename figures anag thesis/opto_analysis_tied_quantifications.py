@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #path inputs
-path_st = 'J:\\Opto JAWS Data\\tied stance stim\\'
-path_sw = 'J:\\Opto JAWS Data\\tied swing stim\\'
-experiment_type = 'tied'
-save_path = 'J:\\Thesis\\for figures\\fig tied opto\\'
+path_st = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
+path_sw = 'J:\\Opto JAWS Data\\split left fast swing stim\\'
+experiment_type = 'split'
+save_path = 'J:\\Thesis\\for figures\\fig split left fast opto\\'
 experiment_st = path_st.split('\\')[-2].replace(' ', '_')
 experiment_sw = path_sw.split('\\')[-2].replace(' ', '_')
 param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length']
@@ -16,9 +16,9 @@ param_sym_label = ['Center of oscillation\nsymmetry (mm)', 'Step length\nsymmetr
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 
-stim_trials = np.arange(9, 17)
-Ntrials = 24
-rec_size = 8
+stim_trials = np.arange(9, 19)
+Ntrials = 28
+rec_size = 10
 
 param_sym_bs_st = np.load(
     path_st + '\\grouped output\\param_sym_bs.npy')
@@ -55,9 +55,6 @@ for p in np.array([0, 2]):
     ax.tick_params(axis='both', which='major', labelsize=20)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    if p == 2:
-        ax.set_ylabel('Temporal asymmetry\nafter-effect (% stride cycle)', fontsize=20)
-        plt.savefig(os.path.join('J:\\Thesis\\Presentation\\tied_stim_st_sw_quantification.png'), dpi=256)
     plt.savefig(os.path.join(save_path, param_name[p] + '_animals_symmetry_after_effect_quantification.png'), dpi=128)
     plt.savefig(os.path.join(save_path, param_name[p] + '_animals_symmetry_after_effect_quantification.svg'), dpi=128)
 #delta split

@@ -5,7 +5,7 @@ import pandas as pd
 import scipy.stats as sp
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
+path_loco = 'J:\\Opto JAWS Data\\split left fast stance stim\\'
 split_side = path_loco.split('\\')[-2].split(' ')[1]
 event_stim = path_loco.split('\\')[-2].split(' ')[-2]
 experiment = path_loco.split('\\')[-2].replace(' ', '_')
