@@ -75,7 +75,7 @@ for count_a, animal in enumerate(animal_list):
         light_onset_phase_all.extend(light_onset_phase)
         light_offset_phase_all.extend(light_offset_phase)
     otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_all, light_offset_phase_all,
-                    16, path_save, animal+'_'+laser_event+'_'+session_list[count_a], True)
+                    16, path_save, animal+'_'+laser_event+'_session_'+session_list[count_a], True)
     plt.close('all')
 
 

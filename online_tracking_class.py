@@ -1970,8 +1970,10 @@ class otrack_class:
         FR = amp_plot * np.sin(2 * np.pi * time + (np.pi / 2)) + amp_plot
         fig, ax = plt.subplots(figsize=(7, 5), tight_layout=True)
         ax.plot(time, FR, color='lightgray', zorder=0)
-        ax.hist(onset_data, histtype='step', color='black', linewidth=4, weights=weights_onset)
-        ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4, weights=weights_offset)
+        #ax.hist(onset_data, histtype='step', color='black', linewidth=4, weights=weights_onset)
+        #ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4, weights=weights_offset)
+        ax.hist(onset_data, histtype='step', color='black', linewidth=4)
+        ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4)
         ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
