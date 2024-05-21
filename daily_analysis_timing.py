@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import os
 
 # Inputs
-laser_event = 'stance'
+laser_event = 'swing'
 trials_plot = np.arange(9, 19) #trials with stimulation to check phase of laser
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\16062023 split right fast stance stim only split\\'
+path = 'E:\\20240520 chr2 rt ctx fiber low expression swing stim (stance cable th 100 75percent) 20mW\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
