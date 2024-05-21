@@ -727,6 +727,45 @@ class otrack_class:
         laser_on.to_csv(os.path.join(self.path, 'processed files', animal, 'laser_on.csv'), sep=',', index=False)
         return laser_on
 
+    def get_laser_on_some_trials(self, animal, laser_signal_session, timestamps_session, trials):
+        """Get in a dataframe format for each trial the time the laser was on and off from the synchronizer.
+        Save as csv
+        Input:
+            animal: (str) animal name
+            laser_signal_session: (csv)
+            timestamps_session: list with the frame timestamps for each trial
+            trials: list of trials to compute this dataframe"""
+        laser_time_on = []
+        laser_time_off = []
+        laser_trial = []
+        frame_time_on_all = []
+        frame_time_off_all = []
+        for count_t, trial in enumerate(trials):
+            laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'].iloc[1:])
+            laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'].iloc[1:])
+            laser_signal_onset = laser_time[np.where(np.diff(laser_signal) > 0)[0]]
+            laser_signal_offset = laser_time[np.where(np.diff(laser_signal) < 0)[0]]
+            if laser_signal_onset[-1] > laser_signal_offset[-1]:
+                laser_signal_onset = laser_signal_onset[:-1]
+            laser_time_on.extend(laser_signal_onset)
+            laser_time_off.extend(laser_signal_offset)
+            laser_trial.extend(np.repeat(trial, len(laser_signal_offset)))
+            frame_time_on = []
+            for i in laser_signal_onset:
+                frame_time_on.append(np.argmin(np.abs(i - timestamps_session[count_t])))
+            frame_time_on_all.extend(frame_time_on)
+            frame_time_off = []
+            for j in laser_signal_offset:
+                frame_time_off.append(np.argmin(np.abs(j - timestamps_session[count_t])))
+            frame_time_off_all.extend(frame_time_off)
+        laser_on = pd.DataFrame(
+            {'time_on': laser_time_on, 'time_off': laser_time_off, 'frames_on': frame_time_on_all,
+             'frames_off': frame_time_off_all, 'trial': laser_trial})
+        if not os.path.exists(os.path.join(self.path, 'processed files', animal)):  # save csv
+            os.mkdir(os.path.join(self.path, 'processed files', animal))
+        laser_on.to_csv(os.path.join(self.path, 'processed files', animal, 'laser_on.csv'), sep=',', index=False)
+        return laser_on
+
     @staticmethod
     def remove_consecutive_numbers(list_original):
         """Function that takes a list and removes any consecutive numbers, keeping the first one only
