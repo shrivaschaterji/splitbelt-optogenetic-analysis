@@ -181,23 +181,17 @@ class otrack_class:
         for t, f in enumerate(files_ordered):
             sync_csv = pd.read_csv(os.path.join(self.path, f))
             [sync_timestamps_p0, sync_signal_p0] = self.get_port_data(sync_csv, 0) #read channel 0 of synchronizer - TRIAL START
-            [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1)  # read channel 1 of synchronizer - CAMERA TRIGGERS
             sync_signal_p0_on_idx = np.where(sync_signal_p0 > 0)[0][0]
             sync_signal_p0_off_idx = np.where(sync_signal_p0 > 0)[0][-1]
             time_beg = sync_timestamps_p0[sync_signal_p0_on_idx] #time when trial start signal started
             time_end = sync_timestamps_p0[sync_signal_p0_off_idx] #time when trial start signal ended
             timestamps_p1 = np.arange(time_beg, time_end, 3) #since cam is triggered all triggers should appear every 3ms between trial start ON
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
-            if animal == 'MC16851':
-                # for split right stance and split left stance
-                # [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
-                # [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
-                #for tied stance, tied swing, split right fast swing, split left fast swing is for sure ch2 for laser signal
-                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 2)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
-            else:
-                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)
+            [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            # if animal == 'MC16851', MC16846, MC16850 and split right fast or left fast stance:
+            # [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
+            # [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
             trial_p0_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p0)))
             trial_p1_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p1)))
             trial_p2_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p2)))

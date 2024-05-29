@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 paw_otrack = 'FR'
-path = 'E:\\20240520 ChR2 rt ctx fiber low expression swing stim (stance cable th 100 75percent) 20mW\\'
+path = 'J:\\Opto JAWS Data\\split right fast swing stim\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -12,7 +12,7 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['MC45372', 'MC45373', 'MC45765']
+animals = ['MC16851']
 corr_latency = [0, 0, 0]
 
 animal_session_list = loco.animals_within_session()
@@ -45,9 +45,9 @@ for count_a, animal in enumerate(animals):
 
     # PROCESS SYNCHRONIZER LASER SIGNALS
     #if 'ChR2'
-    laser_on = otrack_class.get_laser_on_some_trials(animal, laser_trial_signal_session, timestamps_session, np.arange(9, 19))
+    # laser_on = otrack_class.get_laser_on_some_trials(animal, laser_trial_signal_session, timestamps_session, np.arange(9, 19))
     #if JAWS
-    #laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
+    laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
 
     # # GET LED INFORMATION
     # [st_led_on, sw_led_on] = otrack_class.get_led_information_trials(animal, timestamps_session, otracks_st, otracks_sw, corr_latency[count_a])

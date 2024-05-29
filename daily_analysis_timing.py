@@ -5,7 +5,7 @@ import os
 # Inputs
 laser_event = 'swing'
 trials_plot = np.arange(9, 19) #trials with stimulation to check phase of laser
-path = 'E:\\20240520 chr2 rt ctx fiber low expression swing stim (stance cable th 100 75percent) 20mW\\'
+path = 'J:\\Opto JAWS Data\\tied swing stim\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
