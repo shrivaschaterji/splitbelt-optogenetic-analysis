@@ -5,7 +5,7 @@ import os
 # Inputs
 laser_event = 'swing'
 trials_plot = np.arange(9, 19) #trials with stimulation to check phase of laser
-path = 'J:\\Opto JAWS Data\\tied swing stim\\'
+path = 'J:\\Experiments ChR2 RT\\20240520 chr2 rt ctx fiber low expression swing stim (stance cable th 100 75percent) 20mW\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
@@ -27,6 +27,7 @@ for count_a, animal in enumerate(animal_list):
     trials = otrack_class.get_trials(animal)
     # LOAD PROCESSED DATA
     [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)
+
     # READ OFFLINE PAW EXCURSIONS
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, np.int64(session_list[count_a]))
     final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
