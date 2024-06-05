@@ -4,6 +4,7 @@ import os
 import scipy.stats as st
 import math
 
+
 # Inputs
 laser_event = 'swing'
 single_animal_analysis = 0
@@ -11,17 +12,24 @@ if single_animal_analysis:
     animal = 'MC19022'
 plot_continuous = 0
 compare_baselines = 0
-compute_statistics = 1
+compute_statistics = 0
 significance_threshold = 0.05
 
 #axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
 #bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-axes_ranges = {'coo': [-5, 5], 'step_length': [-12, 12], 'double_support': [-10, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-bars_ranges = {'coo': [-4, 4], 'step_length': [-12, 12], 'double_support': [-10, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+# Opto
+axes_ranges = {'coo': [-5, 5], 'step_length': [-12, 12], 'double_support': [-7, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+bars_ranges = {'coo': [-4, 4], 'step_length': [-12, 12], 'double_support': [-7, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
+# ChR2 right
+axes_ranges = {'coo': [-6, 2], 'step_length': [-11, 5], 'double_support': [-8, 15], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
+bars_ranges = {'coo': [-2, 2], 'step_length': [-2, 5], 'double_support': [-7, 1], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
+# ChR2 left
+#axes_ranges = {'coo': [-4, 6], 'step_length': [-7, 10], 'double_support': [-12, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-2, 2], 'step_length': [-5, 2], 'double_support': [-1, 6], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
 uniform_ranges = 1
 
 # List of paths for each experiment - it is possible to have only one element
-experiment_names = ['chr2']   #'right fast', 'left fast' ]      # 'control'] #         #'trial stim', 'stance stim', swing stim
+experiment_names = ['chr2']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 #paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\28092023 split right fast trial stim 30s\\']
 
@@ -104,7 +112,13 @@ paths = [
 #paths = ['D:\\Ali\\18042023 split right fast trial stim\\', 'D:\\Ali\\20042023 split right fast stance large stim\\', 'D:\\Ali\\24042023 split right fast swing large stim\\']
 #['D:\\Ali\\25042023 split left fast swing large stim\\']
 #
-experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black', 'right fast': 'red', 'left fast': 'blue', 'chr2': 'cyan'}      # stim on: trial stance swing    'trial stim':'purple', 
+experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black', 'chr2': 'cyan',
+                          'right fast no-stim': 'gray',     # 'blue', 
+                          'left fast no-stim': 'gray', 
+                          'right fast stim': 'green', 
+                          'left fast stim': 'cyan',
+                          'right fast perturb': 'cyan',     #'red', 
+                          'left fast perturb': 'lightgreen'}      # stim on: trial stance swing    'trial stim':'purple', 
 animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours
 animal_colors_dict = {'MC16846': "#FFD700",'MC16848':"#BBF90F",'MC16850': "#15B01A",'MC16851': animal_colors[0], 'MC17319': animal_colors[1],
                       'MC17665': '#CCCCFF','MC17670': '#660033','MC17666': animal_colors[4], 'MC17668': animal_colors[5],'MC17669': animal_colors[6], 
@@ -117,7 +131,15 @@ animal_colors_dict = {'MC16846': "#FFD700",'MC16848':"#BBF90F",'MC16850': "#15B0
                       #ChR2
                       'VIV42375': animal_colors[4],'VIV42376': animal_colors[5],'VIV42428': animal_colors[7],'VIV42429': animal_colors[8],
                       'VIV42430': animal_colors[9], 'VIV42906': animal_colors[2], 'VIV42907': animal_colors[3],'VIV42908':animal_colors[4], 'VIV42974':animal_colors[5],
-                      'VIV42985':animal_colors[6], 'VIV42992': animal_colors[7],'VIV42987': animal_colors[8]}
+                      'VIV42985':animal_colors[6], 'VIV42992': animal_colors[7],'VIV42987': animal_colors[8],
+                      'VIV44771': '#CCCCFF', 'VIV44765': '#00FF00', 'VIV44766': '#FF4500', 'VIV45372': '#BC8F8F', 'VIV45373': '#F08080', 
+                      #HGM
+                      'MC11231': "#FFD700",'MC11232':"#BBF90F",'MC11234': "#15B01A",'MC11235': animal_colors[0], 'MC24409': animal_colors[1],
+                      'MC24410': '#CCCCFF','MC24411': '#660033','MC24412': animal_colors[4], 'MC24413': animal_colors[5],
+                      'MC1262': animal_colors[0],'MC1263':  animal_colors[1],'MC1328': animal_colors[2],'MC1329': animal_colors[3],'MC1330':  animal_colors[4],
+                      'A1': "#FFD700",'A2':"#BBF90F",'A3': "#15B01A",'A4': '#0000FF','A5': '#00FF00', 'MC1705': '#F08080', 'V1': '#FA8072',
+                      'V2': '#5C62D6', 'V3': '#FF0000', 'V4': '#BC8F8F', 'MC1659': '#BC8F8F', 'MC1660': '#FF4500','MC1661': '#CCCCFF','MC1663': '#660033','MC1664': '#00FFFF',
+                      }
 '''
 # Not histo confirmed in gray
 animal_colors_dict = {'MC16846': "#BBBBBB",'MC16848':"#BBBBBB",'MC16850': "#BBBBBB",'MC16851': animal_colors[0], 'MC17319': animal_colors[1],
@@ -136,7 +158,9 @@ animal_colors_dict = {'MC16846': "#BBBBBB",'MC16848':"#BBBBBB",'MC16850': "#BBBB
 '''
 #included_animal_list = [ 'MC17319','MC17665','MC17666','MC17668','MC17669','MC17670']
 
-included_animal_list = []               #'VIV42906', 'VIV42974', 'VIV42908','VIV42985','VIV42987']  
+included_animal_list = ['VIV44771', 'VIV44766', 'VIV45372', 'VIV45373']
+#'MC11231','MC11234','MC11235','MC24410','MC24413'] # ChR2 LE
+            #['MC1262','MC1263','MC1328','MC1329','MC1330']     # ChR2 HE                #'VIV42906', 'VIV42974', 'VIV42908','VIV42985','VIV42987']  
 '''
 ['MC16846','MC16848','MC16850','MC16851', 'MC17319',
    'MC17665','MC17670','MC17666', 'MC17668','MC17669', 
@@ -152,11 +176,11 @@ included_animal_list =  ['MC16851', 'MC17319','MC17665','MC17670','MC17666', 'MC
 #['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
 # ['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']
 #['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
-bs_bool = 1
+
 session = 1
-Ntrials = 28   #28    #56       # 28
+Ntrials = 28  #28    #56       # 28
 stim_start = 9 #9  #18 #9
-split_start = 9    #9 #18        #9
+split_start = 9   #9 #18        #9
 stim_duration = 10  #10  #20      #8
 split_duration = 10 #10 #20         #8
 plot_rig_signals = 0
@@ -174,6 +198,7 @@ control_filename = 'split_'+control_ses+'_fast_control_params_sym_bs.npy'
 #['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']         #'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
+paws = ['FR', 'HR', 'FL', 'HL']
 import online_tracking_class
 import locomotion_class
 otrack_classes =  []
@@ -182,6 +207,7 @@ paths_save = []
 param_sym_multi = {}
 path_index = 0
 for path in paths:
+    print("Analysing..........................", path)
     otrack_classes.append(online_tracking_class.otrack_class(path))
     locos.append(locomotion_class.loco_class(path))
     paths_save.append(path + 'grouped output\\')
@@ -260,10 +286,15 @@ for path in paths:
     if single_animal_analysis == 0:
         # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
         # GAIT PARAMETERS ACROSS TRIALS
-        param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stance_speed']
+        param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'phase_st', 'stance_speed']
         param_gait_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
+        param_label = ['Center of\noscillation (mm)', 'Step length (mm)', 'Percentage of\ndouble support', 'Spatial motor\noutput (mm)', 'Swing length(mm)', 'Stance phase', 'Stance speed']
         param_sym = np.zeros((len(param_sym_name), len(animal_list), Ntrials))
         param_sym[:] = np.NaN
+        param_paw = np.zeros((len(param_sym_name), len(animal_list), 4, Ntrials))
+        param_paw[:] = np.nan
+        param_phase = np.zeros((4, len(animal_list), Ntrials))
+        param_phase[:] = np.nan
         stance_speed = np.zeros((4, len(animal_list), Ntrials))
         stance_speed[:] = np.NaN
         st_strides_trials = []
@@ -281,30 +312,52 @@ for path in paths:
                 paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
                 for count_p, param in enumerate(param_sym_name):
                     param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
-                    if param == 'stance_speed':
+                    '''if param == 'stance_speed':
                         for p in range(4):
                             stance_speed[p, count_animal, count_trial] = np.nanmean(param_mat[p])
                     elif param == 'step_length':
                         param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0]) - np.nanmean(param_mat[2])
                     else:
+                        param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])'''
+
+                    if param == 'phase_st':
+                        for p in range(4):
+                            param_phase[p, count_animal, count_trial] = st.circmean(param_mat[0][p], nan_policy='omit')
+                    elif param == 'stance_speed':
+                        for p in range(4):
+                            stance_speed[p, count_animal,count_trial] = np.nanmean(param_mat[p])
+                    else:
                         param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])
+                    for count_paw, paw in enumerate(paws):
+                        param_paw[count_p, count_animal, count_paw,count_trial] = np.nanmean(param_mat[count_paw])
+
                 if compare_baselines:
                     for count_p, param in enumerate(param_gait_name):
                         param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
                         param_gait[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])
 
-        # BASELINE SUBTRACTION OF GAIT PARAMETERS
+        # BASELINE SUBTRACTION OF PARAMETERS
         if bs_bool:
             param_sym_bs = np.zeros(np.shape(param_sym))
+            param_paw_bs = np.zeros(np.shape(param_paw))
             for p in range(np.shape(param_sym)[0]-1):
                 for a in range(np.shape(param_sym)[1]):
+                    # Compute baseline
                     if stim_start == split_start:
                         bs_mean = np.nanmean(param_sym[p, a, :stim_start-1])
+                        bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_start-1])
                     if stim_start < split_start:
-                        bs_mean = np.nanmean(param_sym[p, a, stim_start-1:8])
+                        bs_mean = np.nanmean(param_sym[p, a, stim_start-1:split_start-1])
+                        bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, stim_start-1:split_start-1])
+                    # Subtract
                     param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
+                    for count_paw in range(4):
+                        param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
         else:
             param_sym_bs = param_sym
+
+        if any('right' in element for element in experiment_names) and any('left' in element for element in experiment_names) and 'left' in experiment_name:      # If we are comparing left and right we will have them both in experiment names
+           param_sym_bs = -param_sym_bs
 
         # Compare baseline symmetry with and without stim
         if compare_baselines:
@@ -419,6 +472,8 @@ for path in paths:
             # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot)
             param_sym_multi[path][p] = param_sym_bs_ave
         plt.close('all')
+
+
 
         if len(control_path)>0:
             param_sym_bs_plot = param_sym_bs[:, included_animals_id, :]
@@ -659,13 +714,14 @@ if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
                 initial_error.append(-np.nanmean(control_param_sym_bs[p][:,split_start-1:split_start+1], axis=1))          
                 learning.append(np.nanmean(control_param_sym_bs[p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(control_param_sym_bs[p][:,split_start-1:split_start+1], axis=1))
                 aftereffect.append(np.nanmean(control_param_sym_bs[p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
-
+        
+        
         path_index = 0  
         current_experiment_names = []
         current_experiment_colors = []
         current_bar_labels = []
         for path in paths:
-            for exp in experiment_colors_dict.keys():
+            for exp in experiment_names:
                 if exp in path:
                     experiment_name = exp
                     current_experiment_names.append(experiment_name)
@@ -683,6 +739,7 @@ if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
                 learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
                 aftereffect.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
             '''
+            
             initial_error.append(np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))  
             learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
             aftereffect.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
