@@ -37,7 +37,8 @@ class loco_class:
         self.delim = self.path[-1]
         path_split = self.path.split(self.delim)
         self.experiment = path_split[-3]
-        self.pixel_to_mm = 1/3.3
+        self.pixel_to_mm = 1/3.3            # real-time setup
+        #self.pixel_to_mm = 1/1.955            # Dana's setup
         self.sr = 333.33 #sampling rate of behavior camera for treadmill
         self.sr_F = 30
         self.my_dpi = 96 #resolution for plotting
@@ -919,7 +920,10 @@ class loco_class:
         for f in h5files:
             path_split = f.split(delim)
             filename_split = path_split[-1].split('_')
-            animal_session.append([filename_split[0],filename_split[6]])
+            if 'HGM' in self.path:
+               animal_session.append([filename_split[0],filename_split[7]]) 
+            else:
+                animal_session.append([filename_split[0],filename_split[6]])
         #check which sessions exist
         unique_list = []       
         for x in animal_session: 
@@ -939,10 +943,16 @@ class loco_class:
             path_split = f.split(delim)
             filename_split = path_split[-1].split('_')
             animal_name = filename_split[0]
-            session_nr = int(filename_split[6])
+            if 'HGM' in self.path:
+                session_nr = int(filename_split[7])
+            else:
+                session_nr = int(filename_split[6])
             if animal_name == animal and session_nr == session:
                 filelist.append(path_split[-1])
-                trial_order.append(int(filename_split[7][:-3]))
+                if 'HGM' in self.path:
+                    trial_order.append(int(filename_split[8][:-3]))
+                else:
+                    trial_order.append(int(filename_split[7][:-3]))
         trial_ordered = np.sort(np.array(trial_order) ) #reorder trials
         files_ordered = [] #order tif filenames by file order
         for f in range(len(filelist)):
