@@ -12,7 +12,8 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['VIV42375', 'VIV42376', 'VIV42428', 'VIV42429', 'VIV42430']
+animals = ['MC16851']
+corr_latency = [0, 0, 0]
 
 animal_session_list = loco.animals_within_session()
 animal_list = []
@@ -37,12 +38,15 @@ for count_a, animal in enumerate(animals):
     [otracks_st, otracks_sw] = otrack_class.get_otrack_event_data(timestamps_session, animal)
 
     # READ OFFLINE DLC TRACKS
-    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session, 1)
+    [offtracks_st, offtracks_sw] = otrack_class.get_offtrack_event_data(paw_otrack, loco, animal, np.int64(session_list[count_a]), timestamps_session, save_csv=True)
 
     ## READ OFFLINE PAW EXCURSIONS
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, session)
 
     # PROCESS SYNCHRONIZER LASER SIGNALS
+    #if 'ChR2'
+    # laser_on = otrack_class.get_laser_on_some_trials(animal, laser_trial_signal_session, timestamps_session, np.arange(9, 19))
+    #if JAWS
     laser_on = otrack_class.get_laser_on(animal, laser_signal_session, timestamps_session)
 
     # # GET LED INFORMATION

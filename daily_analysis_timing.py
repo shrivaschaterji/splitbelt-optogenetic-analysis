@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 
 # Inputs
-laser_event = 'stance'
+laser_event = 'swing'
 trials_plot = np.arange(9, 19) #trials with stimulation to check phase of laser
 path = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240409 tied stance stim CTXchr2\\'
 import online_tracking_class
@@ -27,19 +27,20 @@ for count_a, animal in enumerate(animal_list):
     trials = otrack_class.get_trials(animal)
     # LOAD PROCESSED DATA
     [otracks, otracks_st, otracks_sw, offtracks_st, offtracks_sw, timestamps_session, laser_on] = otrack_class.load_processed_files(animal)
+
     # READ OFFLINE PAW EXCURSIONS
     [final_tracks_trials, st_strides_trials, sw_strides_trials] = otrack_class.get_offtrack_paws(loco, animal, np.int64(session_list[count_a]))
     final_tracks_phase = loco.final_tracks_phase(final_tracks_trials, trials, st_strides_trials, sw_strides_trials,
                                                  'st-sw-st')
     # LASER ACCURACY
-    tp_laser = np.zeros(len(trials))
-    fp_laser = np.zeros(len(trials))
-    tn_laser = np.zeros(len(trials))
-    fn_laser = np.zeros(len(trials))
-    precision_laser = np.zeros(len(trials))
-    recall_laser = np.zeros(len(trials))
-    f1_laser = np.zeros(len(trials))
-    for count_t, trial in enumerate(trials):
+    tp_laser = np.zeros(len(trials_plot))
+    fp_laser = np.zeros(len(trials_plot))
+    tn_laser = np.zeros(len(trials_plot))
+    fn_laser = np.zeros(len(trials_plot))
+    precision_laser = np.zeros(len(trials_plot))
+    recall_laser = np.zeros(len(trials_plot))
+    f1_laser = np.zeros(len(trials_plot))
+    for count_t, trial in enumerate(trials_plot):
         [tp_trial, fp_trial, tn_trial, fn_trial, precision_trial, recall_trial, f1_trial] = otrack_class.accuracy_laser_sync(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
         tp_laser[count_t] = tp_trial
         fp_laser[count_t] = fp_trial
@@ -50,10 +51,7 @@ for count_a, animal in enumerate(animal_list):
         f1_laser[count_t] = f1_trial
 
     fig, ax = plt.subplots(tight_layout=True, figsize=(10, 7))
-    rectangle = plt.Rectangle((trials_plot[0]+0.5, 0), trials_plot[-1]-trials_plot[0],
-            1, fc='dimgrey',alpha=0.3)
-    plt.gca().add_patch(rectangle)
-    ax.plot(trials, tp_laser+tn_laser, marker='o', color='black', linewidth=2)
+    ax.plot(trials_plot, tp_laser+tn_laser, marker='o', color='black', linewidth=2)
     ax.set_ylim([0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -71,15 +69,14 @@ for count_a, animal in enumerate(animal_list):
     stride_nr_trials = np.zeros(len(trials_plot))
     for count_t, trial in enumerate(trials_plot):
         [light_onset_phase, light_offset_phase, stim_nr, stride_nr] = \
-            otrack_class.laser_presentation_phase(trial, trials, laser_event, offtracks_st, offtracks_sw, laser_on,
-                                                  timestamps_session, final_tracks_phase, 0)
+            otrack_class.laser_presentation_phase_all(trial, trials, laser_event, offtracks_st, offtracks_sw, laser_on,
+                                                  timestamps_session, final_tracks_phase, "FR")
         stim_nr_trials[count_t] = stim_nr
         stride_nr_trials[count_t] = stride_nr
         light_onset_phase_all.extend(light_onset_phase)
         light_offset_phase_all.extend(light_offset_phase)
-    otrack_class.plot_laser_presentation_phase(light_onset_phase_all, light_offset_phase_all, laser_event,
-                    16, np.sum(stim_nr_trials), np.sum(stride_nr_trials), 0, 1,
-                    path_save, animal+'_'+laser_event+'_'+session_list[count_a])
+    otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_all, light_offset_phase_all,
+                    16, path_save, animal+'_'+laser_event+'_session_'+session_list[count_a], True)
     plt.close('all')
 
 

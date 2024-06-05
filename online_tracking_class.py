@@ -181,23 +181,17 @@ class otrack_class:
         for t, f in enumerate(files_ordered):
             sync_csv = pd.read_csv(os.path.join(self.path, f))
             [sync_timestamps_p0, sync_signal_p0] = self.get_port_data(sync_csv, 0) #read channel 0 of synchronizer - TRIAL START
-            [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1)  # read channel 1 of synchronizer - CAMERA TRIGGERS
             sync_signal_p0_on_idx = np.where(sync_signal_p0 > 0)[0][0]
             sync_signal_p0_off_idx = np.where(sync_signal_p0 > 0)[0][-1]
             time_beg = sync_timestamps_p0[sync_signal_p0_on_idx] #time when trial start signal started
             time_end = sync_timestamps_p0[sync_signal_p0_off_idx] #time when trial start signal ended
             timestamps_p1 = np.arange(time_beg, time_end, 3) #since cam is triggered all triggers should appear every 3ms between trial start ON
             [sync_timestamps_p1, sync_signal_p1] = self.get_port_data(sync_csv, 1) #read channel 1 of synchronizer - CAMERA TRIGGERS
-            if animal == 'MC16851':
-                # for split right stance and split left stance
-                # [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
-                # [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
-                #for tied stance, tied swing, split right fast swing, split left fast swing is for sure ch2 for laser signal
-                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 2)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
-            else:
-                [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)  # read channel 2 of synchronizer - LASER SYNCH
-                [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 2)
+            [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 3)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
+            # if animal == 'MC16851', MC16846, MC16850 and split right fast or left fast stance:
+            # [sync_timestamps_p2, sync_signal_p2] = self.get_port_data(sync_csv, 5)  # read channel 2 of synchronizer - LASER SYNCH
+            # [sync_timestamps_p3, sync_signal_p3] = self.get_port_data(sync_csv, 6)  # read channel 3 of synchronizer - LASER TRIAL SYNCH
             trial_p0_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p0)))
             trial_p1_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p1)))
             trial_p2_list_session.extend(np.repeat(self.trials[t], len(sync_timestamps_p2)))
@@ -224,7 +218,7 @@ class otrack_class:
                 plt.plot(sync_timestamps_p3/1000, sync_signal_p3)
                 plt.title('Laser trial sync data for trial ' + str(self.trials[t]))
                 plt.xlabel('Time (ms)')
-            camera_timestamps_in = timestamps_p1[frames_kept[t]] / 1000
+            camera_timestamps_in = timestamps_p1[frames_kept[t][frames_kept[t]<len(timestamps_p1)]] / 1000
             timestamps_session.append(camera_timestamps_in)
             frame_counter_session.append(frames_kept[t])
         if not os.path.exists(os.path.join(self.path, 'processed files', animal)):  # save camera timestamps and frame counter in processed files
@@ -708,6 +702,45 @@ class otrack_class:
         frame_time_on_all = []
         frame_time_off_all = []
         for count_t, trial in enumerate(self.trials):
+            laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'].iloc[1:])
+            laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'].iloc[1:])
+            laser_signal_onset = laser_time[np.where(np.diff(laser_signal) > 0)[0]]
+            laser_signal_offset = laser_time[np.where(np.diff(laser_signal) < 0)[0]]
+            if laser_signal_onset[-1] > laser_signal_offset[-1]:
+                laser_signal_onset = laser_signal_onset[:-1]
+            laser_time_on.extend(laser_signal_onset)
+            laser_time_off.extend(laser_signal_offset)
+            laser_trial.extend(np.repeat(trial, len(laser_signal_offset)))
+            frame_time_on = []
+            for i in laser_signal_onset:
+                frame_time_on.append(np.argmin(np.abs(i - timestamps_session[count_t])))
+            frame_time_on_all.extend(frame_time_on)
+            frame_time_off = []
+            for j in laser_signal_offset:
+                frame_time_off.append(np.argmin(np.abs(j - timestamps_session[count_t])))
+            frame_time_off_all.extend(frame_time_off)
+        laser_on = pd.DataFrame(
+            {'time_on': laser_time_on, 'time_off': laser_time_off, 'frames_on': frame_time_on_all,
+             'frames_off': frame_time_off_all, 'trial': laser_trial})
+        if not os.path.exists(os.path.join(self.path, 'processed files', animal)):  # save csv
+            os.mkdir(os.path.join(self.path, 'processed files', animal))
+        laser_on.to_csv(os.path.join(self.path, 'processed files', animal, 'laser_on.csv'), sep=',', index=False)
+        return laser_on
+
+    def get_laser_on_some_trials(self, animal, laser_signal_session, timestamps_session, trials):
+        """Get in a dataframe format for each trial the time the laser was on and off from the synchronizer.
+        Save as csv
+        Input:
+            animal: (str) animal name
+            laser_signal_session: (csv)
+            timestamps_session: list with the frame timestamps for each trial
+            trials: list of trials to compute this dataframe"""
+        laser_time_on = []
+        laser_time_off = []
+        laser_trial = []
+        frame_time_on_all = []
+        frame_time_off_all = []
+        for count_t, trial in enumerate(trials):
             laser_time = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'time'].iloc[1:])
             laser_signal = np.array(laser_signal_session.loc[laser_signal_session['trial'] == trial, 'signal'].iloc[1:])
             laser_signal_onset = laser_time[np.where(np.diff(laser_signal) > 0)[0]]
@@ -1939,9 +1972,12 @@ class otrack_class:
         ax.plot(time, FR, color='lightgray', zorder=0)
         ax.hist(onset_data, histtype='step', color='black', linewidth=4, weights=weights_onset)
         ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4, weights=weights_offset)
+        # ax.hist(onset_data, histtype='step', color='black', linewidth=4)
+        # ax.hist(offset_data, histtype='step', color='dimgray', linewidth=4)
         ax.set_xticks([-1, -0.5, 0, 0.5, 1, 1.5, 2])
         ax.set_xticklabels(['-100', '-50', '0', '50', '100', '150', '200'])
         ax.set_xlabel('Phase (%)', fontsize=fontsize_plot)
+        ax.set_ylabel('LED-on counts', fontsize=fontsize_plot)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
         ax.tick_params(axis='both', which='major', labelsize=fontsize_plot - 2)

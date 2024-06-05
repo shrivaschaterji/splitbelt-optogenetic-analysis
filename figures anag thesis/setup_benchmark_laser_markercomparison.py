@@ -11,7 +11,7 @@ speeds = ['0,175', '0,275', '0,375', 'right_fast', 'left_fast']
 trials_reshape = np.reshape(np.arange(1, 11), (5, 2)) #0.175, 0.275, 0.375, right fast, left fast
 measure_name = ['accuracy', 'f1_score', 'false_negatives', 'false_positives']
 colors_networks = ['black', 'teal', 'orange']
-summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\Condition comparison\\'
+summary_path = 'J:\\Opto Benchmarks\\Benchmark plots\\For each speed comparison of marker and threshold\\'
 
 for idx_speed in range(len(speeds)):
     accuracy_measures_st = np.zeros((12, 4, len(conditions), len(networks)))
@@ -89,13 +89,14 @@ for idx_speed in range(len(speeds)):
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for n in range(len(networks)):
         violin_parts = ax.violinplot(stim_duration_st_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
-            showextrema=False)
+            showextrema=False, showmeans=True)
         for pc in violin_parts['bodies']:
             pc.set_color(colors_networks[n])
+        violin_parts['cmeans'].set_color(colors_networks[n])
     ax.set_xticks(np.arange(0, 9, 3))
     ax.set_xticklabels(conditions, fontsize=14)
     ax.set_title('Stance stim duration ' + speeds[idx_speed].replace('_', ' '), fontsize=16)
-    ax.set_ylabel('Time (s)', fontsize=14)
+    ax.set_ylabel('LED-on duration (s)', fontsize=14)
     ax.set_ylim([0, 0.85])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -106,13 +107,14 @@ for idx_speed in range(len(speeds)):
     fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
     for n in range(len(networks)):
         violin_parts = ax.violinplot(stim_duration_sw_net[n], positions=np.arange(0, 9, 3) + (0.5 * n),
-            showextrema=False)
+            showextrema=False, showmeans=True)
         for pc in violin_parts['bodies']:
              pc.set_color(colors_networks[n])
+        violin_parts['cmeans'].set_color(colors_networks[n])
     ax.set_xticks(np.arange(0, 9, 3))
     ax.set_xticklabels(conditions, fontsize=14)
     ax.set_title('Swing stim duration ' + speeds[idx_speed].replace('_', ' '), fontsize=16)
-    ax.set_ylabel('Time (s)', fontsize=14)
+    ax.set_ylabel('LED-on duration (s)', fontsize=14)
     ax.set_ylim([0, 0.85])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -126,7 +128,7 @@ for idx_speed in range(len(speeds)):
         fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
         for n in range(len(networks)):
             ax.hist(stim_duration_st_net[n][count_c], bins=100, histtype='step', color=colors_networks[n], linewidth=4)
-        ax.set_xlabel('Time (s)', fontsize=14)
+        ax.set_xlabel('LED-on duration (s)', fontsize=14)
         ax.set_ylabel('Counts', fontsize=14)
         ax.set_xlim([0, 0.5])
         plt.xticks(fontsize=14)
@@ -138,7 +140,7 @@ for idx_speed in range(len(speeds)):
         fig, ax = plt.subplots(tight_layout=True, figsize=(7, 3))
         for n in range(len(networks)):
             ax.hist(stim_duration_sw_net[n][count_c], bins=100, histtype='step', color=colors_networks[n], linewidth=4)
-        ax.set_xlabel('Time (s)', fontsize=14)
+        ax.set_xlabel('LED-on duration (s)', fontsize=14)
         ax.set_ylabel('Counts', fontsize=14)
         ax.set_xlim([0, 0.5])
         plt.xticks(fontsize=14)
@@ -161,9 +163,9 @@ for idx_speed in range(len(speeds)):
             light_offset_phase_sw_net[count_n][count_c], 'swing', 16, np.sum(stim_nr_sw_net[count_n][count_c]), np.sum(stride_nr_sw_net[count_n][count_c]), 'Greys',
                     summary_path, '\\light_swing_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed])
             otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_st_net[count_n][count_c], light_offset_phase_st_net[count_n][count_c],
-                                                            16, summary_path, '\\light_hist_stance_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed], 1)
+                                                            20, summary_path, '\\light_hist_stance_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed], 1)
             otrack_class.plot_laser_presentation_phase_hist(light_onset_phase_sw_net[count_n][count_c], light_offset_phase_sw_net[count_n][count_c],
-                                                            16, summary_path, '\\light_hist_swing_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed], 1)
+                                                            20, summary_path, '\\light_hist_swing_'+networks[count_n]+'_'+conditions[count_c]+'_'+speeds[idx_speed], 1)
             plt.close('all')
 
     # FRACTION OF STIMULATED STRIDES
@@ -176,9 +178,11 @@ for idx_speed in range(len(speeds)):
             else:
                 ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3), frac_strides_st[a, :, count_n],
                            s=10, color=colors_networks[count_n])
-    ax.set_xticks(np.arange(0, 30, 10) + 2.5)
+        ax.scatter(np.arange(0, 30, 10) + 1.5 * count_n, np.nanmean(frac_strides_st[:,  :, count_n], axis=0), s=200,
+                   marker='_', color=colors_networks[count_n])
+    ax.set_xticks(np.arange(0, 30, 10) + 2)
     ax.set_xticklabels(conditions, fontsize=14)
-    ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+    ax.set_ylabel('Fraction of LED-on\nstrides', fontsize=14)
     ax.set_ylim([0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -195,9 +199,11 @@ for idx_speed in range(len(speeds)):
             else:
                 ax.scatter(np.arange(0, 30, 10) + (np.ones(3) * count_n) + np.random.rand(3), frac_strides_sw[a, :, count_n],
                            s=10, color=colors_networks[count_n])
-    ax.set_xticks(np.arange(0, 30, 10) + 2.5)
+        ax.scatter(np.arange(0, 30, 10) + 1.5 * count_n, np.nanmean(frac_strides_sw[:,  :, count_n], axis=0), s=200,
+                   marker='_', color=colors_networks[count_n])
+    ax.set_xticks(np.arange(0, 30, 10) + 2)
     ax.set_xticklabels(conditions, fontsize=14)
-    ax.set_ylabel('Fraction of stimulated\nstrides', fontsize=14)
+    ax.set_ylabel('Fraction of LED-on\nstrides', fontsize=14)
     ax.set_ylim([0, 1])
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=14)
@@ -207,7 +213,7 @@ for idx_speed in range(len(speeds)):
     plt.savefig(os.path.join(summary_path, 'strides_stimulated_sw_'+speeds[idx_speed]+'.svg'), dpi=128)
 
     # ACCURACY
-    ylabel_names = ['% correct hits', '% F1 score', '% false negatives', '% false positives']
+    ylabel_names = ['fraction correct hits', '% F1 score', 'fraction false negatives', 'fraction false positives']
     for i in range(len(measure_name)):
         fig, ax = plt.subplots(tight_layout=True, figsize=(5, 3))
         for n in range(len(networks)):
@@ -218,8 +224,10 @@ for idx_speed in range(len(speeds)):
                 else:
                     ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_st[a, i, :, n],
                                s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
-        ax.legend(networks, frameon=False, fontsize=12)
-        ax.set_xticks(np.arange(0, 30, 10))
+            ax.scatter(np.arange(0, 30, 10) + 1.5 * n, np.nanmean(accuracy_measures_st[:, i, :, n], axis=0), s=200,
+                       marker='_', color=colors_networks[n])
+        # ax.legend(networks, frameon=False, fontsize=12)
+        ax.set_xticks(np.arange(0, 30, 10)+2)
         ax.set_xticklabels(conditions, fontsize=14)
         ax.set_title('Stance ' + measure_name[i].replace('_', ' ') + ' ' + speeds[idx_speed].replace('_', ' '), fontsize=16)
         ax.set_ylabel(measure_name[i], fontsize=14)
@@ -240,8 +248,10 @@ for idx_speed in range(len(speeds)):
                 else:
                     ax.scatter(np.arange(0, 30, 10)+(np.ones(3)*n)+np.random.rand(3), accuracy_measures_sw[a, i, :, n],
                                s=10, color=colors_networks[n], linewidth=2, label='_nolegend_')
-        ax.legend(networks, frameon=False, fontsize=12)
-        ax.set_xticks(np.arange(0, 30, 10))
+            ax.scatter(np.arange(0, 30, 10) + 1.5 * n, np.nanmean(accuracy_measures_sw[:, i, :, n], axis=0), s=200,
+                       marker='_', color=colors_networks[n])
+        # ax.legend(networks, frameon=False, fontsize=12)
+        ax.set_xticks(np.arange(0, 30, 10)+2)
         ax.set_xticklabels(conditions, fontsize=14)
         ax.set_title('Swing ' + measure_name[i].replace('_', ' ') + ' ' + speeds[idx_speed].replace('_', ' '), fontsize=16)
         ax.set_ylabel(measure_name[i], fontsize=14)

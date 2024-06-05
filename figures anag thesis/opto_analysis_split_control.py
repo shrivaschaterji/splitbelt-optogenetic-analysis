@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import scipy.stats as sp
 
 #path inputs
-path_loco = 'J:\\Opto JAWS Data\\split left fast control\\'
+path_loco = 'J:\\Opto JAWS Data\\split right fast control\\'
 paws = ['FR', 'HR', 'FL', 'HL']
 paw_colors = ['#e52c27', '#ad4397', '#3854a4', '#6fccdf']
 animals = ['MC16851', 'MC17319', 'MC17665', 'MC17670', 'MC19082', 'MC19124', 'MC19130', 'MC19214', 'MC19107']
@@ -33,15 +33,18 @@ session_list_plot = np.array(session_list)[animal_list_plot_idx]
 Ntrials = 28
 
 #summary gait parameters
-param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'phase_st', 'stance_speed']
+param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'coo_swing', 'swing_length', 'phase_st', 'stance_speed']
 param_sym_label = ['Center of oscillation\nsymmetry (mm)', 'Step length\nsymmetry (mm)',
-    'Percentage of double\nsupport symmetry', 'Spatial motor output\nsymmetry (mm)', 'Swing length\nsymmetry (mm)']
+    'Percentage of double\nsupport symmetry', 'Spatial motor output\nsymmetry (mm)',
+        'Temporal motor output\nsymmetry (mm)', 'Swing length\nsymmetry (mm)']
 param_label = ['Center of\noscillation (mm)', 'Step length (mm)',
-    'Percentage of\ndouble support', 'Spatial motor\noutput (mm)', 'Swing length(mm)']
+    'Percentage of\ndouble support', 'Spatial motor\noutput (mm)', 'Temporal motor\noutput (mm)', 'Swing length(mm)']
 phase_label = 'Stance phasing\n(degrees)'
 stance_speed_label = 'Stance speed (m/s)'
 param_sym = np.zeros((len(param_sym_name), len(animal_list_plot), Ntrials))
 param_sym[:] = np.nan
+param_sym_hind = np.zeros((len(param_sym_name), len(animal_list_plot), Ntrials))
+param_sym_hind[:] = np.nan
 param_paw = np.zeros((len(param_sym_name), len(animal_list_plot), 4, Ntrials))
 param_paw[:] = np.nan
 param_phase = np.zeros((4, len(animal_list_plot), Ntrials))
@@ -68,28 +71,36 @@ for count_animal, animal in enumerate(animal_list_plot):
         for count_p, param in enumerate(param_sym_name):
             param_mat = loco.compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
             if param == 'phase_st':
-                for p in range(4):
-                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = sp.circmean(param_mat[0][p], nan_policy='omit')
+                for p in range(4): #HL as reference
+                    param_phase[p, count_animal, trials_idx_corr[count_trial]] = sp.circmean(param_mat[3][p], nan_policy='omit')
             elif param == 'stance_speed':
                 for p in range(4):
                     stance_speed[p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[p])
             else:
                 param_sym[count_p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])
+                param_sym_hind[count_p, count_animal, trials_idx_corr[count_trial]] = np.nanmean(param_mat[1]) - np.nanmean(
+                    param_mat[3])
                 for count_paw, paw in enumerate(paws):
                     param_paw[count_p, count_animal, count_paw, trials_idx_corr[count_trial]] = np.nanmean(param_mat[count_paw])
 
 #Plot
 #baseline subtracion of parameters
 param_sym_bs = np.zeros(np.shape(param_sym))
+param_sym_hind_bs = np.zeros(np.shape(param_sym_hind))
 param_paw_bs = np.zeros(np.shape(param_paw))
 for p in range(np.shape(param_sym)[0]-2):
     for a in range(np.shape(param_sym)[1]):
         bs_mean = np.nanmean(param_sym[p, a, :stim_trials[0]-1])
+        bs_mean_hind = np.nanmean(param_sym_hind[p, a, :stim_trials[0] - 1])
         param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
+        param_sym_hind_bs[p, a, :] = param_sym_hind[p, a, :] - bs_mean_hind
         for count_paw in range(4):
             bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_trials[0]-1])
             param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
 np.save(os.path.join(path_loco, path_save, 'param_sym_bs.npy'), param_sym_bs)
+np.save(os.path.join(path_loco, path_save, 'param_phase.npy'), param_phase)
+np.save(os.path.join(path_loco, path_save, 'param_sym_hind_bs.npy'), param_sym_hind_bs)
+np.save(os.path.join(path_loco, path_save, 'animal_order.npy'), animal_list_plot)
 
 #plot symmetry baseline subtracted - mean animals
 for p in range(np.shape(param_sym)[0]-2):
@@ -110,6 +121,25 @@ for p in range(np.shape(param_sym)[0]-2):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     plt.savefig(os.path.join(path_save, 'mean_animals_symmetry_' + param_sym_name[p] + '.png'), dpi=128)
+plt.close('all')
+
+for p in range(np.shape(param_sym)[0]-2):
+    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+    mean_data = np.nanmean(param_sym_hind_bs[p, :, :], axis=0)
+    std_data = (np.nanstd(param_sym_hind_bs[p, :, :], axis=0)/np.sqrt(len(animals)))
+    rectangle = plt.Rectangle((stim_trials[0]-0.5, np.nanmin(mean_data-std_data)), 10, np.nanmax(mean_data+std_data)-np.nanmin(mean_data-std_data), fc='lightblue', zorder=0, alpha=0.3)
+    plt.gca().add_patch(rectangle)
+    plt.hlines(0, 1, Ntrials, colors='grey', linestyles='--')
+    plt.plot(np.arange(1, Ntrials+1), mean_data, linewidth=2, marker='o', color='black', zorder=-1)
+    plt.fill_between(np.arange(1, Ntrials+1), mean_data-std_data, mean_data+std_data, color='black', alpha=0.5)
+    ax.set_xlabel('Trial', fontsize=28)
+    ax.set_ylabel(param_sym_label[p], fontsize=28)
+    plt.xticks(fontsize=28)
+    plt.yticks(fontsize=28)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.savefig(os.path.join(path_save, 'mean_animals_symmetry_hind_' + param_sym_name[p] + '.png'), dpi=128)
+    plt.savefig(os.path.join(path_save, 'mean_animals_symmetry_hind_' + param_sym_name[p] + '.svg'), dpi=128)
 plt.close('all')
 
 #plot individual limbs baseline subtracted - mean animals
