@@ -52,13 +52,23 @@ paths = [
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast swing stim\\',
    # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\LocoCF-internal\\Tout_data\\20230606 tied stance stim\\'
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20230608 split right fast control\\'
- 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240401 tied stance stim chr2IO 10ms 25th\\',
+ #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240409 tied stance stim CTXchr2\\',
    # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim IOchr2\\'
        # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20240202 split left fast stance stim\\',
    # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\Susd4KO project\\20240212 20240221 20240304 split right fast Susd4KO\\',
    # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\Susd4KO project\\20240216 20240226 20240308 split left fast Susd4KO\\'
-      
+     #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split left fast no-stim S3\\",
+    # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split right fast no-stim S2\\",
+      #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split right fast stim S4\\",
+     # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split right fast perturb S5\\",
+     #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split left fast perturb S6\\"
+    # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\HE\\split left fast no-stim\\",
+    # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\HE\\split left fast perturb\\"
+     #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\HE\\split right fast perturb\\original protocol\\"
+     "D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240531 tied swing stim IOchr2 50ms\\"
+      #"D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240503 tied stance stim IOchr2 50ms\\"
      ]
+
 
 #[
   #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\19092023 split left fast trial stim\\',

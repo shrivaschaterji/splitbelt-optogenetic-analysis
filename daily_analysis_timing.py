@@ -5,7 +5,7 @@ import os
 # Inputs
 laser_event = 'stance'
 trials_plot = np.arange(9, 19) #trials with stimulation to check phase of laser
-path = 'C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\16062023 split right fast stance stim only split\\'
+path = 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240409 tied stance stim CTXchr2\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class
