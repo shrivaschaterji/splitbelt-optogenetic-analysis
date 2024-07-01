@@ -288,7 +288,7 @@ for path in paths:
         # GAIT PARAMETERS ACROSS TRIALS
         param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'phase_st', 'stance_speed']
         param_gait_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
-        param_label = ['Center of\noscillation (mm)', 'Step length (mm)', 'Percentage of\ndouble support', 'Spatial motor\noutput (mm)', 'Swing length(mm)', 'Stance phase', 'Stance speed']
+        param_label = ['Center of\noscillation (mm)', 'Step length (mm)', '% of double support', 'Spatial motor\noutput (mm)', 'Swing length(mm)', 'Stance phase', 'Stance speed']
         param_sym = np.zeros((len(param_sym_name), len(animal_list), Ntrials))
         param_sym[:] = np.NaN
         param_paw = np.zeros((len(param_sym_name), len(animal_list), 4, Ntrials))
@@ -413,13 +413,13 @@ for path in paths:
             for a in range(np.shape(param_sym)[1]):         # Loop on all animals
                 plt.plot(np.linspace(1, len(param_sym_bs[p, a, :]), len(param_sym_bs[p, a, :])), param_sym_bs[p, a, :], color= animal_colors_dict[animal_list[a]],
                         label=animal_list[a], linewidth=2)
-            ax.set_xlabel('Trial', fontsize=20)
+            ax.set_xlabel('Trial', fontsize=24)
             ax.legend(frameon=False,loc='center left', bbox_to_anchor=(1, 0.5)) 
-            ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+            ax.set_ylabel(param_label[p]+' asymmetry', fontsize=24)
             # if p == 2:
             #    plt.gca().invert_yaxis()
-            plt.xticks(fontsize=16)
-            plt.yticks(fontsize=16)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if print_plots:
@@ -454,12 +454,12 @@ for path in paths:
                 plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1, color = animal_colors_dict[included_animal_list[a]], label=animal_list[included_animals_id[a]])
             ax.legend(frameon=False)
             plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors_dict[experiment_name], linewidth=3)
-            ax.set_xlabel('Trial', fontsize=20)
-            ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+            ax.set_xlabel('Trial', fontsize=24)
+            ax.set_ylabel(param_label[p]+' symmetry', fontsize=24)          #   param_sym_name[p].replace('_', ' '),
             #if p == 2:
             #    plt.gca().invert_yaxis()
-            plt.xticks(fontsize=16)
-            plt.yticks(fontsize=16)
+            plt.xticks(fontsize=20)
+            plt.yticks(fontsize=20)
             ax.spines['right'].set_visible(False)
             ax.spines['top'].set_visible(False)
             if print_plots:
@@ -544,12 +544,12 @@ for path in paths:
                 plt.legend()
                 ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
                 ax.axvline(x = stim_start+stim_duration-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-                ax.set_xlabel('Trial', fontsize=20)
-                ax.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+                ax.set_xlabel('Trial', fontsize=24)
+                ax.set_ylabel(param_label[p]+' asymmetry', fontsize=24)            #      param_sym_name[p].replace('_', ' ')
                 #if p == 2:
                 #    plt.gca().invert_yaxis()
-                plt.xticks(fontsize=16)
-                plt.yticks(fontsize=16)
+                plt.xticks(fontsize=20)
+                plt.yticks(fontsize=20)
                 ax.spines['right'].set_visible(False)
                 ax.spines['top'].set_visible(False)
                 if print_plots:
@@ -575,10 +575,10 @@ for path in paths:
                 ax.plot(np.linspace(1,len(data[p,:]),len(data[p,:])), data[p,:], color = paw_colors[p], linewidth = 2)
                 ax.spines['right'].set_visible(False)
                 ax.spines['top'].set_visible(False)
-                ax.set_xlabel('Trial', fontsize = 20)
-                ax.set_ylabel('Stance speed', fontsize = 20)
-                ax.tick_params(axis='x',labelsize = 16)
-                ax.tick_params(axis='y',labelsize = 16)
+                ax.set_xlabel('Trial', fontsize = 24)
+                ax.set_ylabel('Stance speed', fontsize = 24)
+                ax.tick_params(axis='x',labelsize = 20)
+                ax.tick_params(axis='y',labelsize = 20)
                 ax.set_title(animal_list[a],fontsize=18)
             
             if print_plots:
@@ -671,14 +671,14 @@ if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
         plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
         ax_multi.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
         ax_multi.axvline(x = stim_start+stim_duration-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-        ax_multi.set_xlabel('Trial', fontsize=20)
-        ax_multi.set_ylabel(param_sym_name[p].replace('_', ' '), fontsize=20)
+        ax_multi.set_xlabel('1-min trial', fontsize=24)
+        ax_multi.set_ylabel(param_label[p]+' asymmetry', fontsize=24)
         if uniform_ranges:
             ax_multi.set(ylim=axes_ranges[param_sym_name[p]])
         #if p == 2:
            # plt.gca().invert_yaxis()
-        plt.xticks(fontsize=16)
-        plt.yticks(fontsize=16)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
         ax_multi.spines['right'].set_visible(False)
         ax_multi.spines['top'].set_visible(False)
         if print_plots:
