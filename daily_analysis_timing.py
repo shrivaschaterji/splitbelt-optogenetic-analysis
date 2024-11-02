@@ -5,7 +5,7 @@ import os
 # Inputs
 laser_event = 'stance'
 trials_plot = np.arange(9, 19) #trials with stimulation to check phase of laser
-path = 'J:\\LocoCF\\timing test\\20240603 tied stance stim IOchr2 50ms\\'
+path = 'C:\\Users\\Ana\\Desktop\\Opto ChR2 Zombies\\20241015 merged tied stance stim 100sw batch#2EZ\\'
 import online_tracking_class
 otrack_class = online_tracking_class.otrack_class(path)
 import locomotion_class

@@ -117,7 +117,7 @@ class otrack_class:
             tr_ind = np.where(trial_ordered[f] == trial_order)[0][0]
             files_ordered.append(filelist[tr_ind])
         for trial, f in enumerate(files_ordered): #for each metadata file
-            metadata = pd.read_csv(os.path.join(self.path, f), names=['a','b','c','d','e','f','g','h','i','j']) #ADD HEADER AND IT SHOULD BE FINE
+            metadata = pd.read_csv(os.path.join(self.path, f), encoding = "utf-8", names=['a','b','c','d','e','f','g','h','i','j']) #ADD HEADER AND IT SHOULD BE FINE
             cam_timestamps = [0]
             for t in np.arange(1, len(metadata.iloc[:,9])):
                 cam_timestamps.append(self.converttime(metadata.iloc[t,9]-metadata.iloc[0,9])) #get the camera timestamps subtracting the first as the 0
@@ -274,22 +274,52 @@ class otrack_class:
             for count_f, f in enumerate(otracks_frame_counter):
                 meta_frame_idx = np.where(f == frames_cam)[0][0]
                 otracks_frame_counter_real.append(frames_cam_correct_nr[meta_frame_idx])
-            otracks_timestamps = np.array(timestamps_session[trial])[
-                np.array(otracks_frame_counter_real)]  # get timestamps of synchronizer for each otrack frame
-            # create lists to add them to a dataframe
-            otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
-            otracks_frames.extend(np.array(otracks_frame_counter_real))  # list of frame counters
-            otracks_trials.extend(
-                np.array(np.ones(len(otracks_frame_counter)) * (self.trials[trial])))  # list of trial value
-            otracks_posx.extend(
-                np.array(otracks.iloc[:, 2]))  # list of otrack paw x position
-            otracks_st.extend(
-                np.array(otracks.iloc[:, 3]))  # list of otrack when in stance
-            otracks_sw.extend(
-                np.array(otracks.iloc[:, 4]))  # list of otrack when in swing
+            try:
+                otracks_timestamps = np.array(timestamps_session[trial])[
+                    np.array(otracks_frame_counter_real)]  # get timestamps of synchronizer for each otrack frame
+                # create lists to add them to a dataframe
+                otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
+                otracks_frames.extend(np.array(otracks_frame_counter_real))  # list of frame counters
+                otracks_trials.extend(
+                    np.array(
+                        np.ones(len(otracks_frame_counter)) * (self.trials[trial])))  # list of trial value
+                otracks_posx.extend(
+                    np.array(otracks.iloc[:, 2]))  # list of otrack paw x position
+                otracks_st.extend(
+                    np.array(otracks.iloc[:, 3]))  # list of otrack when in stance
+                otracks_sw.extend(
+                    np.array(otracks.iloc[:, 4]))  # list of otrack when in swing
+            except:
+                print('WEIRD TRIAL ' + str(trial_ordered[
+                                               trial]) + ': There are less timestamps from synchronizer than frames from bonsai!')
+                # can only get the otrack frames until the last frame of the timestamps_session[trial]
+                otracks_frame_counter_real_array = np.array(otracks_frame_counter_real)
+                otracks_frame_counter_real_crop = np.int64(otracks_frame_counter_real[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_timestamps = np.array(timestamps_session[trial])[
+                    np.array(
+                        otracks_frame_counter_real_crop)]  # get timestamps of synchronizer for each otrack frame
+                # create lists to add them to a dataframe
+                otracks_time.extend(np.array(otracks_timestamps))  # list of timestamps
+                otracks_frames.extend(np.array(otracks_frame_counter_real_crop))  # list of frame counters
+                otracks_trials.extend(
+                    np.array(np.ones(len(otracks_frame_counter_real_crop)) * (
+                    self.trials[trial])))  # list of trial value
+                otracks_posx_crop = np.array(np.array(otracks.iloc[:, 2])[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_posy_crop = np.array(np.array(otracks.iloc[:, 3])[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_posz_crop = np.array(np.array(otracks.iloc[:, 4])[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_posx.extend(
+                    otracks_posx_crop)  # list of otrack paw x position
+                otracks_st.extend(
+                    otracks_posy_crop)  # list of otrack when in stance
+                otracks_sw.extend(
+                    otracks_posz_crop)  # list of otrack when in swing
         # creating the dataframe
         otracks = pd.DataFrame({'time': otracks_time, 'frames': otracks_frames, 'trial': otracks_trials,
-                                   'x': otracks_posx, 'st_on': otracks_st, 'sw_on': otracks_sw})
+                                'x': otracks_posx, 'st_on': otracks_st, 'sw_on': otracks_sw})
         if not os.path.exists(os.path.join(self.path, 'processed files', animal)):  # saving the csv
             os.mkdir(os.path.join(self.path, 'processed files', animal))
         otracks.to_csv(
@@ -338,20 +368,58 @@ class otrack_class:
             for count_f, f in enumerate(otracks_frame_counter):
                 meta_frame_idx = np.where(f == frames_cam)[0][0]
                 otracks_frame_counter_real.append(frames_cam_correct_nr[meta_frame_idx])
-            otracks_timestamps = np.array(timestamps_session[trial])[
-                np.array(otracks_frame_counter_real)]  # get timestamps of synchronizer for each otrack frame
-            stance_frames = np.where(otracks.iloc[:, 3]==True)[0] #get all the otrack where it detected a stance (above the threshold set in bonsai)
-            swing_frames = np.where(otracks.iloc[:, 4]==True)[0] #get all the otrack where it detected a swing (above the threshold set in bonsai)
-            # create lists to add them to a dataframe
-            otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames]) #list of timestamps
-            otracks_sw_time.extend(np.array(otracks_timestamps)[swing_frames]) #list of timestamps
-            otracks_st_frames.extend(np.array(otracks_frame_counter_real)[stance_frames]) #list of frame counters
-            otracks_sw_frames.extend(np.array(otracks_frame_counter_real)[swing_frames]) #list of frame counters
-            otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter_real))[stance_frames]*(self.trials[trial]))) #list of trial value
-            otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter_real))[swing_frames]*(self.trials[trial]))) #list of trial value
-            otracks_st_posx.extend(np.array(otracks.iloc[stance_frames, 2])) #list of otrack paw x position when in stance
-            otracks_sw_posx.extend(np.array(otracks.iloc[swing_frames, 2])) #list of otrack paw x position when in swing
-        #creating the dataframe
+            try:
+                otracks_timestamps = np.array(timestamps_session[trial])[
+                    np.array(otracks_frame_counter_real)]  # get timestamps of synchronizer for each otrack frame
+                stance_frames = np.where(otracks.iloc[:, 3] == True)[
+                    0]  # get all the otrack where it detected a stance (above the threshold set in bonsai)
+                swing_frames = np.where(otracks.iloc[:, 4] == True)[
+                    0]  # get all the otrack where it detected a swing (above the threshold set in bonsai)
+                # create lists to add them to a dataframe
+                otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames])  # list of timestamps
+                otracks_sw_time.extend(np.array(otracks_timestamps)[swing_frames])  # list of timestamps
+                otracks_st_frames.extend(np.array(otracks_frame_counter_real)[stance_frames])  # list of frame counters
+                otracks_sw_frames.extend(np.array(otracks_frame_counter_real)[swing_frames])  # list of frame counters
+                otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter_real))[stance_frames] * (
+                self.trials[trial])))  # list of trial value
+                otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter_real))[swing_frames] * (
+                self.trials[trial])))  # list of trial value
+                otracks_st_posx.extend(
+                    np.array(otracks.iloc[stance_frames, 2]))  # list of otrack paw x position when in stance
+                otracks_sw_posx.extend(
+                    np.array(otracks.iloc[swing_frames, 2]))  # list of otrack paw x position when in swing
+            except:
+                print('WEIRD TRIAL ' + str(trial_ordered[
+                                               trial]) + ': There are less timestamps from synchronizer than frames from bonsai!')
+                # can only get the otrack frames until the last frame of the timestamps_session[trial]
+                otracks_frame_counter_real_array = np.array(otracks_frame_counter_real)
+                otracks_frame_counter_real_crop = np.int64(otracks_frame_counter_real[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_timestamps = np.array(timestamps_session[trial])[
+                    np.array(
+                        otracks_frame_counter_real_crop)]  # get timestamps of synchronizer for each otrack frame
+                st_tracks = np.array(otracks.iloc[:, 3])[:np.int64(
+                        np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])]
+                sw_tracks = np.array(otracks.iloc[:, 3])[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])]
+                stance_frames_crop = np.where(st_tracks==True)[0] #get all the otrack where it detected a stance (above the threshold set in bonsai)
+                swing_frames_crop = np.where(sw_tracks==True)[0] #get all the otrack where it detected a swing (above the threshold set in bonsai)
+                # create lists to add them to a dataframe
+                otracks_st_time.extend(np.array(otracks_timestamps)[stance_frames_crop]) #list of timestamps
+                otracks_sw_time.extend(np.array(otracks_timestamps)[swing_frames_crop]) #list of timestamps
+                otracks_st_frames.extend(np.array(otracks_frame_counter_real_crop)[stance_frames_crop]) #list of frame counters
+                otracks_sw_frames.extend(np.array(otracks_frame_counter_real_crop)[swing_frames_crop]) #list of frame counters
+                otracks_st_trials.extend(np.array(np.ones(len(otracks_frame_counter_real_crop))[stance_frames_crop]*(self.trials[trial]))) #list of trial value
+                otracks_sw_trials.extend(np.array(np.ones(len(otracks_frame_counter_real_crop))[swing_frames_crop]*(self.trials[trial]))) #list of trial value
+                otracks_st_posx_crop = np.array(np.array(otracks.iloc[stance_frames_crop, 2])[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_st_posx.extend(
+                    otracks_st_posx_crop)  # list of otrack paw x position
+                otracks_sw_posx_crop = np.array(np.array(otracks.iloc[swing_frames_crop, 2])[:np.int64(
+                    np.where(otracks_frame_counter_real_array <= len(timestamps_session[trial]))[0][-1])])
+                otracks_sw_posx.extend(
+                    otracks_sw_posx_crop)  # list of otrack paw x position
+        #        #creating the dataframe
         otracks_st = pd.DataFrame({'time': otracks_st_time, 'frames': otracks_st_frames, 'trial': otracks_st_trials,
             'x': otracks_st_posx})    #, 'y': otracks_st_posy})
         otracks_sw = pd.DataFrame({'time': otracks_sw_time, 'frames': otracks_sw_frames, 'trial': otracks_sw_trials,
@@ -477,20 +545,51 @@ class otrack_class:
             [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = loco.read_h5(f, 0.9, 0) #read h5 using the full network features
             [st_strides_mat, sw_pts_mat] = loco.get_sw_st_matrices(final_tracks, 1)  # swing and stance detection, exclusion of strides
             #get lists for dataframe
-            offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
-            offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
-            offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
-            offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 1, -1]))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
-            offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
-            offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
-            offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #swing onset idx
-            offtracks_sw_off_frames.extend(np.array(st_strides_mat[p][:, 1, -1])) #swing offset idx
-            offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial) #trial number
-            offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial) #trial number
-            offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])]) #paw x position for stance onset
-            offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])]) #paw x position for swing onset
-            offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])]) #paw y position for stance onset
-            offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])]) #paw y position for swing onset
+            try:
+                offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 0, -1]))]) #stance onset time in seconds
+                offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #stance offset time in seconds, same as swing onset
+                offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat[p][:, 0, -1]))]) #swing onset time in seconds
+                offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat[p][:, 1, -1]))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
+                offtracks_st_frames.extend(np.array(st_strides_mat[p][:, 0, -1])) #stance onset idx
+                offtracks_sw_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #stance offset idx
+                offtracks_st_off_frames.extend(np.array(sw_pts_mat[p][:, 0, -1])) #swing onset idx
+                offtracks_sw_off_frames.extend(np.array(st_strides_mat[p][:, 1, -1])) #swing offset idx
+                offtracks_st_trials.extend(np.ones(len(st_strides_mat[p][:, 0, 0])) * trial) #trial number
+                offtracks_sw_trials.extend(np.ones(len(sw_pts_mat[p][:, 0, -1])) * trial) #trial number
+                offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat[p][:, 0, -1])]) #paw x position for stance onset
+                offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat[p][:, 0, -1])]) #paw x position for swing onset
+                offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat[p][:, 0, -1])]) #paw y position for stance onset
+                offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat[p][:, 0, -1])]) #paw y position for swing onset
+            except:
+                print('WEIRD TRIAL ' + str(
+                    trial_ordered[count_t]) + ': There are less timestamps from synchronizer than frames from bonsai!')
+                st_strides_mat_paw = np.int64(np.array(st_strides_mat[p][:, 0, -1]))
+                st_strides_mat_paw_offset = np.int64(np.array(st_strides_mat[p][:, 1, -1]))
+                sw_pts_mat_paw = np.int64(np.array(sw_pts_mat[p][:, 0, -1]))
+                st_strides_mat_paw_crop = np.array(st_strides_mat_paw[:
+                                                                      np.where(st_strides_mat_paw <= len(
+                                                                          timestamps_session[count_t]))[0][-1]])
+                st_strides_mat_paw_offset_crop = np.array(st_strides_mat_paw_offset[:
+                                                                      np.where(st_strides_mat_paw_offset <= len(
+                                                                          timestamps_session[count_t]))[0][-1]])
+                sw_pts_mat_paw_crop = np.array(sw_pts_mat_paw[:
+                                                              np.where(
+                                                                  sw_pts_mat_paw <= len(timestamps_session[count_t]))[
+                                                                  0][-1]])
+                offtracks_st_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat_paw_crop))]) #stance onset time in seconds
+                offtracks_st_off_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat_paw_crop))]) #stance offset time in seconds, same as swing onset
+                offtracks_sw_time.extend(timestamps_session[count_t][np.int64(np.array(sw_pts_mat_paw_crop))]) #swing onset time in seconds
+                offtracks_sw_off_time.extend(timestamps_session[count_t][np.int64(np.array(st_strides_mat_paw_offset_crop))]) #swing offset time in seconds, same as stride offset or the next stride stance onset
+                offtracks_st_frames.extend(np.array(st_strides_mat_paw_crop)) #stance onset idx
+                offtracks_sw_frames.extend(np.array(sw_pts_mat_paw_crop)) #stance offset idx
+                offtracks_st_off_frames.extend(np.array(sw_pts_mat_paw_crop)) #swing onset idx
+                offtracks_sw_off_frames.extend(np.array(st_strides_mat_paw_offset_crop)) #swing offset idx
+                offtracks_st_trials.extend(np.ones(len(st_strides_mat_paw_crop)) * trial) #trial number
+                offtracks_sw_trials.extend(np.ones(len(sw_pts_mat_paw_crop)) * trial) #trial number
+                offtracks_st_posx.extend(final_tracks[0, p, np.int64(st_strides_mat_paw_crop)]) #paw x position for stance onset
+                offtracks_sw_posx.extend(final_tracks[0, p, np.int64(sw_pts_mat_paw_crop)]) #paw x position for swing onset
+                offtracks_st_posy.extend(final_tracks[1, p, np.int64(st_strides_mat_paw_crop)]) #paw y position for stance onset
+                offtracks_sw_posy.extend(final_tracks[1, p, np.int64(sw_pts_mat_paw_crop)]) #paw y position for swing onset
         #create dataframe
         offtracks_st = pd.DataFrame(
             {'time': offtracks_st_time, 'time_off': offtracks_st_off_time, 'frames': offtracks_st_frames, 'frames_off': offtracks_st_off_frames,
