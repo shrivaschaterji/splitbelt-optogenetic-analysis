@@ -495,11 +495,7 @@ for path in paths:
 
 #included_animals_id = [animal_list.index(i) for i in included_animal_list]
 # MULTI-SESSION PLOT
-if single_animal_analysis==0 and (len(paths)>0 or len(control_path)>0):
-    if len(control_path)>0:
-        current_experiment_names = ['control']
-        current_experiment_colors = ['black']
-        current_bar_labels = ['control']
+if single_animal_analysis==0:
     
     for p in range(np.shape(param_sym)[0]):
         fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
