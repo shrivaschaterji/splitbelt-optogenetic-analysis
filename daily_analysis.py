@@ -418,39 +418,17 @@ for path in paths:
     if single_animal_analysis == 0:
         for p in range(np.shape(param_sym)[0]):
             param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
-            fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-            if uniform_ranges:
-                ax.set(ylim=axes_ranges[param_sym_name[p]])
-                rectangle = plt.Rectangle((split_start - 0.5, axes_ranges[param_sym_name[p]][0]), split_duration,
-                                            axes_ranges[param_sym_name[p]][1] - axes_ranges[param_sym_name[p]][0],
-                                            fc='lightblue', alpha=0.3)
-            else:
-                rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs_ave[:, :].flatten())), split_duration,
-                                            np.nanmax(param_sym_bs_ave[:, :].flatten()) - np.nanmin(param_sym_bs_ave[:, :].flatten()),
-                                            fc='lightblue', alpha=0.3)
-            plt.gca().add_patch(rectangle)
-            ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-            ax.axvline(x = stim_start+stim_duration-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-            plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
-            for a in range(np.shape(param_sym_bs_ave)[0]):
-                plt.plot(np.linspace(1, len(param_sym_bs_ave[a, :]), len(param_sym_bs_ave[a, :])), param_sym_bs_ave[a, :], linewidth=1, color = animal_colors_dict[included_animal_list[a]], label=animal_list[included_animals_id[a]])
-            ax.legend(frameon=False)
-            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), np.nanmean(param_sym_bs_ave, axis=0), color=experiment_colors_dict[experiment_name], linewidth=3)
-            ax.set_xlabel('Trial', fontsize=24)
-            ax.set_ylabel(param_label[p]+' symmetry', fontsize=24)          #   param_sym_name[p].replace('_', ' '),
-            #if p == 2:
-            #    plt.gca().invert_yaxis()
-            plt.xticks(fontsize=20)
-            plt.yticks(fontsize=20)
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
+            fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_labels, animal_list, [included_animal_list, included_animals_id],
+                                                         [animal_colors_dict, experiment_colors_dict], {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
+                                                         experiment_name, ranges=[uniform_ranges, axes_ranges])
+            # Save plot
             if print_plots:
                 if not os.path.exists(paths_save[path_index]):
                     os.mkdir(paths_save[path_index])
                 if bs_bool:
-                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average', dpi=128)
+                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average', dpi=128)
                 else:
-                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs_average', dpi=128)
+                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs_average', dpi=128)
             # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot)
             param_sym_multi[path][p] = param_sym_bs_ave
         plt.close('all')

@@ -58,8 +58,64 @@ def plot_learning_curve_ind_animals(param_sym, current_param, param_labels, anim
 
 
 
-
 # Individual animals with average
+def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labels, animal_list, included_animals, colors, intervals=None, experiment_name=None, ranges=[False, None]):
+    '''
+    Plot learning curve for individual animals with average.
+    
+    Parameters:
+    param_sym_avg (numpy.ndarray): A 2D array containing the average parameter values for each animal and trial.
+    current_param (int): The index of the current parameter to plot.
+    param_labels (dict): Dictionary keys are the parameter names and values are the corresponding labels.
+    animal_list (list of str): A list of animal identifiers.
+    included_animals (list): A list of two lists, the first containing the names/identifiers of the animals to include in the plot, and the second containing the corresponding indices within the all animals list.
+    colors (list): A list of dictionaries, the first mapping animal identifiers to colors and the second mapping the experiments to colors.
+    intervals (dict, optional): A dictionary containing 'split' and 'stim' intervals with their respective start and duration (in trials).
+    experiment_name (str, optional): The name of the experiment for color mapping.
+    ranges (list, optional): A list containing a boolean indicating whether to use uniform y-axis ranges and a dictionary containing y-axis ranges for each parameter.
+    
+    Returns:
+    fig (matplotlib.figure.Figure): The figure object containing the plot.
+    '''
+
+    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+
+    # Plot learning curves for each animal
+    for a in range(np.shape(param_sym_avg)[0]):
+        plt.plot(np.linspace(1, len(param_sym_avg[a, :]), len(param_sym_avg[a, :])), param_sym_avg[a, :], linewidth=1, color=colors[0][included_animals[0][a]], label=animal_list[included_animals[1][a]])
+    ax.legend(frameon=False)
+    
+    # Plot average
+    plt.plot(np.linspace(1, len(param_sym_avg[0, :]), len(param_sym_avg[0, :])), np.nanmean(param_sym_avg, axis=0), color=colors[1][experiment_name], linewidth=3)
+
+    param_sym_names = list(param_labels.keys())
+    param_sym_labels = list(param_labels.values())
+
+    # Define y-axis limits
+    if ranges[0] and (ranges[1] is not None):
+        ax.set(ylim=ranges[1][param_sym_names[current_param]])
+    else:
+        ax.set(ylim=[np.nanmin(param_sym_avg[:, :].flatten()), np.nanmax(param_sym_avg[:, :].flatten())])
+
+    # Add split and stimulation intervals
+    if intervals:
+        if 'split' in intervals:
+            add_patch_interval(ax, intervals['split'])
+        if 'stim' in intervals:
+            add_start_end_interval(ax, intervals['stim'])
+
+    # Add horizontal line at 0
+    plt.hlines(0, 1, len(param_sym_avg[0, :]), colors='grey', linestyles='--')
+    
+    # Add figure labels
+    ax.set_xlabel('Trial', fontsize=24)
+    ax.set_ylabel(param_sym_labels[current_param] + ' symmetry', fontsize=24)          
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    return fig
 
 
 # Average with STD or SEM for each experiment
