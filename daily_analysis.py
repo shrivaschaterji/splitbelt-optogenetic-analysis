@@ -401,34 +401,16 @@ for path in paths:
 
 
         for p in range(np.shape(param_sym)[0] - 1):
-            fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start - 0.5, np.nanmin(param_sym_bs[p, :, :].flatten())), split_duration,
-                                    np.nanmax(param_sym_bs[p, :, :].flatten()) - np.nanmin(param_sym_bs[p, :, :].flatten()),
-                                    fc='lightblue', alpha=0.3)
-            plt.gca().add_patch(rectangle)
-            ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-            ax.axvline(x = stim_start+stim_duration-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-            plt.hlines(0, 1, len(param_sym_bs[p, a, :]), colors='grey', linestyles='--')
-            
-            for a in range(np.shape(param_sym)[1]):         # Loop on all animals
-                plt.plot(np.linspace(1, len(param_sym_bs[p, a, :]), len(param_sym_bs[p, a, :])), param_sym_bs[p, a, :], color= animal_colors_dict[animal_list[a]],
-                        label=animal_list[a], linewidth=2)
-            ax.set_xlabel('Trial', fontsize=24)
-            ax.legend(frameon=False,loc='center left', bbox_to_anchor=(1, 0.5)) 
-            ax.set_ylabel(param_label[p]+' asymmetry', fontsize=24)
-            # if p == 2:
-            #    plt.gca().invert_yaxis()
-            plt.xticks(fontsize=20)
-            plt.yticks(fontsize=20)
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
+            # Plot learning curve for individual animals
+            fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_label, animal_list, animal_colors_dict, split_intervals=[split_start, split_duration], stim_intervals=[stim_start, stim_duration])
+            # Save plot
             if print_plots:
                 if not os.path.exists(paths_save[path_index]):
                     os.mkdir(paths_save[path_index])
                 if bs_bool:
-                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs', dpi=128)
+                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs', dpi=128)
                 else:
-                    plt.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs', dpi=128)
+                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs', dpi=128)
         plt.close('all')
 
     # PLOT ANIMAL AVERAGE FOR EACH SESSION
