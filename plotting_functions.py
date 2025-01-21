@@ -131,3 +131,34 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labe
 # average line + scatterplot (no animals color)
 
 # average line + scatterplot (with animals color)
+
+
+
+
+# Utils plotting functions
+def add_patch_interval(ax, intervals):
+    """
+    Adds split or stimulation intervals to a plot, as a patch light blue rectangle.
+    
+    Parameters:
+    ax (matplotlib.axes.Axes): The axes object to add the intervals to.
+    intervals (list): A list containing the start and duration (in trials) of the interval to plot as a patch.
+    """
+    start, duration = intervals
+    rectangle = plt.Rectangle((start - 0.5, ax.get_ylim()[0]), duration,
+                                    ax.get_ylim()[1] - ax.get_ylim()[0],
+                                    fc='lightblue', alpha=0.3)
+    ax.add_patch(rectangle)
+    
+ 
+def add_start_end_interval(ax, intervals):
+    """
+    Adds split or stimulation intervals to a plot, as start and end lines.
+    
+    Parameters:
+    ax (matplotlib.axes.Axes): The axes object to add the intervals to.
+    intervals (list): A list containing the start and duration (in trials) of the interval to plot as a start and end line.
+    """
+    start, duration = intervals
+    ax.axvline(x=start-0.5, color='k', linestyle='-', linewidth=0.5)
+    ax.axvline(x=start+duration-0.5, color='k', linestyle='-', linewidth=0.5)
