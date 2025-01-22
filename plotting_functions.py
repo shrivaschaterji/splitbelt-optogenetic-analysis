@@ -115,11 +115,71 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labe
     return fig
 
 
-# Average with STD or SEM for each experiment
+# Average with SEM for all experiments compared
+def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic, included_animals_list_ids, experiment_colors_dict, intervals=None, experiment_names=None, ranges=[False, None]):
+    """
+    Plots the average learning curve compared across multiple experiments.
 
+    Parameters:
+    param_sym_multi (dict): Dictionary containing the parameter symmetry data for multiple paths.
+    current_param (int): Index of the current parameter to be plotted.
+    labels_dic (dict): Dictionary keys are the parameter names and values are the corresponding labels.
+    included_animals_list_ids (list): A list of two lists, the first containing the names/identifiers of the animals to include in the plot, and the second containing the corresponding indices within the all animals list.
+    experiment_colors_dict (dict): Dictionary mapping experiment names to their corresponding colors.
+    intervals (dict, optional): Dictionary containing 'split' and 'stim' intervals. Defaults to None.
+    experiment_names (list, optional): List of experiment names. Defaults to None.
+    ranges (list, optional): List containing a boolean and a dictionary for y-axis limits. Defaults to [False, None].
 
-# Average with STD or SEM for all experiments compared
+    Returns:
+    fig_multi (matplotlib.figure.Figure): The resulting figure object.
+    """
+    
+    fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
+    min_rect = 0
+    max_rect = 0
+    path_index = 0
 
+    paths = list(param_sym_multi.keys())
+    
+    for path in paths:
+        ntrial = len(param_sym_multi[path][current_param][0,:])
+        plt.plot(np.linspace(1, ntrial, ntrial), np.nanmean(param_sym_multi[path][current_param], axis = 0), 
+                 color=experiment_colors_dict[experiment_names[path_index]],  linewidth=2, label=experiment_names[path_index])
+        # Add SE of each session
+        ax_multi.fill_between(np.linspace(1, ntrial, ntrial), 
+                    np.nanmean(param_sym_multi[path][current_param], axis = 0)+np.nanstd(param_sym_multi[path][current_param], axis = 0)/np.sqrt(len(included_animals_list_ids[0])), 
+                    np.nanmean(param_sym_multi[path][current_param], axis = 0)-np.nanstd(param_sym_multi[path][current_param], axis = 0)/np.sqrt(len(included_animals_list_ids[0])), 
+                    facecolor=experiment_colors_dict[experiment_names[path_index]], alpha=0.5)
+        min_rect = min(min_rect,np.nanmin(np.nanmean(param_sym_multi[path][current_param], axis = 0)-np.nanstd(param_sym_multi[path][current_param], axis = 0)))
+        max_rect = max(max_rect,np.nanmax(np.nanmean(param_sym_multi[path][current_param], axis=0)+np.nanstd(param_sym_multi[path][current_param], axis = 0)))
+        path_index += 1
+
+    param_sym_names = list(labels_dic.keys())
+    param_sym_labels = list(labels_dic.values())
+
+    # Define y-axis limits
+    if ranges[0] and (ranges[1] is not None):
+        ax_multi.set(ylim=ranges[1][param_sym_names[current_param]])
+    else:
+        ax_multi.set(ylim=[min_rect, max_rect])
+
+    # Add split and stimulation intervals
+    if intervals:
+        if 'split' in intervals:
+            add_patch_interval(ax_multi, intervals['split'])
+        if 'stim' in intervals:
+            add_start_end_interval(ax_multi, intervals['stim'])
+
+    # Add horizontal line at 0
+    plt.hlines(0, 1, ntrial, colors='grey', linestyles='--')
+    ax_multi.set_xlabel('1-min trial', fontsize=24)
+    ax_multi.set_ylabel(param_sym_labels[current_param] +' asymmetry', fontsize=24)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    ax_multi.spines['right'].set_visible(False)
+    ax_multi.spines['top'].set_visible(False)
+
+    return fig_multi
 
 
 # Learning parameters (only comparing multiple experiments?)

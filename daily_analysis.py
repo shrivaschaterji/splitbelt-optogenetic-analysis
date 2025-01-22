@@ -497,56 +497,9 @@ for path in paths:
 # MULTI-SESSION PLOT
 if single_animal_analysis==0:
     
-    for p in range(np.shape(param_sym)[0]):
-        fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
-        min_rect = 0
-        max_rect = 0
-        path_index = 0
-        for path in paths:
-            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(param_sym_multi[path][p], axis = 0), color=experiment_colors_dict[experiment_names[path_index]], linewidth=2, label=experiment_names[path_index])
-            # Add SE of each session
-            ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
-                        np.nanmean(param_sym_multi[path][p], axis = 0)+np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(len(included_animal_list)), 
-                        np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)/np.sqrt(len(included_animal_list)), 
-                        facecolor=experiment_colors_dict[experiment_names[path_index]], alpha=0.5)
-            min_rect = min(min_rect,np.nanmin(np.nanmean(param_sym_multi[path][p], axis = 0)-np.nanstd(param_sym_multi[path][p], axis = 0)))
-            max_rect = max(max_rect,np.nanmax(np.nanmean(param_sym_multi[path][p], axis=0)+np.nanstd(param_sym_multi[path][p], axis = 0)))
-            path_index += 1
-        # Add mean control (if you have it)
-        if len(control_path)>0:
-            plt.plot(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])),
-                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0), color='k', linewidth=2, label='control')
-            ax_multi.fill_between(np.linspace(1, len(param_sym_bs_ave[0, :]), len(param_sym_bs_ave[0, :])), 
-                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)+np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
-                            np.nanmean(control_param_sym_bs[p, 1:, :], axis=0)-np.nanstd(control_param_sym_bs[p, 1:, :], axis=0)/np.sqrt(len(included_animal_list)), 
-                            facecolor='k', alpha=0.5)
-            min_rect = min(min_rect,np.nanmin(np.nanmean(control_param_sym_bs[p], axis = 0)-np.nanstd(control_param_sym_bs[p], axis = 0)))
-            max_rect = max(max_rect,np.nanmax(np.nanmean(control_param_sym_bs[p], axis=0)+np.nanstd(control_param_sym_bs[p], axis = 0)))
+    for p in range(np.shape(param_sym)[0] - 1):
+        fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_labels, [included_animal_list, included_animals_id], experiment_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, experiment_names, [uniform_ranges, axes_ranges])
         
-        ax_multi.legend()
-        if uniform_ranges:
-            rectangle = plt.Rectangle((split_start - 0.5, axes_ranges[param_sym_name[p]][0]), split_duration,
-                                                axes_ranges[param_sym_name[p]][1] - axes_ranges[param_sym_name[p]][0],
-                                                fc='lightblue', alpha=0.3)
-        else:
-            rectangle = plt.Rectangle((split_start - 0.5, min_rect), split_duration,
-                                                max_rect - min_rect,
-                                                fc='lightblue', alpha=0.3)
-        plt.gca().add_patch(rectangle)
-        plt.hlines(0, 1, len(param_sym_bs_ave[0, :]), colors='grey', linestyles='--')
-        ax_multi.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-        ax_multi.axvline(x = stim_start+stim_duration-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-        ax_multi.set_xlabel('1-min trial', fontsize=24)
-        ax_multi.set_ylabel(param_label[p]+' asymmetry', fontsize=24)
-        if uniform_ranges:
-            ax_multi.set(ylim=axes_ranges[param_sym_name[p]])
-        #if p == 2:
-           # plt.gca().invert_yaxis()
-        plt.xticks(fontsize=20)
-        plt.yticks(fontsize=20)
-        ax_multi.spines['right'].set_visible(False)
-        ax_multi.spines['top'].set_visible(False)
         if print_plots:
             if not os.path.exists(paths_save[0]):
                 os.mkdir(paths_save[0])
