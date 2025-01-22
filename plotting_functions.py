@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 # Plotting functions
 # Locomotor adaptation
@@ -219,3 +220,23 @@ def add_start_end_interval(ax, intervals):
     start, duration = intervals
     ax.axvline(x=start-0.5, color='k', linestyle='-', linewidth=0.5)
     ax.axvline(x=start+duration-0.5, color='k', linestyle='-', linewidth=0.5)
+
+
+def save_symmetry_plot(figure, path, param_name, plot_name='', bs_bool=False, dpi=128):
+    """
+    Saves the input plot as a .png file.
+    Parameters:
+    figure (matplotlib.figure.Figure): The figure object to save.
+    path (str): The path to save the figure.
+    param_name (str): The name of the parameter represented in the figure.
+    plot_name (str, optional): The name of the plot. Defaults to ''.
+    bs_bool (bool, optional): A boolean indicating if the plot is for the baseline or non baseline subtracted parameter. Defaults to False.
+    dpi (int, optional): The resolution of the saved figure. Defaults to 128.
+
+    """
+    if not os.path.exists(path):
+        os.mkdir(path)
+    if bs_bool:
+        figure.savefig(path + param_name + '_sym_bs_'+ plot_name, dpi=dpi)
+    else:
+        figure.savefig(path + param_name + '_sym_non_bs_'+ plot_name, dpi=dpi)

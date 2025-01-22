@@ -405,15 +405,11 @@ for path in paths:
             fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_label, animal_list, animal_colors_dict, split_intervals=[split_start, split_duration], stim_intervals=[stim_start, stim_duration])
             # Save plot
             if print_plots:
-                if not os.path.exists(paths_save[path_index]):
-                    os.mkdir(paths_save[path_index])
-                if bs_bool:
-                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs', dpi=128)
-                else:
-                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs', dpi=128)
+                pf.save_symmetry_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='ind_animals', bs_bool=bs_bool)
+                
         plt.close('all')
 
-    # PLOT ANIMAL AVERAGE FOR EACH SESSION
+    # PLOT ANIMAL AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION
     param_sym_multi[path] = {}
     if single_animal_analysis == 0:
         for p in range(np.shape(param_sym)[0]):
@@ -423,12 +419,8 @@ for path in paths:
                                                          experiment_name, ranges=[uniform_ranges, axes_ranges])
             # Save plot
             if print_plots:
-                if not os.path.exists(paths_save[path_index]):
-                    os.mkdir(paths_save[path_index])
-                if bs_bool:
-                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_bs_average', dpi=128)
-                else:
-                    fig.savefig(paths_save[path_index] + param_sym_name[p] + '_sym_non_bs_average', dpi=128)
+                pf.save_symmetry_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
+                
             # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot)
             param_sym_multi[path][p] = param_sym_bs_ave
         plt.close('all')
@@ -501,13 +493,9 @@ if single_animal_analysis==0:
         fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_labels, [included_animal_list, included_animals_id], experiment_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, experiment_names, [uniform_ranges, axes_ranges])
         
         if print_plots:
-            if not os.path.exists(paths_save[0]):
-                os.mkdir(paths_save[0])
-            if bs_bool:
-                plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session', dpi=128)
-            else:
-                plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_non_bs_average_with_control_multi_session', dpi=128)
- 
+            pf.save_symmetry_plot(fig_multi, paths_save[0], param_sym_name[p], plot_name='average_multi_session', bs_bool=bs_bool)
+
+
         # LEARNING PARAMETERS (bar plots) - each one will be num_experiments x num_animals
         initial_error = []                      
         learning = []
