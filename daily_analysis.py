@@ -607,3 +607,15 @@ if single_animal_analysis==0:
             pf.save_plot(fig_bar_all, paths_save[0], param_sym_name[p], plot_name='multi_session_barplot_all', bs_bool=bs_bool)
 
     
+        # Single learning parameter alone
+        to_plot_separately = {'adaptation': [], 'after effect': []}
+
+        for lp_name, lp_value in to_plot_separately:
+            # Bar plot
+            fig_separate = pf.plot_learning_param(lp_value, param_sym_name[p], lp_name, included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict[lp_name], scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+            # Scatter and avg plot
+            fig_scatter = pf.plot_learning_param_scatter(lp_value, param_sym_name[p], lp_name, included_animal_list, experiment_names, current_experiment_colors, stat_learning_params=stat_learning_params_dict[lp_name], ranges=[uniform_ranges, bars_ranges])
+            if print_plots_multi_session:
+                pf.save_plot(fig_separate, paths_save[0], param_sym_name[p], plot_name='_bar_scatterplot_'+lp_name, dpi=1200)  
+                pf.save_plot(fig_scatter, paths_save[0], param_sym_name[p], plot_name='_avg_scatterplot_'+lp_name, dpi=120) 
+
