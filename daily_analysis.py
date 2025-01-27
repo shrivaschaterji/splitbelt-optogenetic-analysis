@@ -599,28 +599,11 @@ if single_animal_analysis==0:
                 ax.set(ylim= bars_ranges[param_sym_name[p]])      #   [-4.5,max(abs(np.array(axes_ranges[param_sym_name[p]])))])
 
         if compute_statistics and path_index>0:
-            ax_bar[0,0].plot(list(range(len(paths)+len(control_path)+1,(len(paths)+len(control_path))*2)),[(bars_ranges[param_sym_name[p]][1]-0.5)*i if i==1 else math.nan*i for i in stat_initial_error ],'*', color='black')
-            ax_bar[0,1].plot(list(range(len(paths)+len(control_path)+1,(len(paths)+len(control_path))*2)),[(bars_ranges[param_sym_name[p]][1]-0.5)*i if i==1 else math.nan*i for i in stat_learning ],'*', color='black')
-            ax_bar[0,2].plot(list(range(len(paths)+len(control_path)+1,(len(paths)+len(control_path))*2)),[(bars_ranges[param_sym_name[p]][1]-0.5)*i if i==1 else math.nan*i for i in stat_aftereffect ],'*', color='black')
-            #ax_bar[1,1].plot(list(range(len(paths)+len(control_path)+1,(len(paths)+len(control_path))*2)),[bars_ranges[param_sym_name[p][1]]*i if i==1 else math.nan*i for i in stat_learning_sym_change ],'*', color='black')
-            #ax_bar[1,2].plot(list(range(len(paths)+len(control_path)+1,(len(paths)+len(control_path))*2)),[bars_ranges[param_sym_name[p][1]]*i if i==1 else math.nan*i for i in stat_aftereffect_sym_change ],'*', color='black')
-            print('stat '+param_sym_name[p]+': '+str(stat_aftereffect))
-        
-        for ax in ax_bar.flatten():
-            ax.set_xticks([])
-        fig_bar.delaxes(ax_bar[1,0])
-        fig_bar.suptitle(param_sym_name[p])
-        fig_bar.tight_layout()
-        fig_bar.legend(bars, current_bar_labels,
-           loc="lower left",   
-           borderaxespad=3 
-           )
+        # Bar plot of ALL learning parameters
+        fig_bar_all = pf.plot_all_learning_params(learning_params_dict, param_sym_name[p], included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+             
 
-                               
         if print_plots_multi_session:
-            if not os.path.exists(paths_save[0]):
-                os.mkdir(paths_save[0])
-            plt.savefig(paths_save[0] + param_sym_name[p] + '_sym_bs_average_with_control_multi_session_barplot', dpi=96)       #_gray_not_confirmed
+            pf.save_plot(fig_bar_all, paths_save[0], param_sym_name[p], plot_name='multi_session_barplot_all', bs_bool=bs_bool)
 
-
-     
+    

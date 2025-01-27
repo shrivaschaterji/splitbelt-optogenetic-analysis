@@ -184,16 +184,84 @@ def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic,
 
 
 # Learning parameters (only comparing multiple experiments?)
-# barplot with average and STD or SEM + scatterplot of ind animals in the middle
+# barplot of all learning parameters with average and SEM + scatterplot of ind animals in the middle (optional)
+def plot_all_learning_params(learning_params, param_sym_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
+    """
+    Plots all learning parameters in a bar plot with optional scatter plots for individual animals and statistical markers.
+    Parameters:
+    -----------
+    learning_params : dict
+        Dictionary where keys are parameter names and values are 2D arrays (experiments x animals) of learning parameter values.
+    param_sym_name : str
+        Name of the symmetry parameter to be plotted.
+    included_animals_list : list
+        List of animal identifiers included in the analysis.
+    experiment_names : list
+        List of names of the experiments.
+    experiment_colors : list
+        List of colors corresponding to each experiment.
+    animal_colors_dict : dict
+        Dictionary mapping animal identifiers to their respective colors.
+    stat_learning_params : dict, optional
+        Dictionary where keys are parameter names and values are lists of statistical test results (default is None).
+    scatter_single_animals : bool, optional
+        If True, scatter plots of individual animals will be added to the bar plots (default is False).
+    ranges : list, optional
+        List containing a boolean and a dictionary. If the boolean is True, the dictionary specifies the y-axis limits for each parameter (default is [False, None]).
 
-# average line + scatterplot (no animals color)
+    Returns:
+    --------
+    fig_bar : matplotlib.figure.Figure
+        The figure object containing the bar plots.
+    """
+    
+    nrows = len(learning_params)//3 + 1         # We want always 3 columns
+    fig_bar, ax_bar = plt.subplots(nrows,3)
+    ax_bar = ax_bar.flatten()
 
-# average line + scatterplot (with animals color)
+    
 
+    for i, (lp_name, lp_values) in enumerate(learning_params.items()):
+        if not np.isnan(lp_values).all():              # Check for nans
+            bars=ax_bar[i].bar([0] + list(range(len(experiment_names) + 1, (len(experiment_names)) * 2)),
+                        np.nanmean(lp_values, axis=1),
+                        yerr=np.nanstd(lp_values, axis=1) / np.sqrt(len(lp_values)),
+                        align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
+        
+        # Add scatterplot of individual animals in the middle
+        if scatter_single_animals:
+            for a in range(len(lp_values[0])):
+                ax_bar[i].plot(list(range(1,len(experiment_names)+1)),np.array(lp_values)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animals_list[a]], color=animal_colors_dict[included_animals_list[a]], linewidth=1)
+        # Add plots Statistics
+        if stat_learning_params is not None:
+            ax_bar[i].plot(list(range(len(experiment_names)+1,(len(experiment_names))*2)),[max(max(np.nanmean(lp_values, axis=1)+np.nanstd(lp_values, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
+            print('stat '+lp_name+': '+str(stat_learning_params[lp_name]))
 
+        # Set titles and labels
+        if i==0:
+            ax_bar[i].set_ylabel(param_sym_name + ' asymmetry ')
+        ax_bar[i].set_title(lp_name, size=9)
 
-
-# Utils plotting functions
+        # Add zero line and set ranges
+        ax_bar[i].axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
+        ax_bar[i].spines['right'].set_visible(False)
+        ax_bar[i].spines['top'].set_visible(False)
+        ax_bar[i].set_xticks([])
+        if ranges[0] and (ranges[1] is not None):
+            ax_bar[i].set(ylim= ranges[1][param_sym_name])      
+            if 'change' in lp_name:      # Increased ranges for _sym_change parameters
+                ax_bar[i].set(ylim= list(30*np.array(ranges[1][param_sym_name])))
+        
+    
+    fig_bar.delaxes(ax_bar[1,0])
+    fig_bar.suptitle(param_sym_name)
+    fig_bar.tight_layout()
+    fig_bar.legend(bars, experiment_names,
+        loc="lower left",   
+        borderaxespad=3
+        )
+    
+    return fig_bar
 def add_patch_interval(ax, intervals):
     """
     Adds split or stimulation intervals to a plot, as a patch light blue rectangle.
