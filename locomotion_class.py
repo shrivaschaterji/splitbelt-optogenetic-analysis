@@ -911,7 +911,54 @@ class loco_class:
         else:
             param_sym_bs = param_sym
         return param_sym_bs, stance_speed, st_strides_trials
+
+    def compute_learning_params(self, learning_params_dict, param_sym_bs, intervals=None):
+        """Compute learning parameters with stats"""
+        if not learning_params_dict:
+            learning_params_dict['initial error'] = []
+            learning_params_dict['adaptation'] = []
+            learning_params_dict['after-effect'] = []
+            learning_params_dict['% change adaptation'] = []
+            learning_params_dict['% change after-effect'] = []
+
+        if 'split' not in intervals.keys() or intervals['split'][1] == 0:   # If there is no split (not in the dictionary or split_duration set to 0), take stim info
+            split_start = intervals['stim'][0]
+            split_duration = intervals['stim'][1]
+        else:
+            split_start = intervals['split'][0]
+            split_duration = intervals['split'][1]
+
+        initial_error = param_sym_bs[:, split_start-1]             # First trial of split
+        adaptation = np.nanmean(param_sym_bs[:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-param_sym_bs[:,split_start-1]    # Last 2 trials of split - first trial of split
+        after_effect = np.nanmean(param_sym_bs[:,split_start+split_duration-1:split_start+split_duration+1], axis=1)            # First 2 trials of after effect
+        change_adaptation=100*np.divide(np.array(adaptation),np.where(np.abs(initial_error) < 0.1, np.nan, initial_error))
+        change_after_effect=100*np.divide(np.array(after_effect),np.where(np.abs(initial_error) < 0.1, np.nan, np.abs(initial_error)))
+
+        learning_params_dict['initial error'].append(initial_error)
+        learning_params_dict['adaptation'].append(adaptation)
+        learning_params_dict['after-effect'].append(after_effect)
+        learning_params_dict['% change adaptation'].append(change_adaptation)
+        learning_params_dict['% change after-effect'].append(change_after_effect)
+
+        return learning_params_dict
+
+    def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, st=0.05):
         
+        # Compute statistics
+        if not stat_learning_params_dict:
+            stat_learning_params_dict['initial error'] = []
+            stat_learning_params_dict['adaptation'] = []
+            stat_learning_params_dict['after-effect'] = []
+            stat_learning_params_dict['% change adaptation'] = []
+            stat_learning_params_dict['% change after-effect'] = []
+
+        for param_name in learning_params_dict.keys():
+            for exp in range(1,len(learning_params_dict['initial error'])):  
+                print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
+                print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])])
+                stat_learning_params_dict[param_name].append(st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit').pvalue<st)
+        return stat_learning_params_dict
+
     def animals_within_session(self):
         """See which animals and sessions are in the folder with tracks"""
         delim = self.path[-1]
