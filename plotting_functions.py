@@ -40,18 +40,7 @@ def plot_learning_curve_ind_animals(param_sym, current_param, labels_dic, animal
         if 'stim' in intervals:
             add_start_end_interval(ax, intervals['stim'])
 
-    # Add horizontal line at 0    
-    plt.hlines(0, 1, len(param_sym[current_param, 0, :]), colors='grey', linestyles='--')
-    
-    # Add figure labels and legend
-    ax.set_xlabel('1-min trial', fontsize=24)
-    ax.legend(frameon=False, loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.set_ylabel(list(labels_dic.values())[current_param] + ' asymmetry', fontsize=24)
-    
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
+    set_symmetry_plot(ax, list(labels_dic.values())[current_param])
 
     return fig 
 
@@ -102,17 +91,8 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, labels_dic
         if 'stim' in intervals:
             add_start_end_interval(ax, intervals['stim'])
 
-    # Add horizontal line at 0
-    plt.hlines(0, 1, len(param_sym_avg[0, :]), colors='grey', linestyles='--')
-    
-    # Add figure labels
-    ax.set_xlabel('1-min trial', fontsize=24)
-    ax.set_ylabel(param_sym_labels[current_param] + ' asymmetry', fontsize=24)          
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-
+    set_symmetry_plot(ax, param_sym_labels[current_param])
+   
     return fig
 
 
@@ -183,14 +163,7 @@ def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic,
         if 'stim' in intervals:
             add_start_end_interval(ax_multi, intervals['stim'])
 
-    # Add horizontal line at 0
-    plt.hlines(0, 1, ntrial, colors='grey', linestyles='--')
-    ax_multi.set_xlabel('1-min trial', fontsize=24)
-    ax_multi.set_ylabel(param_sym_labels[current_param] +' asymmetry', fontsize=24)
-    plt.xticks(fontsize=20)
-    plt.yticks(fontsize=20)
-    ax_multi.spines['right'].set_visible(False)
-    ax_multi.spines['top'].set_visible(False)
+    set_symmetry_plot(ax_multi, param_sym_labels[current_param])
 
     return fig_multi
 
@@ -259,15 +232,7 @@ def plot_all_learning_params(learning_params, current_param_sym, included_animal
             ax_bar[subplot_idx].set_ylabel(current_param_sym_label + ' asymmetry ')
         ax_bar[subplot_idx].set_title(lp_name, size=9)
 
-        # Add zero line and set ranges
-        ax_bar[subplot_idx].axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
-        ax_bar[subplot_idx].spines['right'].set_visible(False)
-        ax_bar[subplot_idx].spines['top'].set_visible(False)
-        ax_bar[subplot_idx].set_xticks([])
-        if ranges[0] and (ranges[1] is not None):
-            ax_bar[subplot_idx].set(ylim= ranges[1][current_param_sym_name])      
-            if 'change' in lp_name:      # Increased ranges for _sym_change parameters
-                ax_bar[subplot_idx].set(ylim= list(30*np.array(ranges[1][current_param_sym_name])))
+        set_learning_param_plot(ax_bar[subplot_idx], current_param_sym_name, lp_name, ranges=ranges)
         
     # Remove empty subplots
     for ax in ax_bar:
@@ -339,6 +304,8 @@ def plot_learning_param(learning_param, current_param_sym, lp_name, included_ani
     ax_bar.set_xticklabels(experiment_names)
 
     set_learning_param_plot(ax_bar, current_param_sym_name, lp_name, ranges=ranges)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=20)
     
     return fig_bar
 
@@ -404,6 +371,8 @@ def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, incl
     ax_scatter.set_xticklabels(experiment_names)
 
     set_learning_param_plot(ax_scatter, current_param_sym_name, lp_name, ranges=ranges)
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=20)
 
     return fig_scatter
 
@@ -439,11 +408,23 @@ def add_start_end_interval(ax, intervals):
 
 
 # TODO: Add functions to set plot parameters
-def set_symmetry_plot(ax, param_name, bs_bool=False):
-    pass
+def set_symmetry_plot(ax, param_name):
+    # Add horizontal line at 0
+    ax.axhline(y=0, color='grey', linestyle='--')
+
+    # Set labels
+    ax.set_xlabel('1-min trial', fontsize=24)
+    ax.set_ylabel(param_name + ' asymmetry', fontsize=24)
+
+    # Set ticks
+    ax.tick_params(axis='both', which='major', labelsize=20)
+
+    # Hide right and top spines
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
 
 def set_learning_param_plot(ax, param_sym_name, lp_name, ranges=[False, None]):
-
 
     # Add zero line and set ranges
     ax.axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
@@ -453,8 +434,6 @@ def set_learning_param_plot(ax, param_sym_name, lp_name, ranges=[False, None]):
         ax.set(ylim= ranges[1][param_sym_name])      
         if 'change' in lp_name:      # Increased ranges for _sym_change parameters
             ax.set(ylim= list(30*np.array(ranges[1][param_sym_name])))
-    plt.xticks(fontsize=24)
-    plt.yticks(fontsize=20)
     
 
 def save_plot(figure, path, param_name, plot_name='', bs_bool=False, dpi=128):
