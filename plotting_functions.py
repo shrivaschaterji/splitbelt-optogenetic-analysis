@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 import os
 
 # Plotting functions
@@ -9,7 +10,7 @@ import os
 
 # Learning curves
 # Individual animals
-def plot_learning_curve_ind_animals(param_sym, current_param, param_labels, animal_list, colors, intervals=None):
+def plot_learning_curve_ind_animals(param_sym, current_param, labels_dic, animal_list, colors, intervals=None):
     """
     Plots the learning curve for individual animals, each one with the animal's color.
     Overlaps the start and end of split/stimulation intervals, if specified.
@@ -17,7 +18,7 @@ def plot_learning_curve_ind_animals(param_sym, current_param, param_labels, anim
     Parameters:
     param_sym (numpy.ndarray): A 3D array containing the parameter values for each parameter, animal and trial.
     current_param (int): The index of the current parameter to plot.
-    param_labels (dict): Dictionary keys are the parameter names and values are the corresponding labels.
+    labels_dic (dict): Dictionary keys are the parameter names and values are the corresponding labels.
     animal_list (list of str): A list of animal identifiers.
     colors (dict): A dictionary mapping animal identifiers to colors.
     intervals (dict, optional): A dictionary containing 'split' and 'stim' intervals with their respective start and duration (in trials).
@@ -43,9 +44,9 @@ def plot_learning_curve_ind_animals(param_sym, current_param, param_labels, anim
     plt.hlines(0, 1, len(param_sym[current_param, 0, :]), colors='grey', linestyles='--')
     
     # Add figure labels and legend
-    ax.set_xlabel('Trial', fontsize=24)
+    ax.set_xlabel('1-min trial', fontsize=24)
     ax.legend(frameon=False, loc='center left', bbox_to_anchor=(1, 0.5))
-    ax.set_ylabel(list(param_labels.values())[current_param] + ' asymmetry', fontsize=24)
+    ax.set_ylabel(list(labels_dic.values())[current_param] + ' asymmetry', fontsize=24)
     
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
@@ -54,17 +55,16 @@ def plot_learning_curve_ind_animals(param_sym, current_param, param_labels, anim
 
     return fig 
 
- 
 
 # Individual animals with average
-def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labels, animal_list, included_animals, colors, intervals=None, experiment_name=None, ranges=[False, None]):
+def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, labels_dic, animal_list, included_animals, colors, experiment_name, intervals=None, ranges=[False, None]):
     '''
     Plot learning curve for individual animals with average.
     
     Parameters:
     param_sym_avg (numpy.ndarray): A 2D array containing the average parameter values for each animal and trial.
     current_param (int): The index of the current parameter to plot.
-    param_labels (dict): Dictionary keys are the parameter names and values are the corresponding labels.
+    labels_dic (dict): Dictionary keys are the parameter names and values are the corresponding labels.
     animal_list (list of str): A list of animal identifiers.
     included_animals (list): A list of two lists, the first containing the names/identifiers of the animals to include in the plot, and the second containing the corresponding indices within the all animals list.
     colors (list): A list of dictionaries, the first mapping animal identifiers to colors and the second mapping the experiments to colors.
@@ -86,8 +86,8 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labe
     # Plot average
     plt.plot(np.linspace(1, len(param_sym_avg[0, :]), len(param_sym_avg[0, :])), np.nanmean(param_sym_avg, axis=0), color=colors[1][experiment_name], linewidth=3)
 
-    param_sym_names = list(param_labels.keys())
-    param_sym_labels = list(param_labels.values())
+    param_sym_names = list(labels_dic.keys())
+    param_sym_labels = list(labels_dic.values())
 
     # Define y-axis limits
     if ranges[0] and (ranges[1] is not None):
@@ -106,8 +106,8 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labe
     plt.hlines(0, 1, len(param_sym_avg[0, :]), colors='grey', linestyles='--')
     
     # Add figure labels
-    ax.set_xlabel('Trial', fontsize=24)
-    ax.set_ylabel(param_sym_labels[current_param] + ' symmetry', fontsize=24)          
+    ax.set_xlabel('1-min trial', fontsize=24)
+    ax.set_ylabel(param_sym_labels[current_param] + ' asymmetry', fontsize=24)          
     plt.xticks(fontsize=20)
     plt.yticks(fontsize=20)
     ax.spines['right'].set_visible(False)
@@ -117,22 +117,34 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, param_labe
 
 
 # Average with SEM for all experiments compared
-def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic, included_animals_list_ids, experiment_colors_dict, intervals=None, experiment_names=None, ranges=[False, None]):
+def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic, included_animals_list_ids, experiment_colors_dict, experiment_names, intervals=None,  ranges=[False, None]):
     """
     Plots the average learning curve compared across multiple experiments.
 
-    Parameters:
-    param_sym_multi (dict): Dictionary containing the parameter symmetry data for multiple paths.
-    current_param (int): Index of the current parameter to be plotted.
-    labels_dic (dict): Dictionary keys are the parameter names and values are the corresponding labels.
-    included_animals_list_ids (list): A list of two lists, the first containing the names/identifiers of the animals to include in the plot, and the second containing the corresponding indices within the all animals list.
-    experiment_colors_dict (dict): Dictionary mapping experiment names to their corresponding colors.
-    intervals (dict, optional): Dictionary containing 'split' and 'stim' intervals. Defaults to None.
-    experiment_names (list, optional): List of experiment names. Defaults to None.
-    ranges (list, optional): List containing a boolean and a dictionary for y-axis limits. Defaults to [False, None].
+    Parameters
+    ----------
+    param_sym_multi : dict
+        Dictionary containing the parameter symmetry data for multiple paths.
+    current_param : int
+        Index of the current parameter to be plotted.
+    labels_dic : dict
+        Dictionary where keys are the parameter names and values are the corresponding labels.
+    included_animals_list_ids : list
+        A list of two lists, the first containing the names/identifiers of the animals to include in the plot, 
+        and the second containing the corresponding indices within the all animals list.
+    experiment_colors_dict : dict
+        Dictionary mapping experiment names to their corresponding colors.
+    experiment_names : list, optional
+        List of experiment names. Defaults to None.
+    intervals : dict, optional
+        Dictionary containing 'split' and 'stim' intervals. Defaults to None.
+    ranges : list, optional
+        List containing a boolean and a dictionary for y-axis limits. Defaults to [False, None].
 
-    Returns:
-    fig_multi (matplotlib.figure.Figure): The resulting figure object.
+    Returns
+    -------
+    fig_multi : matplotlib.figure.Figure
+        The resulting figure object.
     """
     
     fig_multi, ax_multi = plt.subplots(figsize=(7, 10), tight_layout=True)
@@ -185,15 +197,15 @@ def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic,
 
 # Learning parameters (only comparing multiple experiments?)
 # barplot of all learning parameters with average and SEM + scatterplot of ind animals in the middle (optional)
-def plot_all_learning_params(learning_params, current_param_sym_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
+def plot_all_learning_params(learning_params, current_param_sym, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
     """
     Plots all learning parameters in a bar plot with optional scatter plots for individual animals and statistical markers.
     Parameters:
     -----------
     learning_params : dict
         Dictionary where keys are parameter names and values are 2D arrays (experiments x animals) of learning parameter values.
-    current_param_sym_name : str
-        Name of the symmetry parameter to be plotted.
+    current_param_sym : list
+        List of two elements: the parameter name and the corresponding label.
     included_animals_list : list
         List of animal identifiers included in the analysis.
     experiment_names : list
@@ -219,11 +231,16 @@ def plot_all_learning_params(learning_params, current_param_sym_name, included_a
     fig_bar, ax_bar = plt.subplots(nrows,3)
     ax_bar = ax_bar.flatten()
 
-    
+    current_param_sym_name = current_param_sym[0]
+    current_param_sym_label = current_param_sym[1]
 
     for i, (lp_name, lp_values) in enumerate(learning_params.items()):
+        if i<3:
+            subplot_idx = i
+        else:
+            subplot_idx = i+1
         if not np.isnan(lp_values).all():              # Check for nans
-            bars=ax_bar[i].bar([0] + list(range(len(experiment_names) + 1, (len(experiment_names)) * 2)),
+            bars=ax_bar[subplot_idx].bar([0] + list(range(len(experiment_names) + 1, (len(experiment_names)) * 2)),
                         np.nanmean(lp_values, axis=1),
                         yerr=np.nanstd(lp_values, axis=1) / np.sqrt(len(lp_values)),
                         align='center', alpha=0.5, color=experiment_colors, ecolor='black', capsize=6)
@@ -231,31 +248,33 @@ def plot_all_learning_params(learning_params, current_param_sym_name, included_a
         # Add scatterplot of individual animals in the middle
         if scatter_single_animals:
             for a in range(len(lp_values[0])):
-                ax_bar[i].plot(list(range(1,len(experiment_names)+1)),np.array(lp_values)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animals_list[a]], color=animal_colors_dict[included_animals_list[a]], linewidth=1)
+                ax_bar[subplot_idx].plot(list(range(1,len(experiment_names)+1)),np.array(lp_values)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animals_list[a]], color=animal_colors_dict[included_animals_list[a]], linewidth=1)
         # Add plots Statistics
         if len(stat_learning_params)>0:
-            ax_bar[i].plot(list(range(len(experiment_names)+1,(len(experiment_names))*2)),[max(max(np.nanmean(lp_values, axis=1)+np.nanstd(lp_values, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
+            ax_bar[subplot_idx].plot(list(range(len(experiment_names)+1,(len(experiment_names))*2)),[max(max(np.nanmean(lp_values, axis=1)+np.nanstd(lp_values, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
             print('stat '+lp_name+': '+str(stat_learning_params[lp_name]))
 
         # Set titles and labels
         if i==0:
-            ax_bar[i].set_ylabel(current_param_sym_name + ' asymmetry ')
-        ax_bar[i].set_title(lp_name, size=9)
+            ax_bar[subplot_idx].set_ylabel(current_param_sym_label + ' asymmetry ')
+        ax_bar[subplot_idx].set_title(lp_name, size=9)
 
         # Add zero line and set ranges
-        ax_bar[i].axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
-        ax_bar[i].spines['right'].set_visible(False)
-        ax_bar[i].spines['top'].set_visible(False)
-        ax_bar[i].set_xticks([])
+        ax_bar[subplot_idx].axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
+        ax_bar[subplot_idx].spines['right'].set_visible(False)
+        ax_bar[subplot_idx].spines['top'].set_visible(False)
+        ax_bar[subplot_idx].set_xticks([])
         if ranges[0] and (ranges[1] is not None):
-            ax_bar[i].set(ylim= ranges[1][current_param_sym_name])      
+            ax_bar[subplot_idx].set(ylim= ranges[1][current_param_sym_name])      
             if 'change' in lp_name:      # Increased ranges for _sym_change parameters
-                ax_bar[i].set(ylim= list(30*np.array(ranges[1][current_param_sym_name])))
+                ax_bar[subplot_idx].set(ylim= list(30*np.array(ranges[1][current_param_sym_name])))
         
     # Remove empty subplots
-    for j in range(len(learning_params), len(ax_bar)):
-        fig_bar.delaxes(ax_bar[j])
-    fig_bar.suptitle(current_param_sym_name)
+    for ax in ax_bar:
+        if not ax.has_data():
+            fig_bar.delaxes(ax)
+    
+    fig_bar.suptitle(current_param_sym_label)
     fig_bar.tight_layout()
     fig_bar.legend(bars, experiment_names,
         loc="lower left",   
@@ -265,15 +284,15 @@ def plot_all_learning_params(learning_params, current_param_sym_name, included_a
     return fig_bar
 
 # barplot of one selected learning parameter with average and SEM + scatterplot of ind animals in the middle (optional)
-def plot_learning_param(learning_param, current_param_sym_name, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
+def plot_learning_param(learning_param, current_param_sym, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
     """
     Plots a single learning parameter in a bar plot with optional scatter plots for individual animals and statistical markers.
     Parameters:
     -----------
     learning_param : 2D array
         Array of learning parameter values (experiments x animals).
-    current_param_sym_name : str
-        Name of the symmetry parameter to be plotted.
+    current_param_sym : list
+        List of two elements: the parameter name and the corresponding label.
     included_animals_list : list
         List of animal identifiers included in the analysis.
     experiment_names : list
@@ -297,6 +316,9 @@ def plot_learning_param(learning_param, current_param_sym_name, lp_name, include
     
     fig_bar, ax_bar = plt.subplots(figsize=(7, 10), tight_layout=True)
     
+    current_param_sym_name = current_param_sym[0]
+    current_param_sym_label = current_param_sym[1] 
+
     if not np.isnan(learning_param).all():              # Check for nans
         ax_bar.bar([0] + list(range(len(experiment_names) + 1, (len(experiment_names)) * 2)),
                 np.nanmean(learning_param, axis=1),
@@ -311,34 +333,25 @@ def plot_learning_param(learning_param, current_param_sym_name, lp_name, include
         ax_bar.plot(list(range(len(experiment_names)+1,(len(experiment_names))*2)),[max(max(np.nanmean(learning_param, axis=1)+np.nanstd(learning_param, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
 
     # Set titles and labels
-    ax_bar.set_ylabel(current_param_sym_name + ' asymmetry ', fontsize=24)
-    ax_bar.set_title(lp_name)
+    ax_bar.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
+    ax_bar.set_title(lp_name, fontsize=24)
     ax_bar.set_xticks([0]+list(range(len(experiment_names)+1,(len(experiment_names))*2)))
     ax_bar.set_xticklabels(experiment_names)
 
-    # Add zero line and set ranges
-    ax_bar.axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
-    ax_bar.spines['right'].set_visible(False)
-    ax_bar.spines['top'].set_visible(False)
-    if ranges[0] and (ranges[1] is not None):
-        ax_bar.set(ylim= ranges[1][current_param_sym_name])      
-        if 'change' in lp_name:      # Increased ranges for _sym_change parameters
-            ax_bar.set(ylim= list(30*np.array(ranges[1][current_param_sym_name])))
-    plt.xticks(fontsize=24)
-    plt.yticks(fontsize=20)
+    set_learning_param_plot(ax_bar, current_param_sym_name, lp_name, ranges=ranges)
     
     return fig_bar
 
 # average line + scatterplot (no animals color or with animals color)
-def plot_learning_param_scatter(learning_param, current_param_sym_name, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict=None, stat_learning_params=None, ranges=[False, None]):
+def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict=None, stat_learning_params=None, ranges=[False, None]):
     """
     Plots a single learning parameter with a scatter plot of individual animals.
     Parameters:
     -----------
     learning_param : 2D array
         Array of learning parameter values (experiments x animals).
-    current_param_sym_name : str
-        Name of the symmetry parameter to be plotted.
+    current_param_sym_name : list
+        List of two elements: the parameter name and the corresponding label.
     included_animals_list : list
         List of animal identifiers included in the analysis.
     experiment_names : list
@@ -362,6 +375,9 @@ def plot_learning_param_scatter(learning_param, current_param_sym_name, lp_name,
     
     fig_scatter, ax_scatter = plt.subplots(figsize=(7, 10), tight_layout=True)
     
+    current_param_sym_name = current_param_sym[0]
+    current_param_sym_label = current_param_sym[1] 
+
     x=np.linspace(1,len(experiment_names),len(experiment_names))
 
     # Add single animal data
@@ -373,35 +389,27 @@ def plot_learning_param_scatter(learning_param, current_param_sym_name, lp_name,
             ax_scatter.plot(x,np.array(learning_param)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animals_list[a]], color=animal_colors_dict[included_animals_list[a]], linewidth=1)
     for count_exp, exp in enumerate(experiment_names):
         if animal_colors_dict is None:
-            ax_scatter.scatter([x] * len(learning_param[count_exp][:]), learning_param[count_exp][:], s=60, c=experiment_colors[count_exp])             # Plot all animal points in the corresponding experiment color
+            ax_scatter.scatter([x[count_exp]] * len(learning_param[count_exp][:]), learning_param[count_exp][:], s=60, c=experiment_colors[count_exp])             # Plot all animal points in the corresponding experiment color
         # Add avg value
-        ax_scatter.plot([x-0.15, x+0.15], [np.nanmean(learning_param[count_exp][:]), np.nanmean(learning_param[count_exp][:])], color=experiment_colors[count_exp], linewidth=4)
+        ax_scatter.plot([x[count_exp]-0.15, x[count_exp]+0.15], [np.nanmean(learning_param[count_exp][:]), np.nanmean(learning_param[count_exp][:])], color=experiment_colors[count_exp], linewidth=4)
         
     # Add plots Statistics
     if len(stat_learning_params)>0:
-        ax_scatter.plot(x,[max(max(np.nanmean(learning_param, axis=1)+np.nanstd(learning_param, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
+        ax_scatter.plot(x[1:],[max(max(np.nanmean(learning_param, axis=1)+2*np.nanstd(learning_param, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
 
     # Set titles and labels
-    ax_scatter.set_ylabel(current_param_sym_name + ' asymmetry ', fontsize=24)
-    ax_scatter.set_title(lp_name)
+    ax_scatter.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
+    ax_scatter.set_title(lp_name, fontsize=24)
     ax_scatter.set_xticks(list(range(1,len(experiment_names)+1)))
     ax_scatter.set_xticklabels(experiment_names)
 
-    # Add zero line and set ranges
-    ax_scatter.axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
-    ax_scatter.spines['right'].set_visible(False)
-    ax_scatter.spines['top'].set_visible(False)
-    if ranges[0] and (ranges[1] is not None):
-        ax_scatter.set(ylim= ranges[1][current_param_sym_name])      
-        if 'change' in lp_name:      # Increased ranges for _sym_change parameters
-            ax_scatter.set(ylim= list(30*np.array(ranges[1][current_param_sym_name])))
-    plt.xticks(fontsize=24)
-    plt.yticks(fontsize=20)
+    set_learning_param_plot(ax_scatter, current_param_sym_name, lp_name, ranges=ranges)
 
     return fig_scatter
 
 
 
+# UTILS plotting functions
 def add_patch_interval(ax, intervals):
     """
     Adds split or stimulation intervals to a plot, as a patch light blue rectangle.
@@ -430,7 +438,26 @@ def add_start_end_interval(ax, intervals):
     ax.axvline(x=start+duration-0.5, color='k', linestyle='-', linewidth=0.5)
 
 
-def save_symmetry_plot(figure, path, param_name, plot_name='', bs_bool=False, dpi=128):
+# TODO: Add functions to set plot parameters
+def set_symmetry_plot(ax, param_name, bs_bool=False):
+    pass
+
+def set_learning_param_plot(ax, param_sym_name, lp_name, ranges=[False, None]):
+
+
+    # Add zero line and set ranges
+    ax.axhline(y = 0, color = 'k', linestyle = '--', linewidth=0.5)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    if ranges[0] and (ranges[1] is not None):
+        ax.set(ylim= ranges[1][param_sym_name])      
+        if 'change' in lp_name:      # Increased ranges for _sym_change parameters
+            ax.set(ylim= list(30*np.array(ranges[1][param_sym_name])))
+    plt.xticks(fontsize=24)
+    plt.yticks(fontsize=20)
+    
+
+def save_plot(figure, path, param_name, plot_name='', bs_bool=False, dpi=128):
     """
     Saves the input plot as a .png file.
     Parameters:

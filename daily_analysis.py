@@ -396,16 +396,12 @@ for path in paths:
                 plt.savefig(paths_save[path_index] + 'compare_baselines', dpi=128)
                 
 
-
-
-
-
         for p in range(np.shape(param_sym)[0] - 1):
             # Plot learning curve for individual animals
-            fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_label, animal_list, animal_colors_dict, split_intervals=[split_start, split_duration], stim_intervals=[stim_start, stim_duration])
+            fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
             # Save plot
             if print_plots:
-                pf.save_symmetry_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='ind_animals', bs_bool=bs_bool)
+                pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='ind_animals', bs_bool=bs_bool)
                 
         plt.close('all')
 
@@ -413,15 +409,15 @@ for path in paths:
     param_sym_multi[path] = {}
     if single_animal_analysis == 0:
         for p in range(np.shape(param_sym)[0]):
-            param_sym_bs_ave = param_sym_bs[p, included_animals_id, :]
-            fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_labels, animal_list, [included_animal_list, included_animals_id],
-                                                         [animal_colors_dict, experiment_colors_dict], {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
-                                                         experiment_name, ranges=[uniform_ranges, axes_ranges])
+            param_sym_bs_ave = param_sym_bs[p, included_animal_id, :]
+            fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_name_label_map, animal_list, [included_animal_list, included_animal_id],
+                                                         [animal_colors_dict, experiment_colors_dict], experiment_name, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
+                                                         ranges=[uniform_ranges, axes_ranges])
             # Save plot
             if print_plots:
-                pf.save_symmetry_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
+                pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
                 
-            # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot)
+            # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot), with only the included animals
             param_sym_multi[path][p] = param_sym_bs_ave
         plt.close('all')
 
@@ -483,9 +479,7 @@ for path in paths:
 
     path_index = path_index+1
     
-#included_animal_list = ['VIV41330', 'VIV41329']   #               'MC18737','MC19107']         #[ 'MC19022','MC19082','MC19123','MC19124','MC19214']  
 
-#included_animals_id = [animal_list.index(i) for i in included_animal_list]
 # MULTI-SESSION PLOT
 if single_animal_analysis==0:
     
@@ -496,7 +490,7 @@ if single_animal_analysis==0:
             pf.save_plot(fig_multi, paths_save[0], param_sym_name[p], plot_name='average_multi_session', bs_bool=bs_bool)
 
 
-        # LEARNING PARAMETERS (bar plots) - each one will be num_experiments x num_animals
+        # LEARNING PARAMETERS
         current_experiment_colors = [experiment_colors_dict[key] for key in experiment_names if key in experiment_names]
 
         # Compute learning params and statistics compared to first column (if there is control, it should go to first column) 
@@ -505,24 +499,13 @@ if single_animal_analysis==0:
         stat_learning_params_dict = {}
 
         for path_index, path in enumerate(paths):
-            
-            # Flip signs to have good learning always positive
-            #if (param_sym_name[p] == 'double_support' and control_ses == 'right') or ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'left'):
-            #    initial_error.append(np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))  
-            #    learning.append(-(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1)))
-            #    aftereffect.append(-np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
-            #elif ((param_sym_name[p] == 'step_length' or param_sym_name[p] == 'coo') and control_ses == 'right') or (param_sym_name[p] == 'double_support' and control_ses == 'left'):
-            #    initial_error.append(-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))         
-            #    learning.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-3:split_start+split_duration-1], axis=1)-np.nanmean(param_sym_multi[path][p][:,split_start-1:split_start+1], axis=1))
-            #    aftereffect.append(np.nanmean(param_sym_multi[path][p][:,split_start+split_duration-1:split_start+split_duration+1], axis=1))
-           
             locos[path_index].compute_learning_params(learning_params_dict, param_sym_multi[path][p], intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
             
         if compute_statistics and path_index>0:
-            locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], st=significance_threshold)
+            locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], thr=significance_threshold)
 
         # Bar plot of ALL learning parameters
-        fig_bar_all = pf.plot_all_learning_params(learning_params_dict, param_sym_name[p], included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+        fig_bar_all = pf.plot_all_learning_params(learning_params_dict, [param_sym_name[p], param_sym_label[p]], included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
              
         if print_plots_multi_session:
             pf.save_plot(fig_bar_all, paths_save[0], param_sym_name[p], plot_name='multi_session_barplot_all', bs_bool=bs_bool)
@@ -533,9 +516,9 @@ if single_animal_analysis==0:
 
         for lp_name in to_plot_separately:
             # Bar plot
-            fig_separate = pf.plot_learning_param(learning_params_dict[lp_name], param_sym_name[p], lp_name, included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+            fig_separate = pf.plot_learning_param(learning_params_dict[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
             # Scatter and avg plot
-            fig_scatter = pf.plot_learning_param_scatter(learning_params_dict[lp_name], param_sym_name[p], lp_name, included_animal_list, experiment_names, current_experiment_colors, stat_learning_params=stat_learning_params_dict, ranges=[uniform_ranges, bars_ranges])
+            fig_scatter = pf.plot_learning_param_scatter(learning_params_dict[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, experiment_names, current_experiment_colors, stat_learning_params=stat_learning_params_dict, ranges=[uniform_ranges, bars_ranges])
             if print_plots_multi_session:
                 pf.save_plot(fig_separate, paths_save[0], param_sym_name[p], plot_name='bar_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=1200)  
                 pf.save_plot(fig_scatter, paths_save[0], param_sym_name[p], plot_name='avg_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=120) 
