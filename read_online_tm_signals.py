@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 paw_otrack = 'FR'
-path = 'C:\\Users\\Ana\\Desktop\\Opto ChR2 Zombies\\20241015 merged tied stance stim 100sw batch#2EZ\\'
+path = 'J:\\Opto ChR2 RT\\20240621 tied stance onset stim th200st\\'
 main_dir = path.split('\\')[:-2]
 session = 1
 plot_data = 0
@@ -12,8 +12,8 @@ import locomotion_class
 loco = locomotion_class.loco_class(path)
 if not os.path.exists(os.path.join(path, 'processed files')):
     os.mkdir(os.path.join(path, 'processed files'))
-animals = ['VIV49409', 'VIV49410', 'VIV49411', 'VIV49412']
-corr_latency = [0, 0, 0]
+animals = ['VIV44766', 'VIV44771', 'VIV45372', 'VIV45373']
+corr_latency = [0, 0, 0, 0]
 
 animal_session_list = loco.animals_within_session()
 animal_list = []
