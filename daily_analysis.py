@@ -425,24 +425,10 @@ for path in paths:
         # PLOT STANCE SPEED for ALL ANIMALS
         for a in range(np.shape(stance_speed)[1]):
             data = stance_speed[:, a, :]
-            fig, ax = plt.subplots(figsize=(7,10), tight_layout=True)
-            rectangle = plt.Rectangle((split_start-0.5, -0.5), split_duration, 1, fc='lightblue',alpha=0.3)
-            for p in range(4):
-                ax.axvline(x = split_start, color='dimgray', linestyle='--')
-                ax.axvline(x = split_start+ split_duration, color='dimgray', linestyle='--')
-                ax.plot(np.linspace(1,len(data[p,:]),len(data[p,:])), data[p,:], color = paw_colors[p], linewidth = 2)
-                ax.spines['right'].set_visible(False)
-                ax.spines['top'].set_visible(False)
-                ax.set_xlabel('Trial', fontsize = 24)
-                ax.set_ylabel('Stance speed', fontsize = 24)
-                ax.tick_params(axis='x',labelsize = 20)
-                ax.tick_params(axis='y',labelsize = 20)
-                ax.set_title(animal_list[a],fontsize=18)
+            fig_stance_speed = pf.plot_stance_speed(data, animal_list[a], paw_colors, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
             
             if print_plots:
-                if not os.path.exists(paths_save[path_index]):
-                    os.mkdir(paths_save[path_index])
-                plt.savefig(paths_save[path_index] + animal_list[a] + '_stancespeed', dpi=96)
+                pf.save_plot(fig_stance_speed, paths_save[path_index], animal_list[a], plot_name='_stancespeed', dpi=96)
         plt.close('all')
     
     

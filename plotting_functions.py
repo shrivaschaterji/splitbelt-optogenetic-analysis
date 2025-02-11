@@ -7,8 +7,30 @@ import os
 # Locomotor adaptation
 # Baselines
 
+# STANCE SPEED
+def plot_stance_speed(data, animal, paw_colors, intervals=None):
+    fig, ax = plt.subplots(figsize=(7,10), tight_layout=True)
+   
+    for p in range(4):
+        ax.plot(np.linspace(1,len(data[p,:]),len(data[p,:])), data[p,:], color = paw_colors[p], linewidth = 2)
+    # Add split and stimulation intervals
+    if intervals:
+        if 'split' in intervals:
+            add_patch_interval(ax, intervals['split'])
+        if 'stim' in intervals:
+            add_start_end_interval(ax, intervals['stim'])
 
-# Learning curves
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.set_xlabel('Trial', fontsize = 24)
+    ax.set_ylabel('Stance speed', fontsize = 24)
+    ax.tick_params(axis='x',labelsize = 20)
+    ax.tick_params(axis='y',labelsize = 20)
+    ax.set_title(animal,fontsize=18)
+
+    return fig
+
+# SYMMETRY LEARNING CURVES
 # Individual animals
 def plot_learning_curve_ind_animals(param_sym, current_param, labels_dic, animal_list, colors, intervals=None):
     """
