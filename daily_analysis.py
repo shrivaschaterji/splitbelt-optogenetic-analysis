@@ -6,10 +6,6 @@ import math
 
 
 # Inputs
-laser_event = 'swing'
-single_animal_analysis = 0
-if single_animal_analysis:
-    animal = 'MC19022'
 plot_continuous = 0
 compare_baselines = 0
 compute_statistics = 0
@@ -230,180 +226,82 @@ for path in paths:
     for a in range(len(animal_session_list)):
         session_list.append(animal_session_list[a][1])
 
-    # Run the single animal analysis for each of the sessions in paths
-    if single_animal_analysis:
-        trials = otrack_classes[path_index].get_trials()
-        # READ CAMERA TIMESTAMPS AND FRAME COUNTER
-        [camera_timestamps_session, camera_frames_kept, camera_frame_counter_session] = otrack_classes[path_index].get_session_metadata(plot_rig_signals)
 
-        # READ SYNCHRONIZER SIGNALS
-        [timestamps_session, frame_counter_session, trial_signal_session, sync_signal_session, laser_signal_session, laser_trial_signal_session] = otrack_classes[path_index].get_synchronizer_data(camera_frames_kept, plot_rig_signals)
+    # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
 
-        # READ ONLINE DLC TRACKS
-        otracks = otrack_classes[path_index].get_otrack_excursion_data(timestamps_session)
-        [otracks_st, otracks_sw] = otrack_classes[path_index].get_otrack_event_data(timestamps_session)
-
-        # READ OFFLINE DLC TRACKS
-        [offtracks_st, offtracks_sw] = otrack_classes[path_index].get_offtrack_event_data(paw_otrack, locos[path_index], animal, session, timestamps_session)
-
-        # READ OFFLINE PAW EXCURSIONS
-        final_tracks_trials = otrack_classes[path_index].get_offtrack_paws(locos[path_index], animal, session)
-
-        # PROCESS SYNCHRONIZER LASER SIGNALS
-        laser_on = otrack_classes[path_index].get_laser_on(laser_signal_session, timestamps_session)
-
-        # ACCURACY OF LIGHT ON
-        laser_hits = np.zeros(len(trials))
-        laser_incomplete = np.zeros(len(trials))
-        laser_misses = np.zeros(len(trials))
-        for count_t, trial in enumerate(trials):
-            [full_hits, incomplete_hits, misses] = otrack_classes[path_index].get_hit_laser_synch(trial, laser_event, offtracks_st, offtracks_sw, laser_on, final_tracks_trials, timestamps_session, 0)
-            laser_hits[count_t] = full_hits
-            laser_incomplete[count_t] = incomplete_hits
-            laser_misses[count_t] = misses
-        # plot summaries
-        fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-        ax.bar(trials, laser_hits, color='green')
-        ax.bar(trials, laser_incomplete, bottom = laser_hits, color='orange')
-        ax.bar(trials, laser_misses, bottom = laser_hits + laser_incomplete, color='red')
-        ax.set_title(laser_event + ' misses')
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        plt.savefig(os.path.join(paths_save[path_index], 'laser_on_accuracy_' + laser_event + '.png'))
-        fig, ax = plt.subplots(tight_layout=True, figsize=(5,3))
-        rectangle = plt.Rectangle((split_start - 0.5, 0), split_duration, 50, fc='lightblue', alpha=0.3)
-        ax.axvline(x = stim_start-0.5, color = 'k', linestyle = '-', linewidth=0.5)
-        ax.axvline(x = stim_start+stim_duration+0.5, color = 'k', linestyle = '-', linewidth=0.5)
-        plt.gca().add_patch(rectangle)
-        ax.plot(trials, (laser_hits/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='green')
-        ax.plot(trials, (laser_incomplete/(laser_hits+laser_misses+laser_incomplete))*100, '-o', color='orange')
-        ax.set_title(laser_event + ' accuracy')
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        plt.savefig(os.path.join(paths_save[path_index], 'laser_on_accuracy_values_' + laser_event + '.png'))
-    
-
-    if single_animal_analysis == 0:
-        # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
-        # GAIT PARAMETERS ACROSS TRIALS
-        param_sym_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'phase_st', 'stance_speed']
-        param_gait_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
-        param_label = ['Center of\noscillation (mm)', 'Step length (mm)', '% of double support', 'Spatial motor\noutput (mm)', 'Swing length(mm)', 'Stance phase', 'Stance speed']
-        param_sym = np.zeros((len(param_sym_name), len(animal_list), Ntrials))
-        param_sym[:] = np.NaN
-        param_paw = np.zeros((len(param_sym_name), len(animal_list), 4, Ntrials))
-        param_paw[:] = np.nan
-        param_phase = np.zeros((4, len(animal_list), Ntrials))
-        param_phase[:] = np.nan
-        stance_speed = np.zeros((4, len(animal_list), Ntrials))
-        stance_speed[:] = np.NaN
-        st_strides_trials = []
-        param_gait = np.zeros((len(param_gait_name), len(animal_list), Ntrials))
-        param_gait[:] = np.NaN
-        for count_animal, animal in enumerate(animal_list):
-            session = int(session_list[count_animal])
-            #TODO: check if this filelist needs to be emptied first!
-            filelist = locos[path_index].get_track_files(animal, session)
-            for f in filelist:
-                count_trial = int(f.split('DLC')[0].split('_')[-1])-1      # Get trial number from file name, to spot any missing trial; parameters for remaining ones will stay to NaN
-                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
-                [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
-                st_strides_trials.append(st_strides_mat)
-                paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
-                for count_p, param in enumerate(param_sym_name):
+            if compare_baselines:
+                for count_p, param in enumerate(param_gait_name):
                     param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
-                    '''if param == 'stance_speed':
-                        for p in range(4):
-                            stance_speed[p, count_animal, count_trial] = np.nanmean(param_mat[p])
-                    elif param == 'step_length':
-                        param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0]) - np.nanmean(param_mat[2])
-                    else:
-                        param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])'''
+                    param_gait[count_p, count_animal, count_trial] = np.nanmedian(param_mat[0])
 
-                    if param == 'phase_st':
-                        for p in range(4):
-                            param_phase[p, count_animal, count_trial] = st.circmean(param_mat[0][p], nan_policy='omit')
-                    elif param == 'stance_speed':
-                        for p in range(4):
-                            stance_speed[p, count_animal,count_trial] = np.nanmean(param_mat[p])
-                    else:
-                        param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])
-                    for count_paw, paw in enumerate(paws):
-                        param_paw[count_p, count_animal, count_paw,count_trial] = np.nanmean(param_mat[count_paw])
+    # BASELINE SUBTRACTION OF PARAMETERS
+    if bs_bool:
+        param_sym_bs = np.zeros(np.shape(param_sym))
+        param_paw_bs = np.zeros(np.shape(param_paw))
+        for p in range(np.shape(param_sym)[0]-1):
+            for a in range(np.shape(param_sym)[1]):
+                # Compute baseline
+                if stim_start == split_start:
+                    bs_mean = np.nanmean(param_sym[p, a, :stim_start-1])
+                    bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_start-1])
+                if stim_start < split_start:
+                    bs_mean = np.nanmean(param_sym[p, a, stim_start-1:split_start-1])
+                    bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, stim_start-1:split_start-1])
+                # Subtract
+                param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
+                for count_paw in range(4):
+                    param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
+    else:
+        param_sym_bs = param_sym
 
-                if compare_baselines:
-                    for count_p, param in enumerate(param_gait_name):
-                        param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
-                        param_gait[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])
+    if any('right' in element for element in experiment_names) and any('left' in element for element in experiment_names) and 'left' in experiment_name:      # If we are comparing left and right we will have them both in experiment names
+        param_sym_bs = -param_sym_bs
 
-        # BASELINE SUBTRACTION OF PARAMETERS
-        if bs_bool:
-            param_sym_bs = np.zeros(np.shape(param_sym))
-            param_paw_bs = np.zeros(np.shape(param_paw))
-            for p in range(np.shape(param_sym)[0]-1):
-                for a in range(np.shape(param_sym)[1]):
-                    # Compute baseline
-                    if stim_start == split_start:
-                        bs_mean = np.nanmean(param_sym[p, a, :stim_start-1])
-                        bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_start-1])
-                    if stim_start < split_start:
-                        bs_mean = np.nanmean(param_sym[p, a, stim_start-1:split_start-1])
-                        bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, stim_start-1:split_start-1])
-                    # Subtract
-                    param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
-                    for count_paw in range(4):
-                        param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
-        else:
-            param_sym_bs = param_sym
+    # Compare baseline symmetry with and without stim
+    if compare_baselines:
+        param_no_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))          # Stance speed is not considered in the params
+        param_no_stim[:] = np.NaN
+        param_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))
+        param_stim[:] = np.NaN
+        # Symmetry parameters
+        for p in range(np.shape(param_sym)[0]-1):
+            for a in included_animal_id:            #range(np.shape(param_sym)[1]):
+                param_no_stim[p, a, :] = param_sym[p, a, :stim_start-1]
+                param_stim[p, a, :] = param_sym[p, a, stim_start-1:stim_start+stim_duration-1]        # :8]
+        # Gait parameters
+        start_ind=np.shape(param_sym)[0]-1
+        for p in range(np.shape(param_gait)[0]):
+            for a in included_animal_id:           #range(np.shape(param_gait)[1]):
+                param_no_stim[start_ind+p, a, :] = param_gait[p, a, :stim_start-1]
+                param_stim[start_ind+p, a, :] = param_gait[p, a, stim_start-1:stim_start+stim_duration-1]           # :8]
+        
 
-        if any('right' in element for element in experiment_names) and any('left' in element for element in experiment_names) and 'left' in experiment_name:      # If we are comparing left and right we will have them both in experiment names
-           param_sym_bs = -param_sym_bs
-
-        # Compare baseline symmetry with and without stim
-        if compare_baselines:
-            param_no_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))          # Stance speed is not considered in the params
-            param_no_stim[:] = np.NaN
-            param_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))
-            param_stim[:] = np.NaN
-            # Symmetry parameters
-            for p in range(np.shape(param_sym)[0]-1):
-                for a in included_animals_id:            #range(np.shape(param_sym)[1]):
-                    param_no_stim[p, a, :] = param_sym[p, a, :stim_start-1]
-                    param_stim[p, a, :] = param_sym[p, a, stim_start-1:stim_start+stim_duration-1]        # :8]
-            # Gait parameters
-            start_ind=np.shape(param_sym)[0]-1
-            for p in range(np.shape(param_gait)[0]):
-                for a in included_animals_id:           #range(np.shape(param_gait)[1]):
-                    param_no_stim[start_ind+p, a, :] = param_gait[p, a, :stim_start-1]
-                    param_stim[start_ind+p, a, :] = param_gait[p, a, stim_start-1:stim_start+stim_duration-1]           # :8]
+        # Plot and compare
+        import math
+        param_names = param_sym_name[:-1]+param_gait_name
+        fig_stim_cmp, ax_stim_cmp = plt.subplots(3,5)           # len(param_sym_name)+len(param_gait_name))
+        rc = [[0,0],[0,1],[0,2],[0,3],[0,4],[1,0],[1,1],[1,2],[1,3],[1,4],[2,0],[2,1],[2,2],[2,3],[2,4]]
+        for p in range(np.shape(param_stim)[0]):
+            ax_stim_cmp[rc[p][0],rc[p][1]].bar([0,1], [np.nanmean(np.nanmean(param_no_stim[p,:,:], axis=1)), np.nanmean(np.nanmean(param_stim[p,:,:], axis=1))], yerr=[np.nanstd(np.nanmean(param_no_stim[p,:,:], axis=1)),np.nanstd(np.nanmean(param_stim[p,:,:], axis=1))], align='center', color=['gray', experiment_colors_dict[experiment_name]], alpha=0.5, ecolor='black', capsize=6)
+            ax_stim_cmp[rc[p][0],rc[p][1]].plot([np.nanmean(param_no_stim[p,:,:], axis=1), np.nanmean(param_stim[p,:,:], axis=1)],'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
+            ax_stim_cmp[rc[p][0],rc[p][1]].set_title(param_names[p], size=9)
+            ax_stim_cmp[rc[p][0],rc[p][1]].set_xticks([])
+        fig_stim_cmp.tight_layout()
+        if print_plots:
+            if not os.path.exists(paths_save[path_index]):
+                os.mkdir(paths_save[path_index])
+            
+            plt.savefig(paths_save[path_index] + 'compare_baselines', dpi=128)
             
 
-            # Plot and compare
-            import math
-            param_names = param_sym_name[:-1]+param_gait_name
-            fig_stim_cmp, ax_stim_cmp = plt.subplots(3,5)           # len(param_sym_name)+len(param_gait_name))
-            rc = [[0,0],[0,1],[0,2],[0,3],[0,4],[1,0],[1,1],[1,2],[1,3],[1,4],[2,0],[2,1],[2,2],[2,3],[2,4]]
-            for p in range(np.shape(param_stim)[0]):
-                ax_stim_cmp[rc[p][0],rc[p][1]].bar([0,1], [np.nanmean(np.nanmean(param_no_stim[p,:,:], axis=1)), np.nanmean(np.nanmean(param_stim[p,:,:], axis=1))], yerr=[np.nanstd(np.nanmean(param_no_stim[p,:,:], axis=1)),np.nanstd(np.nanmean(param_stim[p,:,:], axis=1))], align='center', color=['gray', experiment_colors_dict[experiment_name]], alpha=0.5, ecolor='black', capsize=6)
-                ax_stim_cmp[rc[p][0],rc[p][1]].plot([np.nanmean(param_no_stim[p,:,:], axis=1), np.nanmean(param_stim[p,:,:], axis=1)],'-o', markersize=2, markeredgecolor='black', color='black', linewidth=0.5, markerfacecolor='none')
-                ax_stim_cmp[rc[p][0],rc[p][1]].set_title(param_names[p], size=9)
-                ax_stim_cmp[rc[p][0],rc[p][1]].set_xticks([])
-            fig_stim_cmp.tight_layout()
-            if print_plots:
-                if not os.path.exists(paths_save[path_index]):
-                    os.mkdir(paths_save[path_index])
-                
-                plt.savefig(paths_save[path_index] + 'compare_baselines', dpi=128)
-                
-
-        for p in range(np.shape(param_sym)[0] - 1):
-            # Plot learning curve for individual animals
-            fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
-            # Save plot
-            if print_plots:
-                pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='ind_animals', bs_bool=bs_bool)
-                
-        plt.close('all')
+    for p in range(np.shape(param_sym)[0] - 1):
+        # Plot learning curve for individual animals
+        fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+        # Save plot
+        if print_plots:
+            pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='ind_animals', bs_bool=bs_bool)
+            
+    plt.close('all')
 
     # PLOT ANIMAL AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION
     param_sym_multi[path] = {}
