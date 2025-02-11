@@ -305,104 +305,101 @@ for path in paths:
 
     # PLOT ANIMAL AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION
     param_sym_multi[path] = {}
-    if single_animal_analysis == 0:
-        for p in range(np.shape(param_sym)[0]):
-            param_sym_bs_ave = param_sym_bs[p, included_animal_id, :]
-            fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_name_label_map, animal_list, [included_animal_list, included_animal_id],
-                                                         [animal_colors_dict, experiment_colors_dict], experiment_name, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
-                                                         ranges=[uniform_ranges, axes_ranges])
-            # Save plot
-            if print_plots:
-                pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
-                
-            # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot), with only the included animals
-            param_sym_multi[path][p] = param_sym_bs_ave
-        plt.close('all')
-
-
-        # PLOT STANCE SPEED for ALL ANIMALS
-        for a in range(np.shape(stance_speed)[1]):
-            data = stance_speed[:, a, :]
-            fig_stance_speed = pf.plot_stance_speed(data, animal_list[a], paw_colors, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+    for p in range(np.shape(param_sym)[0]):
+        param_sym_bs_ave = param_sym_bs[p, included_animal_id, :]
+        fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_name_label_map, animal_list, [included_animal_list, included_animal_id],
+                                                        [animal_colors_dict, experiment_colors_dict], experiment_name, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
+                                                        ranges=[uniform_ranges, axes_ranges])
+        # Save plot
+        if print_plots:
+            pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
             
+        # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot), with only the included animals
+        param_sym_multi[path][p] = param_sym_bs_ave
+    plt.close('all')
+
+
+    # PLOT STANCE SPEED for ALL ANIMALS
+    for a in range(np.shape(stance_speed)[1]):
+        data = stance_speed[:, a, :]
+        fig_stance_speed = pf.plot_stance_speed(data, animal_list[a], paw_colors, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+        
+        if print_plots:
+            pf.save_plot(fig_stance_speed, paths_save[path_index], animal_list[a], plot_name='_stancespeed', dpi=96)
+    plt.close('all')
+
+
+    # CONTINUOUS STEP LENGTH WITH LASER ON
+    if plot_continuous:
+        trials = np.arange(1, Ntrials+1)
+        for count_animal, animal in enumerate(animal_list):
+            param_sl = []
+            st_strides_trials = []
+            session = int(session_list[count_animal])
+            filelist = locos[path_index].get_track_files(animal, session)
+            for count_trial, f in enumerate(filelist):
+                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
+                [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
+                paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
+                param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, 'step_length')
+                param_sl.append(param_mat)
+                st_strides_trials.append(st_strides_mat)
+            [stride_idx, trial_continuous, sl_time, sl_values] = locos[path_index].param_continuous_sym(param_sl, st_strides_trials, trials, 'FR', 'FL', 1, 1)
+            fig, ax = plt.subplots(tight_layout=True, figsize=(25,10))
+            sl_time_start = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]
+            sl_time_duration = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]+(locos[path_index].trial_time*stim_duration)
+            rectangle = plt.Rectangle((sl_time_start, np.nanmin(sl_values)), sl_time_duration-sl_time_start, np.nanmax(sl_values)+np.abs(np.nanmin(sl_values)), fc=experiment_colors_dict[experiment_name], alpha=0.3)
+            plt.gca().add_patch(rectangle)
+            ax.plot(sl_time, sl_values, color='black')
+            ax.set_xlabel('time (s)')
+            ax.set_title('continuous step length')
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
             if print_plots:
-                pf.save_plot(fig_stance_speed, paths_save[path_index], animal_list[a], plot_name='_stancespeed', dpi=96)
-        plt.close('all')
-    
-    
-        # CONTINUOUS STEP LENGTH WITH LASER ON
-        if plot_continuous:
-            trials = np.arange(1, Ntrials+1)
-            for count_animal, animal in enumerate(animal_list):
-                param_sl = []
-                st_strides_trials = []
-                session = int(session_list[count_animal])
-                filelist = locos[path_index].get_track_files(animal, session)
-                for count_trial, f in enumerate(filelist):
-                    [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
-                    [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
-                    paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
-                    param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, 'step_length')
-                    param_sl.append(param_mat)
-                    st_strides_trials.append(st_strides_mat)
-                [stride_idx, trial_continuous, sl_time, sl_values] = locos[path_index].param_continuous_sym(param_sl, st_strides_trials, trials, 'FR', 'FL', 1, 1)
-                fig, ax = plt.subplots(tight_layout=True, figsize=(25,10))
-                sl_time_start = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]
-                sl_time_duration = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]+(locos[path_index].trial_time*stim_duration)
-                rectangle = plt.Rectangle((sl_time_start, np.nanmin(sl_values)), sl_time_duration-sl_time_start, np.nanmax(sl_values)+np.abs(np.nanmin(sl_values)), fc=experiment_colors_dict[experiment_name], alpha=0.3)
-                plt.gca().add_patch(rectangle)
-                ax.plot(sl_time, sl_values, color='black')
-                ax.set_xlabel('time (s)')
-                ax.set_title('continuous step length')
-                ax.spines['right'].set_visible(False)
-                ax.spines['top'].set_visible(False)
-                if print_plots:
-                    if not os.path.exists(paths_save[path_index]):
-                        os.mkdir(paths_save[path_index])
-                    plt.savefig(paths_save[path_index] + animal_list[a] + '_sl_sym_continuous', dpi=96)
+                if not os.path.exists(paths_save[path_index]):
+                    os.mkdir(paths_save[path_index])
+                plt.savefig(paths_save[path_index] + animal_list[a] + '_sl_sym_continuous', dpi=96)
 
     path_index = path_index+1
     
 
 # MULTI-SESSION PLOT
-if single_animal_analysis==0:
+for p in range(np.shape(param_sym)[0] - 1):
+    fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_name_label_map, [included_animal_list, included_animal_id], experiment_colors_dict, experiment_names, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, ranges=[uniform_ranges, axes_ranges])
     
-    for p in range(np.shape(param_sym)[0] - 1):
-        fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_name_label_map, [included_animal_list, included_animal_id], experiment_colors_dict, experiment_names, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, ranges=[uniform_ranges, axes_ranges])
+    if print_plots:
+        pf.save_plot(fig_multi, paths_save[0], param_sym_name[p], plot_name='average_multi_session', bs_bool=bs_bool)
+
+
+    # LEARNING PARAMETERS
+    current_experiment_colors = [experiment_colors_dict[key] for key in experiment_names if key in experiment_names]
+
+    # Compute learning params and statistics compared to first column (if there is control, it should go to first column) 
+    # learning_params_dict and stat_learning_params_dict variables
+    learning_params_dict = {}
+    stat_learning_params_dict = {}
+
+    for path_index, path in enumerate(paths):
+        locos[path_index].compute_learning_params(learning_params_dict, param_sym_multi[path][p], intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
         
-        if print_plots:
-            pf.save_plot(fig_multi, paths_save[0], param_sym_name[p], plot_name='average_multi_session', bs_bool=bs_bool)
+    if compute_statistics and path_index>0:
+        locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], thr=significance_threshold)
 
-
-        # LEARNING PARAMETERS
-        current_experiment_colors = [experiment_colors_dict[key] for key in experiment_names if key in experiment_names]
-
-        # Compute learning params and statistics compared to first column (if there is control, it should go to first column) 
-        # learning_params_dict and stat_learning_params_dict variables
-        learning_params_dict = {}
-        stat_learning_params_dict = {}
-
-        for path_index, path in enumerate(paths):
-            locos[path_index].compute_learning_params(learning_params_dict, param_sym_multi[path][p], intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+    # Bar plot of ALL learning parameters
+    fig_bar_all = pf.plot_all_learning_params(learning_params_dict, [param_sym_name[p], param_sym_label[p]], included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
             
-        if compute_statistics and path_index>0:
-            locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], thr=significance_threshold)
+    if print_plots_multi_session:
+        pf.save_plot(fig_bar_all, paths_save[0], param_sym_name[p], plot_name='multi_session_barplot_all', bs_bool=bs_bool)
 
-        # Bar plot of ALL learning parameters
-        fig_bar_all = pf.plot_all_learning_params(learning_params_dict, [param_sym_name[p], param_sym_label[p]], included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
-             
+
+    # Single learning parameter alone. Can be 'initial error', 'adaptation', 'after-effect', '% change adaptation', '% change after-effect'
+    to_plot_separately = ['adaptation', 'after-effect']
+
+    for lp_name in to_plot_separately:
+        # Bar plot
+        fig_separate = pf.plot_learning_param(learning_params_dict[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+        # Scatter and avg plot
+        fig_scatter = pf.plot_learning_param_scatter(learning_params_dict[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, experiment_names, current_experiment_colors, stat_learning_params=stat_learning_params_dict, ranges=[uniform_ranges, bars_ranges])
         if print_plots_multi_session:
-            pf.save_plot(fig_bar_all, paths_save[0], param_sym_name[p], plot_name='multi_session_barplot_all', bs_bool=bs_bool)
-
-    
-        # Single learning parameter alone. Can be 'initial error', 'adaptation', 'after-effect', '% change adaptation', '% change after-effect'
-        to_plot_separately = ['adaptation', 'after-effect']
-
-        for lp_name in to_plot_separately:
-            # Bar plot
-            fig_separate = pf.plot_learning_param(learning_params_dict[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
-            # Scatter and avg plot
-            fig_scatter = pf.plot_learning_param_scatter(learning_params_dict[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, experiment_names, current_experiment_colors, stat_learning_params=stat_learning_params_dict, ranges=[uniform_ranges, bars_ranges])
-            if print_plots_multi_session:
-                pf.save_plot(fig_separate, paths_save[0], param_sym_name[p], plot_name='bar_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=1200)  
-                pf.save_plot(fig_scatter, paths_save[0], param_sym_name[p], plot_name='avg_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=120) 
+            pf.save_plot(fig_separate, paths_save[0], param_sym_name[p], plot_name='bar_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=1200)  
+            pf.save_plot(fig_scatter, paths_save[0], param_sym_name[p], plot_name='avg_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=120) 
