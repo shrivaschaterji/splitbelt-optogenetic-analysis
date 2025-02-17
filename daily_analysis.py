@@ -123,12 +123,7 @@ bs_bool = 1
 control_ses = 'left'
 control_path = []       #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\15092023 split left fast control\\']      #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\14092023 split right fast control\\'] #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\15092023 split left fast control\\']   #]         # This should be a list; if empty, we have no control (e.g. in tied sessions)
 control_filename = 'split_'+control_ses+'_fast_control_params_sym_bs.npy'
-#'E:\\tied trial stim\\'
-#'D:\\Ali\\170423 split left ipsi fast control\\'
-#'D:\\Ali\\tied belt stim trial\\'
-#'D:\\Ali\\14042023 splitS1 right fast nostim\\'
-#'D:\\Ali\\170423 split left ipsi fast control\\'
-#['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']         #'C:\\Users\\Ana\\Documents\\PhD\\Projects\Online Stimulation Treadmill\\Experiments\\'
+
 paw_colors = ['red', 'magenta', 'blue', 'cyan']
 paw_otrack = 'FR'
 paws = ['FR', 'HR', 'FL', 'HL']
