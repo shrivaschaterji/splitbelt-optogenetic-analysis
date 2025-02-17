@@ -172,7 +172,7 @@ for path in paths:
         animal_list.append(animal_session_list[a][0])
     if len(included_animal_list) == 0:              # All animals included
         included_animal_list = animal_list
-    included_animals_id = [animal_list.index(i) for i in included_animal_list]
+    included_animal_id = [animal_list.index(i) for i in included_animal_list]
     session_list = []
     for a in range(len(animal_session_list)):
         session_list.append(animal_session_list[a][1])
