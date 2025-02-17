@@ -179,6 +179,95 @@ for path in paths:
 
 
     # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
+    # GAIT PARAMETERS ACROSS TRIALS
+    param_gait_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
+    param_sym_name_label_map = {'coo': 'Center of\noscillation (mm)', 'step_length': 'Step length (mm)', 'double_support': '% double support', 
+                    'coo_stance': 'Spatial motor\noutput (mm)', 'swing_length': 'Swing length(mm)'}     #, 'phase_st': 'Stance phase', 'stance_speed': 'Stance speed'}
+    param_sym_label = list(param_sym_name_label_map.values())
+    param_sym_name = list(param_sym_name_label_map.keys())
+    param_sym = np.zeros((len(param_sym_name), len(animal_list), Ntrials))
+    param_sym[:] = np.NaN
+    param_paw = np.zeros((len(param_sym_name), len(animal_list), 4, Ntrials))
+    param_paw[:] = np.nan
+    param_phase = np.zeros((4, len(animal_list), Ntrials))
+    param_phase[:] = np.nan
+    stance_speed = np.zeros((4, len(animal_list), Ntrials))
+    stance_speed[:] = np.NaN
+    st_strides_trials = []
+    param_gait = np.zeros((len(param_gait_name), len(animal_list), Ntrials))
+    param_gait[:] = np.NaN
+    for count_animal, animal in enumerate(animal_list):
+        session = int(session_list[count_animal])
+        #TODO: check if this filelist needs to be emptied first!
+        filelist = locos[path_index].get_track_files(animal, session)
+        for count_p, param in enumerate(param_sym_name):
+            param_trials = np.zeros((Ntrials))
+            param_trials = np.NaN
+            st_strides_trials = []
+            for f in filelist:      # Loop over all trials
+                count_trial = int(f.split('DLC')[0].split('_')[-1])-1      # Get trial number from file name, to spot any missing trial; parameters for remaining ones will stay to NaN
+                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
+                [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
+                st_strides_trials.append(st_strides_mat)
+                paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
+            
+                param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
+                if param == 'stance_speed':
+                    for p in range(4):
+                        stance_speed[p, count_animal, count_trial] = np.nanmean(param_mat[p])
+                elif param == 'phase_st':
+                    for p in range(4):
+                        param_phase[p, count_animal, count_trial] = st.circmean(param_mat[0][p], nan_policy='omit')
+                else:
+                    param_sym[count_p, count_animal, count_trial] = np.nanmean(param_mat[0])-np.nanmean(param_mat[2])
+                
+                for count_paw, paw in enumerate(paws):
+                    param_paw[count_p, count_animal, count_paw,count_trial] = np.nanmean(param_mat[count_paw])
+
+                # Compute and plot also the continuous (not separated by trial) version of the symmetry parameter
+                if plot_continuous:
+                    param_trials[count_trial]=param_mat
+                    st_strides_trials[count_trial]=st_strides_mat
+
+                    # TODO: the following lines should go outside the loop over trials
+                    [stride_idx, trial_continuous, sym_param_time, sym_param_values] = locos[path_index].param_continuous_sym(param_trials, st_strides_trials, trials, 'FR', 'FL', 1, 1)
+                    fig, ax = plt.subplots(tight_layout=True, figsize=(25,10))
+                    sym_param_time_start = sym_param_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]
+                    sym_param_time_duration = sym_param_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]+(locos[path_index].trial_time*stim_duration)
+                    rectangle = plt.Rectangle((sym_param_time_start, np.nanmin(sym_param_values)), sym_param_time_duration-sym_param_time_start, np.nanmax(sym_param_values)+np.abs(np.nanmin(sym_param_values)), fc=experiment_colors_dict[experiment_name], alpha=0.3)
+                    plt.gca().add_patch(rectangle)
+                    ax.plot(sym_param_time, sym_param_values, color='black')
+                    ax.set_xlabel('time (s)')
+                    ax.set_title('continuous step length')
+                    ax.spines['right'].set_visible(False)
+                    ax.spines['top'].set_visible(False)
+                    if print_plots:
+                        if not os.path.exists(paths_save[path_index]):
+                            os.mkdir(paths_save[path_index])
+                        plt.savefig(paths_save[path_index] + animal_list[a] + '_sl_sym_continuous', dpi=96)
+                    '''
+                    param_mat_sym = locos[path_index].compute_continuous_sym_gaitparam(param_mat, st_strides_mat, 'FR', 'FL')
+                    
+                    if (count_trial==7 or count_trial==8) and param_sym_name[count_p]=='double_support':
+                        
+                        fig1, ax1 = plt.subplots(figsize=(7, 10), tight_layout=True)
+                        plt.plot(param_mat_sym, linewidth=2)
+                        plt.title([param_sym_name[count_p], ' trial ', str(count_trial)])
+                        plt.show()
+                        # With moving avg
+                        series = pd.Series(param_mat_sym)
+                        # Compute a moving average with a window of 3, ignoring NaNs
+                        window_size = 2
+                        moving_avg = series.rolling(window=window_size, min_periods=1).mean()
+                        if count_trial==7:
+                            fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+                        ax.plot(moving_avg, linewidth=2)
+                        ax.set_title([param_sym_name[count_p], ' trial ', str(count_trial), ' moving avg'])
+                        ax.set_ylim([-25,30])
+                        print("avg DS!!!!!!!!!!!!!!!!!",np.nanmedian(param_mat_sym))
+                        plt.show()
+                        '''
+                
 
             if compare_baselines:
                 for count_p, param in enumerate(param_gait_name):
@@ -280,36 +369,7 @@ for path in paths:
     plt.close('all')
 
 
-    # CONTINUOUS STEP LENGTH WITH LASER ON
-    if plot_continuous:
-        trials = np.arange(1, Ntrials+1)
-        for count_animal, animal in enumerate(animal_list):
-            param_sl = []
-            st_strides_trials = []
-            session = int(session_list[count_animal])
-            filelist = locos[path_index].get_track_files(animal, session)
-            for count_trial, f in enumerate(filelist):
-                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
-                [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
-                paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
-                param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, 'step_length')
-                param_sl.append(param_mat)
-                st_strides_trials.append(st_strides_mat)
-            [stride_idx, trial_continuous, sl_time, sl_values] = locos[path_index].param_continuous_sym(param_sl, st_strides_trials, trials, 'FR', 'FL', 1, 1)
-            fig, ax = plt.subplots(tight_layout=True, figsize=(25,10))
-            sl_time_start = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]
-            sl_time_duration = sl_time[np.where(np.array(trial_continuous) == stim_start)[0][0]]+(locos[path_index].trial_time*stim_duration)
-            rectangle = plt.Rectangle((sl_time_start, np.nanmin(sl_values)), sl_time_duration-sl_time_start, np.nanmax(sl_values)+np.abs(np.nanmin(sl_values)), fc=experiment_colors_dict[experiment_name], alpha=0.3)
-            plt.gca().add_patch(rectangle)
-            ax.plot(sl_time, sl_values, color='black')
-            ax.set_xlabel('time (s)')
-            ax.set_title('continuous step length')
-            ax.spines['right'].set_visible(False)
-            ax.spines['top'].set_visible(False)
-            if print_plots:
-                if not os.path.exists(paths_save[path_index]):
-                    os.mkdir(paths_save[path_index])
-                plt.savefig(paths_save[path_index] + animal_list[a] + '_sl_sym_continuous', dpi=96)
+
 
     path_index = path_index+1
     
