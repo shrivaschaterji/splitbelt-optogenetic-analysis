@@ -3,49 +3,36 @@ import matplotlib.pyplot as plt
 import os
 import scipy.stats as st
 import math
+import pandas as pd
+import plotting_functions as pf
+
+# Set the default font
+plt.rcParams['font.family'] = 'Arial'
 
 
 # Inputs
 plot_continuous = 0
 compare_baselines = 0
-compute_statistics = 0
+compute_statistics = 1
+scatter_single_animals = 1
 significance_threshold = 0.05
 
-#axes_ranges = {'coo': [-5, 3], 'step_length': [-12, 5], 'double_support': [-7, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-#bars_ranges = {'coo': [-2, 5], 'step_length': [-3, 12], 'double_support': [-5, 13], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-# Opto
-axes_ranges = {'coo': [-5, 5], 'step_length': [-12, 12], 'double_support': [-7, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-bars_ranges = {'coo': [-4, 4], 'step_length': [-12, 12], 'double_support': [-7, 7], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2]}
-# ChR2 right
-axes_ranges = {'coo': [-6, 2], 'step_length': [-11, 5], 'double_support': [-8, 15], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
-bars_ranges = {'coo': [-2, 2], 'step_length': [-2, 5], 'double_support': [-7, 1], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
-# ChR2 left
-#axes_ranges = {'coo': [-4, 6], 'step_length': [-7, 10], 'double_support': [-12, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
-#bars_ranges = {'coo': [-2, 2], 'step_length': [-5, 2], 'double_support': [-1, 6], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2], 'phase_st':[-1,1]}
+# Ranges for pre-defined range of axes and bars (if uniform_ranges = 1)
 uniform_ranges = 1
 
-# List of paths for each experiment - it is possible to have only one element
-experiment_names = ['chr2']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+# Tied
+axes_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+# Rfast
+#axes_ranges = {'coo': [-6, 2], 'step_length': [-12, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-2, 4], 'step_length': [-5, 9], 'double_support': [-9, 5], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+# Lfast
+#axes_ranges = {'coo': [-2, 4], 'step_length': [-3, 9], 'double_support': [-10, 5], 'coo_stance': [-5, 5], 'swing_length': [-12, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-4, 2], 'step_length': [-9, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-12, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 
-#paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\28092023 split right fast trial stim 30s\\']
 
-#paths = [
-   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\18092023 split right fast trial stim\\',
- #      'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20092023 split right fast stance stim\\',
-  #   'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\22092023 split right fast swing stim\\'
-   #   ]
-
-#paths = [
-    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240130 tied stance stim IOcontrol\\'
-        #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240126 tied stance stim\\',
-        #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240125 tied swing stim\\'
-       # ]
-
-#paths = [
-    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240130 tied stance stim IOcontrol\\'
- #       'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240209 tied stance stim REPLAY\\',
-  #      'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240208 tied swing stim REPLAY\\'
-   #     ]
+# Lists of experiment names and paths for each experiment - it is possible to have only one element
+experiment_names = ['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
    # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240311 tied swing stim redone\\'
@@ -191,11 +178,11 @@ included_animal_list =  ['MC16851', 'MC17319','MC17665','MC17670','MC17666', 'MC
 #['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
 
 session = 1
-Ntrials = 28  #28    #56       # 28
-stim_start = 9 #9  #18 #9
-split_start = 9   #9 #18        #9
-stim_duration = 10  #10  #20      #8
-split_duration = 10 #10 #20         #8
+Ntrials = 28
+stim_start = 9
+split_start = 9
+stim_duration = 10
+split_duration = 10
 plot_rig_signals = 0
 print_plots = 1
 print_plots_multi_session = 1
