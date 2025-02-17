@@ -32,10 +32,12 @@ bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8]
 
 
 # Lists of experiment names and paths for each experiment - it is possible to have only one element
-experiment_names = ['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+experiment_names = ['stance stim', 'swing stim']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
-    'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
+     'C:\Users\User\Carey Lab Dropbox\Rotation Carey\Tati&Ali&INDP2025\Behavior\Experiments JAWS RT\Tied belt sessions\tied stance stim HISTOsel',
+     'C:\Users\User\Carey Lab Dropbox\Rotation Carey\Tati&Ali&INDP2025\Behavior\Experiments JAWS RT\Tied belt sessions\tied swing stim HISTOsel'
+    #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
    #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241111 split right fast control batch#4C\\',
   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241112 split right fast stance onset stim 200st IO batch#4C\\',
 
@@ -103,26 +105,10 @@ animal_colors_dict = {'MC16846': "#BBBBBB",'MC16848':"#BBBBBB",'MC16850': "#BBBB
                       'VIV42985':animal_colors[6], 'VIV42992': animal_colors[7],'VIV42987': animal_colors[8]}
 
 '''
-#included_animal_list = [ 'MC17319','MC17665','MC17666','MC17668','MC17669','MC17670']
 
-included_animal_list = ['VIV44771', 'VIV44766', 'VIV45372', 'VIV45373']
-#'MC11231','MC11234','MC11235','MC24410','MC24413'] # ChR2 LE
-            #['MC1262','MC1263','MC1328','MC1329','MC1330']     # ChR2 HE                #'VIV42906', 'VIV42974', 'VIV42908','VIV42985','VIV42987']  
-'''
-['MC16846','MC16848','MC16850','MC16851', 'MC17319',
-   'MC17665','MC17670','MC17666', 'MC17668','MC17669', 
-   'MC19022','MC19082','MC19123', 'MC19124', 'MC19130',
-   'MC19132','MC19214', 'MC18737', 'MC19107', 'VIV41330', 
-   'VIV41329']          # 21 animals
-  
-included_animal_list =  ['MC16851', 'MC17319','MC17665','MC17670','MC17666', 'MC17668', 
-    'MC19082','MC19124', 'MC19130','MC19214']         # 11 animals
-      '''
-    #'MC19022','MC19082','MC19123','MC19130','MC19132','MC19124','MC19214']             #  
-#included_animal_list = ['MC16851','MC17319','MC17665','MC17666','MC17669','MC17670']#, 'MC19022','MC19082','MC19123','MC19124','MC19214']
-#['C:\\Users\\alice\\Documents\\25042023 split left fast swing large stim\\']
-# ['C:\\Users\\alice\\Carey Lab Dropbox\\Tracking Movies\\AnaG+Alice\\090523 split right fast stance stim only split\\']
-#['C:\\Users\\Ana\\Documents\\PhD\\Projects\\Online Stimulation Treadmill\\Experiments\\18042023 split right fast trial stim (copied MC16848 T3 to mimic T2)\\']
+
+included_animal_list = []
+
 
 session = 1
 Ntrials = 28
@@ -180,7 +166,8 @@ for path in paths:
 
     # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
     # GAIT PARAMETERS ACROSS TRIALS
-    param_gait_name = ['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
+    param_gait_name = ['coo', 'coo_stance', 'swing_length']
+    #['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
     param_sym_name_label_map = {'coo': 'Center of\noscillation (mm)', 'step_length': 'Step length (mm)', 'double_support': '% double support', 
                     'coo_stance': 'Spatial motor\noutput (mm)', 'swing_length': 'Swing length(mm)'}     #, 'phase_st': 'Stance phase', 'stance_speed': 'Stance speed'}
     param_sym_label = list(param_sym_name_label_map.values())
