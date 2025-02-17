@@ -35,67 +35,14 @@ bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8]
 experiment_names = ['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
-   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240311 tied swing stim redone\\'
-   #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\ALL_ANIMALS\\tied stance stim\\',
-  # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\ALL_ANIMALS\\tied swing stim\\',
-   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast control\\',
-    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast stance stim\\',
-    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\ALL_ANIMALS\\split left fast swing stim\\',
-   # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\LocoCF-internal\\Tout_data\\20230606 tied stance stim\\'
-    #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20230608 split right fast control\\'
- #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240409 tied stance stim CTXchr2\\',
-   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240307 tied swing stim IOchr2\\'
-       # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\20240202 split left fast stance stim\\',
-   # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\Susd4KO project\\20240212 20240221 20240304 split right fast Susd4KO\\',
-   # 'C:\\Users\\Utilizador\\Carey Lab Dropbox\\Alice Geminiani\\Susd4KO project\\20240216 20240226 20240308 split left fast Susd4KO\\'
-     #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split left fast no-stim S3\\",
-    # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split right fast no-stim S2\\",
-      #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split right fast stim S4\\",
-     # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split right fast perturb S5\\",
-     #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\LE\\split left fast perturb S6\\"
-    # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\HE\\split left fast no-stim\\",
-    # "D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\HE\\split left fast perturb\\"
-     #"D:\\AliG\\climbing-opto-treadmill\\Experiments HGM\\HE\\split right fast perturb\\original protocol\\"
-     "D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240531 tied swing stim IOchr2 50ms\\"
-      #"D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\20240503 tied stance stim IOchr2 50ms\\"
+    'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
+   #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241111 split right fast control batch#4C\\',
+  # 'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241112 split right fast stance onset stim 200st IO batch#4C\\',
+
      ]
 
-
-#[
-  #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\19092023 split left fast trial stim\\',
-     #   'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\21092023 split left fast stance stim\\',
-     # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\25092023 split left fast swing stim\\'
-   #  ]
-
-
-#paths = [
-      #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\11092023 tied trial stim\\',
-       # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\12092023 tied stance stim\\',
-      #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\13092023 tied swing stim\\'
- #       ]
-
-
-#paths = ['D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\05062023 tied trial stim\\',
-#        'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\06062023 tied stance stim\\',
-#       'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\07062023 tied swing stim\\']
-
-#paths = [
-       # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\selected tied trial stim\\',
-      # 'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\selected tied stance stim\\',
-      #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Tied belt sessions\\selected tied swing stim\\'
- #       ]
-
-
-
-# ['E:\\090523 split right fast stance stim only split\\']
-#['E:\\tied trial stim\\','E:\\tied stance wide stim\\','E:\\tied swing wide stim\\']
-#['D:\\Ali\\19042023 split left fast trial stim\\']
-#['D:\\Ali\\tied belt stim trial\\','D:\\Ali\\tied belt stance wide stim\\','D:\\Ali\\tied belt swing wide stim\\']
-#paths = ['D:\\Ali\\19042023 split left fast trial stim\\', 'D:\\Ali\\21042023 split left fast stance large stim\\', 'D:\\Ali\\25042023 split left fast swing large stim\\']
-#paths = ['D:\\Ali\\18042023 split right fast trial stim\\', 'D:\\Ali\\20042023 split right fast stance large stim\\', 'D:\\Ali\\24042023 split right fast swing large stim\\']
-#['D:\\Ali\\25042023 split left fast swing large stim\\']
-#
-experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black', 'chr2': 'cyan',
+experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing stim': 'green', 'control':'black', 'ChR2': 'cyan',
+                          'stance onset':'green','swing onset': 'orange',
                           'right fast no-stim': 'gray',     # 'blue', 
                           'left fast no-stim': 'gray', 
                           'right fast stim': 'green', 
