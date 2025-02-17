@@ -18,7 +18,7 @@ scatter_single_animals = 1
 significance_threshold = 0.05
 
 # Ranges for pre-defined range of axes and bars (if uniform_ranges = 1)
-uniform_ranges = 1
+uniform_ranges = 0
 
 # Tied
 axes_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
