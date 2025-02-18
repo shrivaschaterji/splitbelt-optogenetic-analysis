@@ -334,7 +334,9 @@ for path in paths:
             plt.savefig(paths_save[path_index] + 'compare_baselines', dpi=128)
             
 
-    for p in range(np.shape(param_sym)[0] - 1):
+    for p in range(np.shape(param_sym)[0]):
+        if param_sym_name[p] == 'stance_speed':
+            continue
         # Plot learning curve for individual animals
         fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
         # Save plot
@@ -346,6 +348,8 @@ for path in paths:
     # PLOT ANIMAL AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION
     param_sym_multi[path] = {}
     for p in range(np.shape(param_sym)[0]):
+        if param_sym_name[p] == 'stance_speed':
+            continue
         param_sym_bs_ave = param_sym_bs[p, included_animal_id, :]
         fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_name_label_map, animal_list, [included_animal_list, included_animal_id],
                                                         [animal_colors_dict, experiment_colors_dict], experiment_name, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
@@ -376,7 +380,10 @@ for path in paths:
     
 
 # MULTI-SESSION PLOT
-for p in range(np.shape(param_sym)[0] - 1):
+for p in range(np.shape(param_sym)[0]):
+    if param_sym_name[p] == 'stance_speed':
+            continue
+    
     fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_name_label_map, [included_animal_list, included_animal_id], experiment_colors_dict, experiment_names, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, ranges=[uniform_ranges, axes_ranges])
     
     if print_plots:
