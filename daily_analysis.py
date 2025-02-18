@@ -342,12 +342,13 @@ for path in paths:
 
 
     # PLOT STANCE SPEED for ALL ANIMALS
-    for a in range(np.shape(stance_speed)[1]):
-        data = stance_speed[:, a, :]
-        fig_stance_speed = pf.plot_stance_speed(data, animal_list[a], paw_colors, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
-        
-        if print_plots:
-            pf.save_plot(fig_stance_speed, paths_save[path_index], animal_list[a], plot_name='_stancespeed', dpi=96)
+    if 'stance_speed' in param_sym_name:
+        for a in range(np.shape(stance_speed)[1]):
+            data = stance_speed[:, a, :]
+            fig_stance_speed = pf.plot_stance_speed(data, animal_list[a], paw_colors, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+            
+            if print_plots:
+                pf.save_plot(fig_stance_speed, paths_save[path_index], animal_list[a], plot_name='_stancespeed', dpi=96)
     plt.close('all')
 
 
