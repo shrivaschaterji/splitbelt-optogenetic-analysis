@@ -942,8 +942,8 @@ class loco_class:
 
         return learning_params_dict
 
-    def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, st=0.05):
-        
+    def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, thr=0.05):
+        import scipy.stats as st
         # Compute statistics
         if not stat_learning_params_dict:
             stat_learning_params_dict['initial error'] = []
@@ -956,7 +956,7 @@ class loco_class:
             for exp in range(1,len(learning_params_dict['initial error'])):  
                 print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
                 print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])])
-                stat_learning_params_dict[param_name].append(st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit').pvalue<st)
+                stat_learning_params_dict[param_name].append(st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit').pvalue<thr)
         return stat_learning_params_dict
 
     def animals_within_session(self):
