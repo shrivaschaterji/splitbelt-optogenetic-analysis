@@ -32,11 +32,14 @@ bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8]
 
 
 # Lists of experiment names and paths for each experiment - it is possible to have only one element
-experiment_names = ['stance stim', 'swing stim']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+experiment_names = ['control', 'stance stim', 'swing stim']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
-     'C:\Users\User\Carey Lab Dropbox\Rotation Carey\Tati&Ali&INDP2025\Behavior\Experiments JAWS RT\Tied belt sessions\tied stance stim HISTOsel',
-     'C:\Users\User\Carey Lab Dropbox\Rotation Carey\Tati&Ali&INDP2025\Behavior\Experiments JAWS RT\Tied belt sessions\tied swing stim HISTOsel'
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied stance stim HISTOsel\\',
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied swing stim HISTOsel\\'
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast control HISTOsel\\',
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast stance stim HISTOsel\\',
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast swing stim HISTOsel\\'
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
    #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241111 split right fast control batch#4C\\',
   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241112 split right fast stance onset stim 200st IO batch#4C\\',
@@ -161,9 +164,9 @@ for path in paths:
 
     # FOR EACH SESSION SEPARATE CALCULATION AND PLOT SAVING
     # GAIT PARAMETERS ACROSS TRIALS
-    param_gait_name = ['coo', 'coo_stance', 'swing_length']
+    param_gait_name = ['coo', 'coo_stance', 'swing_length', 'step_length']
     #['coo', 'step_length', 'double_support', 'coo_stance', 'swing_length', 'stride_duration', 'swing_duration', 'stance_duration', 'swing_velocity','stance_speed','body_center_x_stride','body_speed_x','duty_factor','candence','phase_st']
-    param_sym_name_label_map = {'coo': 'Center of\noscillation (mm)', 'step_length': 'Step length (mm)', 'double_support': '% double support', 
+    param_sym_name_label_map = {'coo': 'Center of\noscillation (mm)', 'step_length': 'Step length (mm)', 
                     'coo_stance': 'Spatial motor\noutput (mm)', 'swing_length': 'Swing length(mm)'}     #, 'phase_st': 'Stance phase', 'stance_speed': 'Stance speed'}
     param_sym_label = list(param_sym_name_label_map.values())
     param_sym_name = list(param_sym_name_label_map.keys())
@@ -260,7 +263,7 @@ for path in paths:
     if bs_bool:
         param_sym_bs = np.zeros(np.shape(param_sym))
         param_paw_bs = np.zeros(np.shape(param_paw))
-        for p in range(np.shape(param_sym)[0]-1):
+        for p in range(np.shape(param_sym)[0]):
             for a in range(np.shape(param_sym)[1]):
                 # Compute baseline
                 if stim_start == split_start:
@@ -286,12 +289,12 @@ for path in paths:
         param_stim = np.zeros((len(param_sym_name)+len(param_gait_name)-1, len(animal_list), stim_start-1))
         param_stim[:] = np.NaN
         # Symmetry parameters
-        for p in range(np.shape(param_sym)[0]-1):
+        for p in range(np.shape(param_sym)[0]):
             for a in included_animal_id:            #range(np.shape(param_sym)[1]):
                 param_no_stim[p, a, :] = param_sym[p, a, :stim_start-1]
                 param_stim[p, a, :] = param_sym[p, a, stim_start-1:stim_start+stim_duration-1]        # :8]
         # Gait parameters
-        start_ind=np.shape(param_sym)[0]-1
+        start_ind=np.shape(param_sym)[0]
         for p in range(np.shape(param_gait)[0]):
             for a in included_animal_id:           #range(np.shape(param_gait)[1]):
                 param_no_stim[start_ind+p, a, :] = param_gait[p, a, :stim_start-1]
@@ -316,7 +319,7 @@ for path in paths:
             plt.savefig(paths_save[path_index] + 'compare_baselines', dpi=128)
             
 
-    for p in range(np.shape(param_sym)[0] - 1):
+    for p in range(np.shape(param_sym)[0]):
         # Plot learning curve for individual animals
         fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
         # Save plot
@@ -334,7 +337,7 @@ for path in paths:
                                                         ranges=[uniform_ranges, axes_ranges])
         # Save plot
         if print_plots:
-            pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
+            pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='median', bs_bool=bs_bool)
             
         # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot), with only the included animals
         param_sym_multi[path][p] = param_sym_bs_ave
@@ -358,7 +361,7 @@ for path in paths:
     
 
 # MULTI-SESSION PLOT
-for p in range(np.shape(param_sym)[0] - 1):
+for p in range(np.shape(param_sym)[0]):
     fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_name_label_map, [included_animal_list, included_animal_id], experiment_colors_dict, experiment_names, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, ranges=[uniform_ranges, axes_ranges])
     
     if print_plots:
