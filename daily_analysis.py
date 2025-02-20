@@ -5,6 +5,7 @@ import scipy.stats as st
 import math
 import pandas as pd
 import plotting_functions as pf
+import pickle
 
 # Set the default font
 plt.rcParams['font.family'] = 'Arial'
@@ -138,6 +139,15 @@ paths_save = []
 param_sym_multi = {}
 path_index = 0
 for path in paths:
+    to_save_param_mat = False
+    # If param_mat_saved exists in the path, load it
+    if os.path.exists(path + 'param_mat_saved.pkl'):
+        with open(path + 'param_mat_saved.pkl', 'rb') as f:
+            param_mat_saved = pickle.load(f)
+    else: # Create it
+        param_mat_saved = {}
+        to_save_param_mat = True
+    
     print("Analysing..........................", path)
     otrack_classes.append(online_tracking_class.otrack_class(path))
     locos.append(locomotion_class.loco_class(path))
@@ -182,21 +192,34 @@ for path in paths:
     param_gait = np.zeros((len(param_gait_name), len(animal_list), Ntrials))
     param_gait[:] = np.NaN
     for count_animal, animal in enumerate(animal_list):
+        if not animal in param_mat_saved.keys():
+            param_mat_saved[animal] = {}
+            to_save_param_mat = True
         session = int(session_list[count_animal])
         #TODO: check if this filelist needs to be emptied first!
         filelist = locos[path_index].get_track_files(animal, session)
         for count_p, param in enumerate(param_sym_name):
+            if not param in param_mat_saved[animal].keys():
+                param_mat_saved[animal][param] = {}
+                to_save_param_mat = True
             param_trials = np.zeros((Ntrials))
             param_trials = np.NaN
             st_strides_trials = []
             for f in filelist:      # Loop over all trials
                 count_trial = int(f.split('DLC')[0].split('_')[-1])-1      # Get trial number from file name, to spot any missing trial; parameters for remaining ones will stay to NaN
-                [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
-                [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
-                st_strides_trials.append(st_strides_mat)
-                paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
-            
-                param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
+                # if we have param_mat from the saved file, load it, otherwise do analysis
+                if count_trial+1 in param_mat_saved[animal][param]:
+                    param_mat = param_mat_saved[animal][param][count_trial+1]
+                else:
+                    [final_tracks, tracks_tail, joints_wrist, joints_elbow, ear, bodycenter] = locos[path_index].read_h5(f, 0.9, 0)
+                    [st_strides_mat, sw_pts_mat] = locos[path_index].get_sw_st_matrices(final_tracks, 1)
+                    st_strides_trials.append(st_strides_mat)
+                    paws_rel = locos[path_index].get_paws_rel(final_tracks, 'X')
+                
+                    param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
+                    # Add to param_mat_saved variable
+                    param_mat_saved[animal][param][count_trial+1] = param_mat
+                    to_save_param_mat = True
                 if param == 'stance_speed':
                     for p in range(4):
                         stance_speed[p, count_animal, count_trial] = np.nanmean(param_mat[p])
@@ -259,6 +282,11 @@ for path in paths:
                     param_mat = locos[path_index].compute_gait_param(bodycenter, final_tracks, paws_rel, st_strides_mat, sw_pts_mat, param)
                     param_gait[count_p, count_animal, count_trial] = np.nanmedian(param_mat[0])
 
+    # Save the param_mat_saved variable
+    if to_save_param_mat:
+        with open(path + 'param_mat_saved.pkl', 'wb') as f:
+            pickle.dump(param_mat_saved, f)
+
     # BASELINE SUBTRACTION OF PARAMETERS
     if bs_bool:
         param_sym_bs = np.zeros(np.shape(param_sym))
@@ -320,6 +348,8 @@ for path in paths:
             
 
     for p in range(np.shape(param_sym)[0]):
+        if param_sym_name[p] == 'stance_speed':
+            continue
         # Plot learning curve for individual animals
         fig = pf.plot_learning_curve_ind_animals(param_sym_bs, p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
         # Save plot
@@ -331,6 +361,8 @@ for path in paths:
     # PLOT ANIMAL AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION
     param_sym_multi[path] = {}
     for p in range(np.shape(param_sym)[0]):
+        if param_sym_name[p] == 'stance_speed':
+            continue
         param_sym_bs_ave = param_sym_bs[p, included_animal_id, :]
         fig = pf.plot_learning_curve_ind_animals_avg(param_sym_bs_ave, p, param_sym_name_label_map, animal_list, [included_animal_list, included_animal_id],
                                                         [animal_colors_dict, experiment_colors_dict], experiment_name, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
@@ -362,6 +394,9 @@ for path in paths:
 
 # MULTI-SESSION PLOT
 for p in range(np.shape(param_sym)[0]):
+    if param_sym_name[p] == 'stance_speed':
+            continue
+    
     fig_multi = pf.plot_learning_curve_avg_compared(param_sym_multi, p, param_sym_name_label_map, [included_animal_list, included_animal_id], experiment_colors_dict, experiment_names, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, ranges=[uniform_ranges, axes_ranges])
     
     if print_plots:
