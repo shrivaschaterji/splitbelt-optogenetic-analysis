@@ -19,28 +19,36 @@ scatter_single_animals = 1
 significance_threshold = 0.05
 
 # Ranges for pre-defined range of axes and bars (if uniform_ranges = 1)
-uniform_ranges = 0
+uniform_ranges = 1
 
 # Tied
-axes_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#axes_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+axes_ranges = {'coo': [-4, 6], 'step_length': [-9, 5], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+bars_ranges = {'coo': [-4, 6], 'step_length': [-9, 5], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 # Rfast
 #axes_ranges = {'coo': [-6, 2], 'step_length': [-12, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 #bars_ranges = {'coo': [-2, 4], 'step_length': [-5, 9], 'double_support': [-9, 5], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#axes_ranges = {'coo': [-8, 12], 'step_length': [-9, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-2.5, 5], 'step_length': [-9, 5], 'double_support': [-9, 5], 'coo_stance': [-5, 5], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 # Lfast
 #axes_ranges = {'coo': [-2, 4], 'step_length': [-3, 9], 'double_support': [-10, 5], 'coo_stance': [-5, 5], 'swing_length': [-12, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 #bars_ranges = {'coo': [-4, 2], 'step_length': [-9, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-12, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#axes_ranges = {'coo': [-3.5, 5.5], 'step_length': [-6, 9], 'double_support': [-10, 5], 'coo_stance': [-8, 3], 'swing_length': [-13, 3], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-4, 2.5], 'step_length': [-5, 4], 'double_support': [-5, 10], 'coo_stance': [-5, 3], 'swing_length': [-4, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 
 
 # Lists of experiment names and paths for each experiment - it is possible to have only one element
-experiment_names = ['control', 'stance stim', 'swing stim']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+experiment_names = ['stance stim', 'swing stim']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
+        'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied stance stim HISTOsel\\',
+        'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied swing stim HISTOsel\\'
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied stance stim HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied swing stim HISTOsel\\'
-        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast control HISTOsel\\',
-        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast stance stim HISTOsel\\',
-        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast swing stim HISTOsel\\'
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast control HISTOsel\\',
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast stance stim HISTOsel\\',
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast swing stim HISTOsel\\'
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
    #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241111 split right fast control batch#4C\\',
   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241112 split right fast stance onset stim 200st IO batch#4C\\',
@@ -203,7 +211,7 @@ for path in paths:
                 param_mat_saved[animal][param] = {}
                 to_save_param_mat = True
             param_trials = np.zeros((Ntrials))
-            param_trials = np.NaN
+            param_trials[:] = np.NaN
             st_strides_trials = []
             for f in filelist:      # Loop over all trials
                 count_trial = int(f.split('DLC')[0].split('_')[-1])-1      # Get trial number from file name, to spot any missing trial; parameters for remaining ones will stay to NaN
@@ -296,13 +304,14 @@ for path in paths:
                 # Compute baseline
                 if stim_start == split_start:
                     bs_mean = np.nanmean(param_sym[p, a, :stim_start-1])
-                    bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_start-1])
+                    
                 if stim_start < split_start:
                     bs_mean = np.nanmean(param_sym[p, a, stim_start-1:split_start-1])
                     bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, stim_start-1:split_start-1])
                 # Subtract
                 param_sym_bs[p, a, :] = param_sym[p, a, :] - bs_mean
                 for count_paw in range(4):
+                    bs_paw_mean = np.nanmean(param_paw[p, a, count_paw, :stim_start-1])
                     param_paw_bs[p, a, count_paw, :] = param_paw[p, a, count_paw, :] - bs_paw_mean
     else:
         param_sym_bs = param_sym
@@ -369,7 +378,7 @@ for path in paths:
                                                         ranges=[uniform_ranges, axes_ranges])
         # Save plot
         if print_plots:
-            pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='median', bs_bool=bs_bool)
+            pf.save_plot(fig, paths_save[path_index], param_sym_name[p], plot_name='average', bs_bool=bs_bool)
             
         # Save param_sym for multi-session plot (in case we have multiple sessions to analyse/plot), with only the included animals
         param_sym_multi[path][p] = param_sym_bs_ave
