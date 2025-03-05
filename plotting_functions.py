@@ -118,6 +118,42 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, labels_dic
     return fig
 
 
+# Pedro
+def plot_learning_curve_ind_animals_avg_paw(param_sym_avg, current_param, labels_dic, animal_list, included_animals, colors, paw_colors, paw_name, intervals=None, ranges=[False, None]):
+    '''
+    Plot learning curve for individual animals with average, using paw color for the average.
+    '''
+
+    fig, ax = plt.subplots(figsize=(7, 10), tight_layout=True)
+
+    # Plot learning curves for each animal
+    for a in range(np.shape(param_sym_avg)[0]):
+        plt.plot(np.linspace(1, len(param_sym_avg[a, :]), len(param_sym_avg[a, :])), param_sym_avg[a, :], linewidth=1, color=colors[0][included_animals[0][a]], label=animal_list[included_animals[1][a]])
+    ax.legend(frameon=False)
+    
+    # Plot average with paw color
+    plt.plot(np.linspace(1, len(param_sym_avg[0, :]), len(param_sym_avg[0, :])), np.nanmean(param_sym_avg, axis=0), color=paw_colors[paw_name], linewidth=3)
+
+    param_sym_names = list(labels_dic.keys())
+    param_sym_labels = list(labels_dic.values())
+
+    # Define y-axis limits
+    if ranges[0] and (ranges[1] is not None):
+        ax.set(ylim=ranges[1][param_sym_names[current_param]])
+    else:
+        ax.set(ylim=[np.nanmin(param_sym_avg[:, :].flatten()), np.nanmax(param_sym_avg[:, :].flatten())])
+
+    # Add split and stimulation intervals
+    if intervals:
+        if 'split' in intervals:
+            add_patch_interval(ax, intervals['split'])
+        if 'stim' in intervals:
+            add_start_end_interval(ax, intervals['stim'])
+
+    set_symmetry_plot(ax, param_sym_labels[current_param])
+   
+    return fig
+
 # Average with SEM for all experiments compared
 def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic, included_animals_list_ids, experiment_colors_dict, experiment_names, intervals=None,  ranges=[False, None]):
     """
@@ -476,3 +512,13 @@ def save_plot(figure, path, param_name, plot_name='', bs_bool=False, dpi=128):
         figure.savefig(path + param_name + '_sym_bs_'+ plot_name, dpi=dpi)
     else:
         figure.savefig(path + param_name + '_sym_non_bs_'+ plot_name, dpi=dpi)
+
+# Pedro
+def save_plot_with_paw(figure, path, param_name, paw_name, plot_name='', bs_bool=False, dpi=128):
+   
+    if not os.path.exists(path):
+        os.mkdir(path)
+    if bs_bool:
+        figure.savefig(path + param_name + paw_name + '_sym_bs_' + plot_name, dpi=dpi)
+    else:
+        figure.savefig(path + param_name + paw_name + '_sym_non_bs_' + plot_name, dpi=dpi)
