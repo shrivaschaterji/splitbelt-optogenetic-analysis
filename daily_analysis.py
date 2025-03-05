@@ -136,7 +136,7 @@ control_ses = 'left'
 control_path = []       #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\15092023 split left fast control\\']      #'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\14092023 split right fast control\\'] #  'D:\\AliG\\climbing-opto-treadmill\\Experiments\\Split belt sessions\\15092023 split left fast control\\']   #]         # This should be a list; if empty, we have no control (e.g. in tied sessions)
 control_filename = 'split_'+control_ses+'_fast_control_params_sym_bs.npy'
 
-paw_colors = ['red', 'magenta', 'blue', 'cyan']
+paw_colors = {'FR': 'red', 'HR': 'magenta', 'FL': 'blue', 'HL': 'cyan'}
 paw_otrack = 'FR'
 paws = ['FR', 'HR', 'FL', 'HL']
 import online_tracking_class
@@ -145,6 +145,7 @@ otrack_classes =  []
 locos = []
 paths_save = []
 param_sym_multi = {}
+param_paw_multi = {}
 path_index = 0
 for path in paths:
     to_save_param_mat = False
@@ -316,6 +317,9 @@ for path in paths:
     else:
         param_sym_bs = param_sym
 
+    # Transpose param_paw_bs to switch dimensions to (parameter, paw, animal, trial)
+    param_paw_bs = np.transpose(param_paw_bs, (2, 0, 1, 3))
+
     if any('right' in element for element in experiment_names) and any('left' in element for element in experiment_names) and 'left' in experiment_name:      # If we are comparing left and right we will have them both in experiment names
         param_sym_bs = -param_sym_bs
 
@@ -367,6 +371,17 @@ for path in paths:
             
     plt.close('all')
 
+    # Plot learning curve for individual limbs per animal -- PAW
+    for paw in range(np.shape(param_paw_bs)[0]):   # loop over each paw
+        for p in range(np.shape(param_paw_bs)[1]): # loop over each parameter
+            fig_paw = pf.plot_learning_curve_ind_animals(param_paw_bs[paw], p, param_sym_name_label_map, animal_list, animal_colors_dict, {'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+            # Save plot
+            if print_plots:
+                pf.save_plot_with_paw(fig_paw, paths_save[path_index], param_sym_name[p], paws[paw], plot_name='ind_animals', bs_bool=bs_bool)
+
+    plt.close('all')
+
+
     # PLOT ANIMAL AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION
     param_sym_multi[path] = {}
     for p in range(np.shape(param_sym)[0]):
@@ -385,6 +400,26 @@ for path in paths:
     plt.close('all')
 
 
+     # PLOT PAW AVERAGE with INDIVIDUAL ANIMALS FOR EACH SESSION   -- PAW
+    param_paw_multi[path] = {}
+    for paw_idx, paw_name in enumerate(paws):
+        if paw_name not in param_paw_multi[path]:
+            param_paw_multi[path][paw_name] = {}
+        
+        for p in range(np.shape(param_paw_bs)[1]):
+                
+            param_paw_bs_ave = param_paw_bs[paw_idx][p, included_animal_id, :]
+            figpaw = pf.plot_learning_curve_ind_animals_avg_paw(param_paw_bs_ave, p, param_sym_name_label_map, animal_list, [included_animal_list, included_animal_id],
+                                                            [animal_colors_dict, experiment_colors_dict], paw_colors, paw_name, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
+                                                            ranges=[uniform_ranges, axes_ranges])
+            # Save plot
+            if print_plots:
+                pf.save_plot_with_paw(figpaw, paths_save[path_index], param_sym_name[p], paw_name, plot_name='average', bs_bool=bs_bool)
+                
+            # Save param data with a nested dictionary structure: path -> paw_name -> parameter
+            param_paw_multi[path][paw_name][p] = param_paw_bs_ave
+    plt.close('all')
+
     # PLOT STANCE SPEED for ALL ANIMALS
     if 'stance_speed' in param_sym_name:
         for a in range(np.shape(stance_speed)[1]):
@@ -400,6 +435,23 @@ for path in paths:
 
     path_index = path_index+1
     
+# Changing shape of param_paw_multi to [paws, paths, parameters, animals, trials]
+paw_path_multi = {}
+
+# Initialize dictionary structure
+for paw_name in paws:
+    paw_path_multi[paw_name] = {}
+    for path in paths:
+        paw_path_multi[paw_name][path] = {}
+
+# Fill the new dictionary from the existing param_paw_multi
+for path in paths:
+    for paw_name in paws:
+        if path in param_paw_multi and paw_name in param_paw_multi[path]:
+            for p in param_paw_multi[path][paw_name]:
+                if p not in paw_path_multi[paw_name][path]:
+                    paw_path_multi[paw_name][path][p] = param_paw_multi[path][paw_name][p]
+
 
 # MULTI-SESSION PLOT
 for p in range(np.shape(param_sym)[0]):
@@ -444,3 +496,85 @@ for p in range(np.shape(param_sym)[0]):
         if print_plots_multi_session:
             pf.save_plot(fig_separate, paths_save[0], param_sym_name[p], plot_name='bar_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=1200)  
             pf.save_plot(fig_scatter, paths_save[0], param_sym_name[p], plot_name='avg_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=120) 
+
+
+    # Multi-session plot for each paw -- PAW --------------------------
+for paw_name in paws:
+        
+    # Restructure data to match expected format for plot_learning_curve_avg_compared
+    paw_data_for_plotting = {}
+    for path in paths:
+        if path in paw_path_multi[paw_name]:
+            # Get all parameters for this paw and path
+            parameters_data = []
+            parameters_indices = []
+
+            # Collect all parameters data and their indices
+            for p in sorted(paw_path_multi[paw_name][path].keys()):
+                parameters_data.append(paw_path_multi[paw_name][path][p])
+                parameters_indices.append(p)
+                
+            if parameters_data:
+                # Stack all parameters data along a new dimension to get (parameters, animals, trials)
+                all_params_data = np.stack(parameters_data)
+                # Add to the dictionary
+                paw_data_for_plotting[path] = all_params_data
+
+    # Now iterate through each parameter for this paw
+    for p_idx, p in enumerate(parameters_indices):
+        # Only proceed if we have data for this paw and parameter
+        if paw_data_for_plotting:
+            fig_multi_paw = pf.plot_learning_curve_avg_compared(paw_data_for_plotting, p, param_sym_name_label_map, [included_animal_list, included_animal_id], 
+                experiment_colors_dict, experiment_names, intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]}, 
+                ranges=[uniform_ranges, axes_ranges]
+            )
+            
+            if print_plots:
+                pf.save_plot_with_paw(fig_multi_paw, paths_save[0], param_sym_name[p], paw_name, 
+                                    plot_name='average_multi_session', bs_bool=bs_bool)
+
+            # LEARNING PARAMETERS for this paw
+            current_experiment_colors = [experiment_colors_dict[key] for key in experiment_names if key in experiment_colors_dict]
+
+            # Compute learning params and statistics for this paw
+            learning_params_dict_paw = {}
+            stat_learning_params_dict_paw = {}
+
+            for path_index, path in enumerate(paths):
+                if path in paw_data_for_plotting:
+                    locos[path_index].compute_learning_params(learning_params_dict_paw, paw_data_for_plotting[path][p], 
+                        intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
+            
+            if compute_statistics and len(paths) > 1:
+                locos[0].compute_stat_learning_param(learning_params_dict_paw, stat_learning_params_dict_paw, 
+                    param_sym_name[p], thr=significance_threshold)
+
+            # Bar plot of ALL learning parameters for this paw
+            if learning_params_dict_paw:
+                fig_bar_all_paw = pf.plot_all_learning_params(learning_params_dict_paw, [param_sym_name[p], param_sym_label[p]], included_animal_list, 
+                    experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict_paw, 
+                    scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+                
+                if print_plots_multi_session:
+                    pf.save_plot_with_paw(fig_bar_all_paw, paths_save[0], param_sym_name[p], paw_name, 
+                                        plot_name='multi_session_barplot_all', bs_bool=bs_bool)
+
+                # Single learning parameter plots for this paw
+                to_plot_separately = ['adaptation', 'after-effect']
+                
+                for lp_name in to_plot_separately:
+                    if lp_name in learning_params_dict_paw:
+                        # Bar plot
+                        fig_separate_paw = pf.plot_learning_param(learning_params_dict_paw[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, included_animal_list, 
+                            experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict_paw, 
+                            scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges])
+                        
+                        # Scatter and avg plot
+                        fig_scatter_paw = pf.plot_learning_param_scatter(learning_params_dict_paw[lp_name], [param_sym_name[p], param_sym_label[p]], lp_name, 
+                            included_animal_list, experiment_names, current_experiment_colors, stat_learning_params=stat_learning_params_dict_paw, 
+                            ranges=[uniform_ranges, bars_ranges])
+                        
+                        if print_plots_multi_session:
+                            pf.save_plot_with_paw(fig_separate_paw, paths_save[0], param_sym_name[p], paw_name, plot_name='bar_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=1200)
+                            pf.save_plot_with_paw(fig_scatter_paw, paths_save[0], param_sym_name[p], paw_name, plot_name='avg_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=120)
+ 
