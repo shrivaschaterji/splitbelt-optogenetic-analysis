@@ -19,7 +19,7 @@ scatter_single_animals = 1
 significance_threshold = 0.05
 
 # Ranges for pre-defined range of axes and bars (if uniform_ranges = 1)
-uniform_ranges = 1
+uniform_ranges = 0
 
 # Tied
 #axes_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
@@ -39,16 +39,18 @@ bars_ranges = {'coo': [-4, 6], 'step_length': [-9, 5], 'double_support': [-8, 8]
 
 
 # Lists of experiment names and paths for each experiment - it is possible to have only one element
-experiment_names = ['stance stim', 'swing stim']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+experiment_names = ['100sw', '200st']  #['ChR2']       #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
-        'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied stance stim HISTOsel\\',
-        'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied swing stim HISTOsel\\'
+        #'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied stance stim HISTOsel\\',
+        #'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied swing stim HISTOsel\\'
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied stance stim HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied swing stim HISTOsel\\'
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast control HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast stance stim HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast swing stim HISTOsel\\'
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments ChR2LE RT\\Tied belt sessions\\tied 100sw50ms stim HISTOsel\\',
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments ChR2LE RT\\Tied belt sessions\\tied 200st50ms stim HISTOsel\\'
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
    #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241111 split right fast control batch#4C\\',
   # 'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\Split belt experiments\\20241112 split right fast stance onset stim 200st IO batch#4C\\',
@@ -65,7 +67,10 @@ experiment_colors_dict = {'trial stim':'purple', 'stance stim':'orange','swing s
                           'left fast perturb': 'lightgreen',
                           'right fast': 'blue',
                           'left fast': 'black',
-                          'WT': 'green'}      # stim on: trial stance swing    'trial stim':'purple', 
+                          'WT': 'green',
+                          '100sw': 'skyblue',
+                          '200st': 'royalblue'
+                          }      # stim on: trial stance swing    'trial stim':'purple', 
 animal_colors = plt.rcParams['axes.prop_cycle'].by_key()['color']              # Use the default matplotlib colours
 animal_colors_dict = {
     # jaws
