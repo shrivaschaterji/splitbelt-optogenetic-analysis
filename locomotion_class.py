@@ -946,17 +946,23 @@ class loco_class:
         import scipy.stats as st
         # Compute statistics
         if not stat_learning_params_dict:
-            stat_learning_params_dict['initial error'] = []
-            stat_learning_params_dict['adaptation'] = []
-            stat_learning_params_dict['after-effect'] = []
-            stat_learning_params_dict['% change adaptation'] = []
-            stat_learning_params_dict['% change after-effect'] = []
+            stat_learning_params_dict['initial error'] = {'significant': [], 'p_values': []}
+            stat_learning_params_dict['adaptation'] = {'significant': [], 'p_values': []}
+            stat_learning_params_dict['after-effect'] = {'significant': [], 'p_values': []}
+            stat_learning_params_dict['% change adaptation'] = {'significant': [], 'p_values': []}
+            stat_learning_params_dict['% change after-effect'] = {'significant': [], 'p_values': []}
 
         for param_name in learning_params_dict.keys():
-            for exp in range(1,len(learning_params_dict['initial error'])):  
+            for exp in range(1, len(learning_params_dict['initial error'])):  
                 print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
-                print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])])
-                stat_learning_params_dict[param_name].append(st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit').pvalue<thr)
+                wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
+                print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
+                
+                # Store both the significance boolean and the p-value
+                p_value = wilcoxon_result.pvalue
+                stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
+                stat_learning_params_dict[param_name]['p_values'].append(p_value)
+
         return stat_learning_params_dict
 
     def animals_within_session(self):

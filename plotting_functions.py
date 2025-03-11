@@ -280,9 +280,26 @@ def plot_all_learning_params(learning_params, current_param_sym, included_animal
         if scatter_single_animals:
             for a in range(len(lp_values[0])):
                 ax_bar[subplot_idx].plot(list(range(1,len(experiment_names)+1)),np.array(lp_values)[:,a],'-o', markersize=4, markerfacecolor=animal_colors_dict[included_animals_list[a]], color=animal_colors_dict[included_animals_list[a]], linewidth=1)
+        
         # Add plots Statistics
         if len(stat_learning_params)>0:
-            ax_bar[subplot_idx].plot(list(range(len(experiment_names)+1,(len(experiment_names))*2)),[max(max(np.nanmean(lp_values, axis=1)+np.nanstd(lp_values, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
+            positions = list(range(len(experiment_names)+1, (len(experiment_names))*2))
+            heights = max(max(np.nanmean(lp_values, axis=1)+np.nanstd(lp_values, axis=1)), 0)
+            
+            # Get significant indices
+            significant_indices = [i for i, sig in enumerate(stat_learning_params[lp_name]['significant']) if sig]
+            significant_positions = [positions[i] for i in significant_indices]
+            significant_heights = [heights for _ in significant_indices]
+            
+            if significant_positions:
+                ax_bar[subplot_idx].plot(significant_positions, significant_heights, '*', color='black', markersize=15, markeredgewidth=2)
+            
+            # Add p-values for all comparisons
+            for j, (pos, p_val) in enumerate(zip(positions, stat_learning_params[lp_name]['p_values'])):
+                # Position text slightly above the bar
+                height_text = heights * 1.1
+                ax_bar[subplot_idx].text(pos, height_text, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
+            
             print('stat '+lp_name+': '+str(stat_learning_params[lp_name]))
 
         # Set titles and labels
@@ -351,9 +368,26 @@ def plot_learning_param(learning_param, current_param_sym, lp_name, included_ani
     if scatter_single_animals:
         for a in range(len(learning_param[0])):
             ax_bar.plot(list(range(1,len(experiment_names)+1)),np.array(learning_param)[:,a],'-o', markersize=8, markerfacecolor=animal_colors_dict[included_animals_list[a]], color=animal_colors_dict[included_animals_list[a]], linewidth=1)
+    
     # Add plots Statistics
     if len(stat_learning_params)>0:
-        ax_bar.plot(list(range(len(experiment_names)+1,(len(experiment_names))*2)),[max(max(np.nanmean(learning_param, axis=1)+np.nanstd(learning_param, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
+        # Plot asterisks only for significant results
+        positions = list(range(len(experiment_names)+1, (len(experiment_names))*2))
+        heights = max(max(np.nanmean(learning_param, axis=1)+np.nanstd(learning_param, axis=1)), 0)
+        
+        # Get significant indices
+        significant_indices = [i for i, sig in enumerate(stat_learning_params[lp_name]['significant']) if sig]
+        significant_positions = [positions[i] for i in significant_indices]
+        significant_heights = [heights for _ in significant_indices]
+        
+        if significant_positions:
+            ax_bar.plot(significant_positions, significant_heights, '*', color='black', markersize=15, markeredgewidth=2)
+        
+        # Add p-values for all comparisons
+        for i, (pos, p_val) in enumerate(zip(positions, stat_learning_params[lp_name]['p_values'])):
+            # Position text slightly above the bar
+            height_text = heights * 1.1
+            ax_bar.text(pos, height_text, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
 
     # Set titles and labels
     ax_bar.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
@@ -417,10 +451,21 @@ def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, incl
             ax_scatter.scatter([x[count_exp]] * len(learning_param[count_exp][:]), learning_param[count_exp][:], s=60, c=experiment_colors[count_exp])             # Plot all animal points in the corresponding experiment color
         # Add avg value
         ax_scatter.plot([x[count_exp]-0.15, x[count_exp]+0.15], [np.nanmean(learning_param[count_exp][:]), np.nanmean(learning_param[count_exp][:])], color=experiment_colors[count_exp], linewidth=4)
+
+    if len(stat_learning_params) > 0:
+        # Plot asterisks only for significant results
+        significant_indices = [i for i, sig in enumerate(stat_learning_params[lp_name]['significant']) if sig]
+        significant_positions = [x[1:][i] for i in significant_indices]
+        significant_heights = [max(max(np.nanmean(learning_param, axis=1)+2*np.nanstd(learning_param, axis=1)),0) for _ in significant_indices]
         
-    # Add plots Statistics
-    if len(stat_learning_params)>0:
-        ax_scatter.plot(x[1:],[max(max(np.nanmean(learning_param, axis=1)+2*np.nanstd(learning_param, axis=1)),0)*i if i==1 else math.nan*i for i in stat_learning_params[lp_name]],'*', color='black')
+        if significant_positions:
+            ax_scatter.plot(significant_positions, significant_heights, '*', color='black', markersize=15, markeredgewidth=2)
+        
+        # Add p-values for all comparisons
+        for i, (pos, p_val) in enumerate(zip(x[1:], stat_learning_params[lp_name]['p_values'])):
+            # Position text above the data point
+            height = max(max(np.nanmean(learning_param, axis=1)+2.2*np.nanstd(learning_param, axis=1)),0)
+            ax_scatter.text(pos, height, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
 
     # Set titles and labels
     ax_scatter.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
