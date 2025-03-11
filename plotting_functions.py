@@ -150,12 +150,12 @@ def plot_learning_curve_ind_animals_avg_paw(param_sym_avg, current_param, labels
         if 'stim' in intervals:
             add_start_end_interval(ax, intervals['stim'])
 
-    set_symmetry_plot(ax, param_sym_labels[current_param])
+    set_paw_plot(ax, param_sym_labels[current_param])
    
     return fig
 
 # Average with SEM for all experiments compared
-def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic, included_animals_list_ids, experiment_colors_dict, experiment_names, intervals=None,  ranges=[False, None]):
+def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic, included_animals_list_ids, experiment_colors_dict, experiment_names, intervals=None,  ranges=[False, None], is_paw_data=False):
     """
     Plots the average learning curve compared across multiple experiments.
 
@@ -220,15 +220,17 @@ def plot_learning_curve_avg_compared(param_sym_multi, current_param, labels_dic,
             add_patch_interval(ax_multi, intervals['split'])
         if 'stim' in intervals:
             add_start_end_interval(ax_multi, intervals['stim'])
-
-    set_symmetry_plot(ax_multi, param_sym_labels[current_param])
+    if is_paw_data:
+        set_paw_plot(ax_multi, param_sym_labels[current_param])
+    else:
+        set_symmetry_plot(ax_multi, param_sym_labels[current_param])
 
     return fig_multi
 
 
 # Learning parameters (only comparing multiple experiments?)
 # barplot of all learning parameters with average and SEM + scatterplot of ind animals in the middle (optional)
-def plot_all_learning_params(learning_params, current_param_sym, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
+def plot_all_learning_params(learning_params, current_param_sym, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None], is_paw_data=False):
     """
     Plots all learning parameters in a bar plot with optional scatter plots for individual animals and statistical markers.
     Parameters:
@@ -304,7 +306,10 @@ def plot_all_learning_params(learning_params, current_param_sym, included_animal
 
         # Set titles and labels
         if i==0:
-            ax_bar[subplot_idx].set_ylabel(current_param_sym_label + ' asymmetry ')
+            if is_paw_data:
+                ax_bar[subplot_idx].set_ylabel(current_param_sym_label)
+            else:
+                ax_bar[subplot_idx].set_ylabel(current_param_sym_label + ' asymmetry ')
         ax_bar[subplot_idx].set_title(lp_name, size=9)
 
         set_learning_param_plot(ax_bar[subplot_idx], current_param_sym_name, lp_name, ranges=ranges)
@@ -324,7 +329,7 @@ def plot_all_learning_params(learning_params, current_param_sym, included_animal
     return fig_bar
 
 # barplot of one selected learning parameter with average and SEM + scatterplot of ind animals in the middle (optional)
-def plot_learning_param(learning_param, current_param_sym, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None]):
+def plot_learning_param(learning_param, current_param_sym, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict, stat_learning_params=None, scatter_single_animals=False, ranges=[False, None], is_paw_data=False):
     """
     Plots a single learning parameter in a bar plot with optional scatter plots for individual animals and statistical markers.
     Parameters:
@@ -390,7 +395,10 @@ def plot_learning_param(learning_param, current_param_sym, lp_name, included_ani
             ax_bar.text(pos, height_text, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
 
     # Set titles and labels
-    ax_bar.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
+    if is_paw_data:
+        ax_bar.set_ylabel(current_param_sym_label, fontsize=24)
+    else:
+        ax_bar.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
     ax_bar.set_title(lp_name, fontsize=24)
     ax_bar.set_xticks([0]+list(range(len(experiment_names)+1,(len(experiment_names))*2)))
     ax_bar.set_xticklabels(experiment_names)
@@ -402,7 +410,7 @@ def plot_learning_param(learning_param, current_param_sym, lp_name, included_ani
     return fig_bar
 
 # average line + scatterplot (no animals color or with animals color)
-def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict=None, stat_learning_params=None, ranges=[False, None]):
+def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, included_animals_list, experiment_names, experiment_colors, animal_colors_dict=None, stat_learning_params=None, ranges=[False, None], is_paw_data=False):
     """
     Plots a single learning parameter with a scatter plot of individual animals.
     Parameters:
@@ -468,7 +476,10 @@ def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, incl
             ax_scatter.text(pos, height, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
 
     # Set titles and labels
-    ax_scatter.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
+    if is_paw_data:
+        ax_scatter.set_ylabel(current_param_sym_label, fontsize=24)
+    else:
+        ax_scatter.set_ylabel(current_param_sym_label + ' asymmetry ', fontsize=24)
     ax_scatter.set_title(lp_name, fontsize=24)
     ax_scatter.set_xticks(list(range(1,len(experiment_names)+1)))
     ax_scatter.set_xticklabels(experiment_names)
@@ -526,6 +537,20 @@ def set_symmetry_plot(ax, param_name):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
+def set_paw_plot(ax, param_name):
+    # Add horizontal line at 0
+    ax.axhline(y=0, color='grey', linestyle='--')
+
+    # Set labels
+    ax.set_xlabel('1-min trial', fontsize=24)
+    ax.set_ylabel(param_name, fontsize=24)  # No 'asymmetry' added here
+
+    # Set ticks
+    ax.tick_params(axis='both', which='major', labelsize=20)
+
+    # Hide right and top spines
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
 
 def set_learning_param_plot(ax, param_sym_name, lp_name, ranges=[False, None]):
 
