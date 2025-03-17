@@ -17,6 +17,8 @@ compare_baselines = 0
 compute_statistics = 1
 scatter_single_animals = 1
 significance_threshold = 0.05
+validation_test = 0                 # 1 to run statistical validation tests against baseline
+generate_summary_tables = False     # True to plot summary tables of the statistical results
 
 # Ranges for pre-defined range of axes and bars (if uniform_ranges = 1)
 uniform_ranges = 0
@@ -24,31 +26,34 @@ uniform_ranges = 0
 # Tied
 #axes_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 #bars_ranges = {'coo': [-3, 3], 'step_length': [-9, 9], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-axes_ranges = {'coo': [-4, 6], 'step_length': [-9, 5], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-bars_ranges = {'coo': [-4, 6], 'step_length': [-9, 5], 'double_support': [-8, 8], 'coo_stance': [-5, 5], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#axes_ranges = {'coo': [-2, 2], 'step_length': [-3, 2], 'double_support': [-8, 8], 'coo_stance': [-2, 2], 'swing_length': [-2, 3], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-2.5, 2.5], 'step_length': [-9, 5], 'double_support': [-8, 8], 'coo_stance': [-5, 3], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 # Rfast
 #axes_ranges = {'coo': [-6, 2], 'step_length': [-12, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 #bars_ranges = {'coo': [-2, 4], 'step_length': [-5, 9], 'double_support': [-9, 5], 'coo_stance': [-5, 5], 'swing_length': [-5, 12], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-#axes_ranges = {'coo': [-8, 12], 'step_length': [-16, 12], 'double_support': [-5, 10], 'coo_stance': [-7, 16], 'swing_length': [-7, 13], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-#bars_ranges = {'coo': [-2.5, 5], 'step_length': [-5, 13], 'double_support': [-9, 5], 'coo_stance': [-5, 13], 'swing_length': [-7, 13], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#axes_ranges = {'coo': [-4, 2.5], 'step_length': [-9, 5], 'double_support': [-5, 10], 'coo_stance': [-1, 5], 'swing_length': [-2, 9], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-3, 5], 'step_length': [-5, 15], 'double_support': [-9, 5], 'coo_stance': [-5, 13], 'swing_length': [-7, 13], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 # Lfast
 #axes_ranges = {'coo': [-2, 4], 'step_length': [-3, 9], 'double_support': [-10, 5], 'coo_stance': [-5, 5], 'swing_length': [-12, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 #bars_ranges = {'coo': [-4, 2], 'step_length': [-9, 5], 'double_support': [-5, 10], 'coo_stance': [-5, 5], 'swing_length': [-12, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-#axes_ranges = {'coo': [-4, 8], 'step_length': [-8, 14], 'double_support': [-10, 5], 'coo_stance': [-9, 5], 'swing_length': [-14, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
-#bars_ranges = {'coo': [-6, 2.5], 'step_length': [-6, 4], 'double_support': [-5, 10], 'coo_stance': [-5, 4], 'swing_length': [-4, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#axes_ranges = {'coo': [-2, 4], 'step_length': [-4, 7.5], 'double_support': [-10, 5], 'coo_stance': [-5.5, 2], 'swing_length': [-10, 2], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+#bars_ranges = {'coo': [-5, 2.5], 'step_length': [-8, 4], 'double_support': [-5, 10], 'coo_stance': [-5, 4], 'swing_length': [-4, 5], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+# ChR2
+axes_ranges = {'coo': [-2, 2], 'step_length': [-4, 4], 'double_support': [-10, 5], 'coo_stance': [-2, 2], 'swing_length': [-2, 3], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
+bars_ranges = {'coo': [-3, 3], 'step_length': [-6, 6.5], 'double_support': [-5, 10], 'coo_stance': [-4, 4], 'swing_length': [-7, 7], 'stance_speed': [-0.4,-0.2],'phase_st':[-1,1]}
 
 
 # Lists of experiment names and paths for each experiment - it is possible to have only one element
-experiment_names = ['stance stim','swing stim']  #['ChR2'] ['100sw', '200st']      #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+experiment_names = ['control','stance stim','swing stim']  #['ChR2'] ['100sw', '200st']      #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
-        'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied stance stim HISTOsel\\',
-        'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied swing stim HISTOsel\\'
+        #'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied stance stim HISTOsel\\',
+        #'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied swing stim HISTOsel\\'
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied stance stim HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied swing stim HISTOsel\\'
-        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast control HISTOsel\\',
-        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast stance stim HISTOsel\\',
-        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split left fast swing stim HISTOsel\\'
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast control HISTOsel\\',
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast stance stim HISTOsel\\',
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast swing stim HISTOsel\\'
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments ChR2LE RT\\Tied belt sessions\\tied 100sw50ms stim HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments ChR2LE RT\\Tied belt sessions\\tied 200st50ms stim HISTOsel\\'
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
@@ -457,6 +462,10 @@ for path in paths:
                 if p not in paw_path_multi[paw_name][path]:
                     paw_path_multi[paw_name][path][p] = param_paw_multi[path][paw_name][p]
 
+# Collect all stat dictionaries for summary tables
+if validation_test == 1 and generate_summary_tables:
+    print("Generating statistical summary tables...")
+    all_stat_dicts = {}
 
 # MULTI-SESSION PLOT
 for p in range(np.shape(param_sym)[0]):
@@ -480,8 +489,42 @@ for p in range(np.shape(param_sym)[0]):
     for path_index, path in enumerate(paths):
         locos[path_index].compute_learning_params(learning_params_dict, param_sym_multi[path][p], intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
         
-    if compute_statistics and path_index>0:
-        locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], thr=significance_threshold)
+    if compute_statistics:
+        if len(experiment_names) > 2:  # We have a control condition
+            locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], thr=significance_threshold)
+        else:  # No control, use one-sample test
+            locos[path_index].compute_stat_learning_param(learning_params_dict, stat_learning_params_dict, param_sym_name[p], 
+                                                        param_sym_multi=param_sym_multi, 
+                                                        thr=significance_threshold, 
+                                                        baseline_trials=8)
+
+    # Validation section
+    if validation_test == 1:
+        print(f"Running validation tests for {param_sym_name[p]}...")
+        baseline_validation_stats = locos[path_index].compute_baseline_validation(
+            param_sym_multi=param_sym_multi, 
+            paw_path_multi=None,
+            current_param_sym_name=param_sym_name[p],
+            baseline_trials=8,
+            thr=significance_threshold
+        )
+        
+        # Store the validation stats in the main stats dictionary
+        stat_learning_params_dict['baseline_validation'] = baseline_validation_stats
+        
+        # Store for summary tables
+        all_stat_dicts[param_sym_name[p]] = stat_learning_params_dict
+
+    # Generate summary tables
+    if generate_summary_tables:
+        summary_fig_list = pf.plot_statistical_summary_tables(
+            all_stat_dicts, 
+            experiment_names, param_sym_name, param_sym_label,
+            path_to_save=f"{paths_save[0]}statistical_summary_tables.png"
+        )
+        for fig in summary_fig_list:
+            plt.close(fig)  # Close the figure to free memory
+       
 
     # Bar plot of ALL learning parameters
     fig_bar_all = pf.plot_all_learning_params(learning_params_dict, [param_sym_name[p], param_sym_label[p]], included_animal_list, experiment_names, current_experiment_colors, animal_colors_dict, stat_learning_params=stat_learning_params_dict, scatter_single_animals=scatter_single_animals, ranges=[uniform_ranges, bars_ranges], is_paw_data=False)
@@ -551,8 +594,13 @@ for paw_name in paws:
                         intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]})
             
             if compute_statistics and len(paths) > 1:
-                locos[0].compute_stat_learning_param(learning_params_dict_paw, stat_learning_params_dict_paw, 
-                    param_sym_name[p], thr=significance_threshold)
+                if len(experiment_names) > 2:  # We have a control condition
+                    locos[0].compute_stat_learning_param(learning_params_dict_paw, stat_learning_params_dict_paw, 
+                                                    param_sym_name[p], thr=significance_threshold)
+                else:  # No control, use one-sample test
+                    locos[0].compute_stat_learning_param(learning_params_dict_paw, stat_learning_params_dict_paw, 
+                                                    param_sym_name[p], paw_path_multi=paw_path_multi[paw_name], 
+                                                    thr=significance_threshold, baseline_trials=8)
 
             # Bar plot of ALL learning parameters for this paw
             if learning_params_dict_paw:

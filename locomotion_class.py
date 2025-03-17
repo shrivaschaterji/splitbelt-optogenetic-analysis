@@ -942,8 +942,119 @@ class loco_class:
 
         return learning_params_dict
 
-    def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, thr=0.05):
+    # Compute statistics with a Z test against zero for the tied belt experiments
+    #def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, thr=0.05):
+     #   import scipy.stats as st
+      #  # Compute statistics
+       # if not stat_learning_params_dict:
+        #    stat_learning_params_dict['initial error'] = {'significant': [], 'p_values': []}
+         #   stat_learning_params_dict['adaptation'] = {'significant': [], 'p_values': []}
+          #  stat_learning_params_dict['after-effect'] = {'significant': [], 'p_values': []}
+           # stat_learning_params_dict['% change adaptation'] = {'significant': [], 'p_values': []}
+            #stat_learning_params_dict['% change after-effect'] = {'significant': [], 'p_values': []}
+
+        #for param_name in learning_params_dict.keys():
+         #   for exp in range(1, len(learning_params_dict['initial error'])):  
+          #      print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
+           #     wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
+            #    print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
+                
+                # Store both the significance boolean and the p-value
+             #   p_value = wilcoxon_result.pvalue
+              #  stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
+               # stat_learning_params_dict[param_name]['p_values'].append(p_value)
+
+        #return stat_learning_params_dict
+    
+    # compute_stat_learning_param with Z test
+    #def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, param_sym_multi=None, paw_path_multi=None, thr=0.05, baseline_trials=8):
+     #   import scipy.stats as st
+      #  # Compute statistics
+       # if not stat_learning_params_dict:
+        #    stat_learning_params_dict['initial error'] = {'significant': [], 'p_values': []}
+         #   stat_learning_params_dict['adaptation'] = {'significant': [], 'p_values': []}
+          #  stat_learning_params_dict['after-effect'] = {'significant': [], 'p_values': []}
+           # stat_learning_params_dict['% change adaptation'] = {'significant': [], 'p_values': []}
+            #stat_learning_params_dict['% change after-effect'] = {'significant': [], 'p_values': []}
+
+       # # Check if we have control condition (more than 2 experiments)
+        #has_control = len(learning_params_dict['initial error']) > 2
+        
+       # for param_name in learning_params_dict.keys():
+        #    if has_control:
+         #       # Use paired comparison (current approach)
+          #      for exp in range(1, len(learning_params_dict['initial error'])):  
+           #         print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
+            #        wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
+             #       print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
+                    
+              #      # Store both the significance boolean and the p-value
+               #     p_value = wilcoxon_result.pvalue
+                #    stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
+                 #   stat_learning_params_dict[param_name]['p_values'].append(p_value)
+        #    else:
+         #       # Use one-sample test against zero
+          #      # First, calculate baseline standard deviation from the first 8 trials of ALL animals from BOTH conditions
+                
+           #     if param_sym_multi is not None: # For symmetry parameters
+
+            #        param_idx = None
+             #       param_name_to_idx = {'coo': 0, 'step_length': 1, 'coo_stance': 2, 'swing_length': 3}
+              #      if current_param_sym_name in param_name_to_idx:
+               #         param_idx = param_name_to_idx[current_param_sym_name]
+
+                #    # Concatenate data from all paths (conditions)
+                 #   all_paths_data = []
+                  #  for path in param_sym_multi:
+                   #     # Get data for the first 8 trials
+                    #    baseline_data = param_sym_multi[path][param_idx][:, :baseline_trials].flatten()
+                     #   all_paths_data.append(baseline_data)
+                    
+              #      # Calculate SD from all baseline data combined
+              #      baseline_sd = np.nanstd(np.concatenate(all_paths_data))
+               #     print(f"Combined baseline SD for {current_param_sym_name}: {baseline_sd}")
+                
+                #elif paw_path_multi is not None: # For paw-specific parameters
+                 #   # Similar approach but for paw data
+                    
+                  #  param_idx = None
+                   # param_name_to_idx = {'coo': 0, 'step_length': 1, 'coo_stance': 2, 'swing_length': 3}
+                    #if current_param_sym_name in param_name_to_idx:
+                     #   param_idx = param_name_to_idx[current_param_sym_name]
+                                      
+                 #   all_paths_data = []
+                  #  for path in paw_path_multi:
+                   #     baseline_data = paw_path_multi[path][param_idx][:, :baseline_trials].flatten()
+                    #    all_paths_data.append(baseline_data)
+                    
+               #     baseline_sd = np.nanstd(np.concatenate(all_paths_data))
+                #    print(f"Combined baseline SD for paw, param {current_param_sym_name}: {baseline_sd}")
+                
+          #      # Perform one-sample tests for each condition
+           #     for exp in range(len(learning_params_dict['initial error'])):
+            #        # Get the data for this experiment
+             #       exp_data = learning_params_dict[param_name][exp]
+              #      
+               #     # Calculate z-scores (how many SDs away from zero)
+                #    mean_value = np.nanmean(exp_data)
+                 #   z_score = mean_value / (baseline_sd / np.sqrt(len(exp_data)))  # z = mean / (sd/sqrt(n))
+                    
+                  #  # Calculate p-value from z-score (two-tailed test)
+                   # p_value = 2 * (1 - st.norm.cdf(abs(z_score)))
+                    
+             #       print(f"Parameter: {current_param_sym_name}, {param_name}, Condition: {exp}")
+              #      print(f"Mean: {mean_value}, SD: {baseline_sd}, Z-score: {z_score}, p-value: {p_value}")
+                    
+               #     # Store the significance boolean and the p-value
+                #    stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
+                 #   stat_learning_params_dict[param_name]['p_values'].append(p_value)
+
+       # return stat_learning_params_dict
+
+
+    def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, param_sym_multi=None, paw_path_multi=None, thr=0.05, baseline_trials=8):
         import scipy.stats as st
+        import numpy as np
         # Compute statistics
         if not stat_learning_params_dict:
             stat_learning_params_dict['initial error'] = {'significant': [], 'p_values': []}
@@ -952,18 +1063,60 @@ class loco_class:
             stat_learning_params_dict['% change adaptation'] = {'significant': [], 'p_values': []}
             stat_learning_params_dict['% change after-effect'] = {'significant': [], 'p_values': []}
 
+        # Check if we have control condition (more than 2 experiments)
+        has_control = len(learning_params_dict['initial error']) > 2
+        
         for param_name in learning_params_dict.keys():
-            for exp in range(1, len(learning_params_dict['initial error'])):  
-                print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
-                wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
-                print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
+            if has_control:
+                # Use paired comparison (current approach)
+                for exp in range(1, len(learning_params_dict['initial error'])):  
+                    print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
+                    wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
+                    print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
+                    
+                    # Store both the significance boolean and the p-value
+                    p_value = wilcoxon_result.pvalue
+                    stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
+                    stat_learning_params_dict[param_name]['p_values'].append(p_value)
+            else:
+                # Use one-sample Wilcoxon signed-rank test against zero
+                # No need for baseline SD calculation anymore
                 
-                # Store both the significance boolean and the p-value
-                p_value = wilcoxon_result.pvalue
-                stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
-                stat_learning_params_dict[param_name]['p_values'].append(p_value)
+                # Perform one-sample tests for each condition
+                for exp in range(len(learning_params_dict['initial error'])):
+                    # Get the data for this experiment
+                    exp_data = np.array(learning_params_dict[param_name][exp])
+                    
+                    # Remove NaN values for the test
+                    exp_data_clean = exp_data[~np.isnan(exp_data)]
+                    
+                    # Only perform the test if we have enough non-NaN values
+                    if len(exp_data_clean) >= 5:  # Wilcoxon generally needs at least 5 values
+                        try:
+                            # One-sample Wilcoxon test against zero
+                            wilcoxon_result = st.wilcoxon(exp_data_clean, alternative='two-sided', nan_policy='omit')
+                            p_value = wilcoxon_result.pvalue
+                            
+                            print(f"Parameter: {current_param_sym_name}, {param_name}, Condition: {exp}")
+                            print(f"Median: {np.nanmedian(exp_data)}, Wilcoxon p-value: {p_value}")
+                        except Exception as e:
+                            # If the test fails (e.g., all values identical), set p-value to 1.0
+                            print(f"Wilcoxon test failed for {current_param_sym_name}, {param_name}, Condition: {exp}")
+                            print(f"Error: {str(e)}")
+                            p_value = 9.0
+                    else:
+                        # Not enough data for reliable test
+                        print(f"Warning: Not enough data for Wilcoxon test for {current_param_sym_name}, {param_name}, Condition: {exp}")
+                        print(f"Data points available: {len(exp_data_clean)}")
+                        p_value = 10.0  # Conservative approach: assume non-significant
+                    
+                    # Store the significance boolean and the p-value
+                    stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
+                    stat_learning_params_dict[param_name]['p_values'].append(p_value)
 
         return stat_learning_params_dict
+
+
 
     def animals_within_session(self):
         """See which animals and sessions are in the folder with tracks"""
@@ -1895,6 +2048,137 @@ class loco_class:
             blip_nr[count_tdms] = len(trial_start_blips)
             count_tdms += 1
         return blip_nr
+    
+    def compute_baseline_validation(self, param_sym_multi=None, paw_path_multi=None, current_param_sym_name=None, baseline_trials=8, thr=0.05):
+        """
+        Validates statistical approach by testing baseline trials against zero using Wilcoxon signed-rank test.
+        Provides two validation approaches:
+        1. Average of baseline trials per animal (one value per animal)
+        2. All individual baseline trials (provides a larger distribution)
+        
+        Parameters:
+        -----------
+        param_sym_multi : dict, optional
+            Dictionary containing the parameter symmetry data for multiple paths.
+        paw_path_multi : dict, optional
+            Dictionary containing paw-specific parameter data for multiple paths.
+        current_param_sym_name : str
+            Name of the current parameter being analyzed.
+        baseline_trials : int, optional
+            Number of trials to use for baseline calculation (default 8).
+        thr : float, optional
+            Statistical significance threshold (default 0.05).
+            
+        Returns:
+        --------
+        baseline_stats : dict
+            Dictionary containing baseline validation statistics:
+            - 'baseline_median': median values for each condition
+            - 'baseline_p_values': p-values from Wilcoxon test against zero
+            - 'baseline_significant': boolean indicating if result is significant
+            - 'all_trials_median': median values when using all trials individually
+            - 'all_trials_p_values': p-values when using all trials individually
+            - 'all_trials_significant': significance indicators when using all trials
+        """
+        import scipy.stats as st
+        import numpy as np
+        
+        baseline_stats = {
+            'baseline_median': [],
+            'baseline_p_values': [],
+            'baseline_significant': [],
+            'all_trials_median': [],
+            'all_trials_p_values': [],
+            'all_trials_significant': [],
+            'condition_names': []
+        }
+        
+        if param_sym_multi is not None:  # For symmetry parameters
+            param_idx = None
+            param_name_to_idx = {'coo': 0, 'step_length': 1, 'coo_stance': 2, 'swing_length': 3}
+            
+            if current_param_sym_name in param_name_to_idx:
+                param_idx = param_name_to_idx[current_param_sym_name]
+            else:
+                print(f"Warning: Parameter {current_param_sym_name} not found in mapping")
+                return baseline_stats
+            
+            # Calculate baseline values for each animal in each condition
+            for path_idx, path in enumerate(param_sym_multi):
+                baseline_stats['condition_names'].append(path)
+                
+                if param_idx is not None:
+                    # APPROACH 1: Average baseline trials per animal
+                    # Calculate mean over baseline_trials for each animal
+                    animal_baseline_means = np.nanmean(param_sym_multi[path][param_idx][:, :baseline_trials], axis=1)
+                    
+                    # Remove NaN values for the test
+                    animal_baseline_clean = animal_baseline_means[~np.isnan(animal_baseline_means)]
+                    
+                    # APPROACH 2: All baseline trials individually
+                    # Flatten all baseline trials from all animals
+                    all_baseline_trials = param_sym_multi[path][param_idx][:, :baseline_trials].flatten()
+                    all_baseline_trials_clean = all_baseline_trials[~np.isnan(all_baseline_trials)]
+
+                    # Separate the two approaches into independent try-except blocks
+                    try:
+                        # Test for Approach 1 (means per animal)
+                        if len(animal_baseline_clean) >= 5:  # Wilcoxon generally needs at least 5 values
+                            wilcoxon_result = st.wilcoxon(animal_baseline_clean, alternative='two-sided', nan_policy='omit')
+                            p_value = wilcoxon_result.pvalue
+                            
+                            print(f"BASELINE VALIDATION for {current_param_sym_name}, Condition: {path}")
+                            print(f"Baseline Median: {np.nanmedian(animal_baseline_means)}, Wilcoxon p-value: {p_value}")
+                            
+                            # Store the baseline validation results
+                            baseline_stats['baseline_median'].append(np.nanmedian(animal_baseline_means))
+                            baseline_stats['baseline_p_values'].append(p_value)
+                            baseline_stats['baseline_significant'].append(p_value < thr)
+                        else:
+                            print(f"Not enough data for baseline validation for {current_param_sym_name}, Condition: {path}")
+                            baseline_stats['baseline_median'].append(np.nan)
+                            baseline_stats['baseline_p_values'].append(10.0)
+                            baseline_stats['baseline_significant'].append(False)
+                    except Exception as e:
+                        print(f"Error in baseline validation approach 1: {str(e)}")
+                        # Handle errors for Approach 1
+                        baseline_stats['baseline_median'].append(np.nan)
+                        baseline_stats['baseline_p_values'].append(10.0)
+                        baseline_stats['baseline_significant'].append(False)
+
+                    # Approach 2 in a separate try-except block
+                    try:
+                        # Test for Approach 2 (all trials)
+                        if len(all_baseline_trials_clean) >= 5:
+                            wilcoxon_all_result = st.wilcoxon(all_baseline_trials_clean, alternative='two-sided', nan_policy='omit')
+                            p_value_all = wilcoxon_all_result.pvalue
+                            
+                            print(f"ALL TRIALS BASELINE VALIDATION for {current_param_sym_name}, Condition: {path}")
+                            print(f"All Trials Median: {np.nanmedian(all_baseline_trials_clean)}, Wilcoxon p-value: {p_value_all}")
+                            print(f"Sample size: {len(all_baseline_trials_clean)} vs {len(animal_baseline_clean)} for avg approach")
+                            
+                            # Store the all trials results
+                            baseline_stats['all_trials_median'].append(np.nanmedian(all_baseline_trials_clean))
+                            baseline_stats['all_trials_p_values'].append(p_value_all)
+                            baseline_stats['all_trials_significant'].append(p_value_all < thr)
+                        else:
+                            print(f"Not enough data for all-trials baseline validation for {current_param_sym_name}, Condition: {path}")
+                            baseline_stats['all_trials_median'].append(np.nan)
+                            baseline_stats['all_trials_p_values'].append(10.0)
+                            baseline_stats['all_trials_significant'].append(False)
+                    except Exception as e:
+                        print(f"Error in baseline validation approach 2: {str(e)}")
+                        # Handle errors for Approach 2
+                        baseline_stats['all_trials_median'].append(np.nan)
+                        baseline_stats['all_trials_p_values'].append(10.0)
+                        baseline_stats['all_trials_significant'].append(False)
+        
+        elif paw_path_multi is not None:  # For paw-specific parameters
+            # Implement similar logic for paw_path_multi
+            # [Similar code structure as above, adapted for paw_path_multi]
+            pass
+        
+        return baseline_stats
 
 
         

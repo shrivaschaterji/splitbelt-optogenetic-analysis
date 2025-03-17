@@ -118,7 +118,7 @@ def plot_learning_curve_ind_animals_avg(param_sym_avg, current_param, labels_dic
     return fig
 
 
-# Pedro
+
 def plot_learning_curve_ind_animals_avg_paw(param_sym_avg, current_param, labels_dic, animal_list, included_animals, colors, paw_colors, paw_name, intervals=None, ranges=[False, None]):
     '''
     Plot learning curve for individual animals with average, using paw color for the average.
@@ -285,7 +285,14 @@ def plot_all_learning_params(learning_params, current_param_sym, included_animal
         
         # Add plots Statistics
         if len(stat_learning_params)>0:
-            positions = list(range(len(experiment_names)+1, (len(experiment_names))*2))
+            # Check if we're using one-sample tests (where both conditions have statistics)
+            if len(stat_learning_params[lp_name]['significant']) == len(experiment_names):
+                # For one-sample tests against zero mean distribution
+                positions = list(range(1, len(experiment_names) + 1))
+            else:
+                # When there is a control condition
+                positions = list(range(len(experiment_names)+1, (len(experiment_names))*2))
+                    
             heights = max(max(np.nanmean(lp_values, axis=1)+np.nanstd(lp_values, axis=1)), 0)
             
             # Get significant indices
@@ -376,13 +383,23 @@ def plot_learning_param(learning_param, current_param_sym, lp_name, included_ani
     
     # Add plots Statistics
     if len(stat_learning_params)>0:
-        # Plot asterisks only for significant results
-        positions = list(range(len(experiment_names)+1, (len(experiment_names))*2))
+        # Check if we're using one-sample tests
+        if len(stat_learning_params[lp_name]['significant']) == len(experiment_names):
+            # For one-sample tests against zero mean distribution
+            positions = list(range(1, len(experiment_names) + 1))   
+         
+            bar_positions = [0] + list(range(len(experiment_names)+1, (len(experiment_names))*2))
+            positions_mapping = {pos: bar_positions[i % len(bar_positions)] for i, pos in enumerate(positions)}
+        else:
+            # When there is a control condition
+            positions = list(range(len(experiment_names)+1, (len(experiment_names))*2))
+            positions_mapping = {pos: pos for pos in positions}
+
         heights = max(max(np.nanmean(learning_param, axis=1)+np.nanstd(learning_param, axis=1)), 0)
         
         # Get significant indices
         significant_indices = [i for i, sig in enumerate(stat_learning_params[lp_name]['significant']) if sig]
-        significant_positions = [positions[i] for i in significant_indices]
+        significant_positions = [positions_mapping[positions[i]] for i in significant_indices]
         significant_heights = [heights for _ in significant_indices]
         
         if significant_positions:
@@ -390,9 +407,15 @@ def plot_learning_param(learning_param, current_param_sym, lp_name, included_ani
         
         # Add p-values for all comparisons
         for i, (pos, p_val) in enumerate(zip(positions, stat_learning_params[lp_name]['p_values'])):
+            # Map positions to bar positions
+            bar_pos = positions_mapping[pos]
             # Position text slightly above the bar
             height_text = heights * 1.1
-            ax_bar.text(pos, height_text, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
+
+            if len(experiment_names) >= 3:
+                ax_bar.text(bar_pos, height_text, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20, rotation = 45)
+            else:
+                ax_bar.text(bar_pos, height_text, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
 
     # Set titles and labels
     if is_paw_data:
@@ -460,17 +483,28 @@ def plot_learning_param_scatter(learning_param, current_param_sym, lp_name, incl
         # Add avg value
         ax_scatter.plot([x[count_exp]-0.15, x[count_exp]+0.15], [np.nanmean(learning_param[count_exp][:]), np.nanmean(learning_param[count_exp][:])], color=experiment_colors[count_exp], linewidth=4)
 
+    # Add plots Statistics
     if len(stat_learning_params) > 0:
+        # Check if we're using one-sample tests
+        if len(stat_learning_params[lp_name]['significant']) == len(experiment_names):
+            # For one-sample tests against zero mean distribution
+            positions = list(range(1, len(experiment_names) + 1))
+        else:
+            # For comparisons against control condition
+            positions = x[1:]
+
+        heights = max(max(np.nanmean(learning_param, axis=1)+2*np.nanstd(learning_param, axis=1)), 0)
+
         # Plot asterisks only for significant results
         significant_indices = [i for i, sig in enumerate(stat_learning_params[lp_name]['significant']) if sig]
-        significant_positions = [x[1:][i] for i in significant_indices]
-        significant_heights = [max(max(np.nanmean(learning_param, axis=1)+2*np.nanstd(learning_param, axis=1)),0) for _ in significant_indices]
+        significant_positions = [positions[i] for i in significant_indices]
+        significant_heights = [heights for _ in significant_indices]
         
         if significant_positions:
             ax_scatter.plot(significant_positions, significant_heights, '*', color='black', markersize=15, markeredgewidth=2)
         
         # Add p-values for all comparisons
-        for i, (pos, p_val) in enumerate(zip(x[1:], stat_learning_params[lp_name]['p_values'])):
+        for i, (pos, p_val) in enumerate(zip(positions, stat_learning_params[lp_name]['p_values'])):
             # Position text above the data point
             height = max(max(np.nanmean(learning_param, axis=1)+2.2*np.nanstd(learning_param, axis=1)),0)
             ax_scatter.text(pos, height, f'p={p_val:.3f}', ha='center', va='bottom', fontsize=20)
@@ -583,7 +617,7 @@ def save_plot(figure, path, param_name, plot_name='', bs_bool=False, dpi=128):
     else:
         figure.savefig(path + param_name + '_sym_non_bs_'+ plot_name, dpi=dpi)
 
-# Pedro
+
 def save_plot_with_paw(figure, path, param_name, paw_name, plot_name='', bs_bool=False, dpi=128):
    
     if not os.path.exists(path):
@@ -592,3 +626,174 @@ def save_plot_with_paw(figure, path, param_name, paw_name, plot_name='', bs_bool
         figure.savefig(path + param_name + paw_name + '_sym_bs_' + plot_name, dpi=dpi)
     else:
         figure.savefig(path + param_name + paw_name + '_sym_non_bs_' + plot_name, dpi=dpi)
+
+
+def plot_statistical_summary_tables(all_stat_dicts, experiment_names, param_names, param_labels, path_to_save=None):
+    """
+    Creates summary tables for stance and swing conditions, showing p-values and significance 
+    for all parameters and their learning metrics in one consolidated view.
+    
+    Parameters:
+    -----------
+    all_stat_dicts : dict
+        Dictionary containing statistical results for all parameters
+        Structure: {param_name: stat_dict, ...}
+    experiment_names : list
+        List of names of the experiments (e.g., ["stance stim", "swing stim"])
+    param_names : list
+        List of parameter names (e.g., ["coo", "step_length", ...])
+    param_labels : list
+        List of parameter labels for display
+    path_to_save : str, optional
+        Path to save the figure. If None, the figure is just displayed
+    
+    Returns:
+    --------
+    fig_list : list
+        List of figure objects created (one for each condition)
+    """
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import LinearSegmentedColormap
+    import numpy as np
+    
+    # Create a figure for each condition (stance and swing)
+    fig_list = []
+    
+    # Learning parameters to display
+    learning_params = ['initial error', 'adaptation', 'after-effect']
+    
+    for condition_idx, condition_name in enumerate(experiment_names):
+        # Calculate rows needed: each parameter has multiple learning parameters
+        row_count = len(param_names) * len(learning_params) + len(param_names)  # +len(param_names) for headers
+        
+        # Create a figure with appropriate size
+        fig_height = max(8, row_count * 0.4)
+        fig, ax = plt.subplots(figsize=(14, fig_height))
+        
+        # Set up the table data
+        table_data = []
+        
+        # Add headers for columns
+        headers = ['Parameter', 'Learning Metric', 'Experimental p-value', 'Sig.']
+        
+        # Check if we have validation data
+        has_validation = False
+        for param_name in param_names:
+            if param_name in all_stat_dicts and 'baseline_validation' in all_stat_dicts[param_name]:
+                has_validation = True
+                break
+        
+        if has_validation:
+            headers.extend(['Baseline Avg p-value', 'Sig.'])
+            # Check if we have all-trials validation
+            for param_name in param_names:
+                if (param_name in all_stat_dicts and 
+                    'baseline_validation' in all_stat_dicts[param_name] and 
+                    'all_trials_p_values' in all_stat_dicts[param_name]['baseline_validation']):
+                    headers.extend(['Baseline All p-value', 'Sig.'])
+                    break
+        
+        # Add data rows for each parameter and learning metric
+        for param_idx, param_name in enumerate(param_names):
+            param_label = param_labels[param_idx]
+            
+            # Skip parameters that aren't in the stats dict
+            if param_name not in all_stat_dicts:
+                continue
+                
+            stat_dict = all_stat_dicts[param_name]
+            
+            # Add parameter header row
+            param_header_row = [param_label, ""]  # Parameter name in first column, empty in second
+            empty_cells = [""] * (len(headers) - 2)
+            param_header_row.extend(empty_cells)
+            table_data.append(param_header_row)
+            
+            # Add rows for each learning parameter
+            for lp_name in learning_params:
+                if lp_name in stat_dict:
+                    row = ["", lp_name.capitalize()]  # Empty in first column, learning param in second
+                    
+                    # Add experimental test results for this condition
+                    if condition_idx < len(stat_dict[lp_name]['p_values']):
+                        p_value = stat_dict[lp_name]['p_values'][condition_idx]
+                        significant = stat_dict[lp_name]['significant'][condition_idx]
+                        row.extend([f"{p_value:.4f}", "✓" if significant else "×"])
+                    else:
+                        row.extend(["N/A", "N/A"])
+                    
+                    # Add baseline validation if available
+                    if has_validation and 'baseline_validation' in stat_dict:
+                        if condition_idx < len(stat_dict['baseline_validation']['baseline_p_values']):
+                            baseline_p = stat_dict['baseline_validation']['baseline_p_values'][condition_idx]
+                            baseline_sig = stat_dict['baseline_validation']['baseline_significant'][condition_idx]
+                            row.extend([f"{baseline_p:.4f}", "✓" if baseline_sig else "×"])
+                        else:
+                            row.extend(["N/A", "N/A"])
+                        
+                        # Add all-trials validation if available
+                        if 'all_trials_p_values' in stat_dict['baseline_validation'] and len(headers) > 6:
+                            if condition_idx < len(stat_dict['baseline_validation']['all_trials_p_values']):
+                                all_trials_p = stat_dict['baseline_validation']['all_trials_p_values'][condition_idx]
+                                all_trials_sig = stat_dict['baseline_validation']['all_trials_significant'][condition_idx]
+                                row.extend([f"{all_trials_p:.4f}", "✓" if all_trials_sig else "×"])
+                            else:
+                                row.extend(["N/A", "N/A"])
+                    
+                    table_data.append(row)
+        
+        # Create the table
+        table = ax.table(
+            cellText=table_data,
+            colLabels=headers,
+            loc='center',
+            cellLoc='center',
+            colColours=['lightgray'] * len(headers)
+        )
+        
+        # Style the table
+        table.auto_set_font_size(False)
+        table.set_fontsize(11)
+        table.scale(1.2, 1.5)
+        
+        # Highlight parameter rows and color cells based on significance
+        for i in range(len(table_data)):
+            row = table_data[i]
+            # Check if this is a parameter header row (has content in first column, empty in second)
+            if row[0] and not row[1]:
+                for j in range(len(headers)):
+                    cell = table[(i+1, j)]
+                    cell.set_facecolor('#E6F2FF')  # Light blue for parameter headers
+                    if j == 0:  # Make parameter name bold
+                        cell.set_text_props(weight='bold')
+            else:
+                # Check p-value columns (2, 4, 6) for coloring based on significance
+                p_value_cols = list(range(2, len(headers), 2))
+                for j in p_value_cols:
+                    if j < len(row) and row[j] != "" and row[j] != "N/A":
+                        try:
+                            p_value = float(row[j])
+                            cell = table[(i+1, j)]
+                            if p_value < 0.05:
+                                cell.set_facecolor('#FFCCCC')  # Light red for significant
+                            else:
+                                cell.set_facecolor('white')
+                        except (ValueError, KeyError, IndexError):
+                            pass
+        
+        # Turn off the axis
+        ax.axis('off')
+        
+        # Add title
+        plt.title(f"Statistical Summary for {condition_name}", fontsize=16)
+        plt.tight_layout()
+        
+        # Save the figure if path is provided
+        if path_to_save:
+            condition_path = path_to_save.replace('.png', f'_summary_{condition_name.replace(" ", "_")}.png')
+            plt.savefig(condition_path, dpi=300, bbox_inches='tight')
+            print(f"Summary table saved to {condition_path}")
+        
+        fig_list.append(fig)
+    
+    return fig_list
