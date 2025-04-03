@@ -942,115 +942,6 @@ class loco_class:
 
         return learning_params_dict
 
-    # Compute statistics with a Z test against zero for the tied belt experiments
-    #def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, thr=0.05):
-     #   import scipy.stats as st
-      #  # Compute statistics
-       # if not stat_learning_params_dict:
-        #    stat_learning_params_dict['initial error'] = {'significant': [], 'p_values': []}
-         #   stat_learning_params_dict['adaptation'] = {'significant': [], 'p_values': []}
-          #  stat_learning_params_dict['after-effect'] = {'significant': [], 'p_values': []}
-           # stat_learning_params_dict['% change adaptation'] = {'significant': [], 'p_values': []}
-            #stat_learning_params_dict['% change after-effect'] = {'significant': [], 'p_values': []}
-
-        #for param_name in learning_params_dict.keys():
-         #   for exp in range(1, len(learning_params_dict['initial error'])):  
-          #      print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
-           #     wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
-            #    print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
-                
-                # Store both the significance boolean and the p-value
-             #   p_value = wilcoxon_result.pvalue
-              #  stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
-               # stat_learning_params_dict[param_name]['p_values'].append(p_value)
-
-        #return stat_learning_params_dict
-    
-    # compute_stat_learning_param with Z test
-    #def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, param_sym_multi=None, paw_path_multi=None, thr=0.05, baseline_trials=8):
-     #   import scipy.stats as st
-      #  # Compute statistics
-       # if not stat_learning_params_dict:
-        #    stat_learning_params_dict['initial error'] = {'significant': [], 'p_values': []}
-         #   stat_learning_params_dict['adaptation'] = {'significant': [], 'p_values': []}
-          #  stat_learning_params_dict['after-effect'] = {'significant': [], 'p_values': []}
-           # stat_learning_params_dict['% change adaptation'] = {'significant': [], 'p_values': []}
-            #stat_learning_params_dict['% change after-effect'] = {'significant': [], 'p_values': []}
-
-       # # Check if we have control condition (more than 2 experiments)
-        #has_control = len(learning_params_dict['initial error']) > 2
-        
-       # for param_name in learning_params_dict.keys():
-        #    if has_control:
-         #       # Use paired comparison (current approach)
-          #      for exp in range(1, len(learning_params_dict['initial error'])):  
-           #         print(learning_params_dict[param_name][0], learning_params_dict[param_name][exp])
-            #        wilcoxon_result = st.wilcoxon(learning_params_dict[param_name][0], learning_params_dict[param_name][exp], nan_policy='omit')
-             #       print(['param ', current_param_sym_name, ' ', param_name, ' stats: ', wilcoxon_result])
-                    
-              #      # Store both the significance boolean and the p-value
-               #     p_value = wilcoxon_result.pvalue
-                #    stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
-                 #   stat_learning_params_dict[param_name]['p_values'].append(p_value)
-        #    else:
-         #       # Use one-sample test against zero
-          #      # First, calculate baseline standard deviation from the first 8 trials of ALL animals from BOTH conditions
-                
-           #     if param_sym_multi is not None: # For symmetry parameters
-
-            #        param_idx = None
-             #       param_name_to_idx = {'coo': 0, 'step_length': 1, 'coo_stance': 2, 'swing_length': 3}
-              #      if current_param_sym_name in param_name_to_idx:
-               #         param_idx = param_name_to_idx[current_param_sym_name]
-
-                #    # Concatenate data from all paths (conditions)
-                 #   all_paths_data = []
-                  #  for path in param_sym_multi:
-                   #     # Get data for the first 8 trials
-                    #    baseline_data = param_sym_multi[path][param_idx][:, :baseline_trials].flatten()
-                     #   all_paths_data.append(baseline_data)
-                    
-              #      # Calculate SD from all baseline data combined
-              #      baseline_sd = np.nanstd(np.concatenate(all_paths_data))
-               #     print(f"Combined baseline SD for {current_param_sym_name}: {baseline_sd}")
-                
-                #elif paw_path_multi is not None: # For paw-specific parameters
-                 #   # Similar approach but for paw data
-                    
-                  #  param_idx = None
-                   # param_name_to_idx = {'coo': 0, 'step_length': 1, 'coo_stance': 2, 'swing_length': 3}
-                    #if current_param_sym_name in param_name_to_idx:
-                     #   param_idx = param_name_to_idx[current_param_sym_name]
-                                      
-                 #   all_paths_data = []
-                  #  for path in paw_path_multi:
-                   #     baseline_data = paw_path_multi[path][param_idx][:, :baseline_trials].flatten()
-                    #    all_paths_data.append(baseline_data)
-                    
-               #     baseline_sd = np.nanstd(np.concatenate(all_paths_data))
-                #    print(f"Combined baseline SD for paw, param {current_param_sym_name}: {baseline_sd}")
-                
-          #      # Perform one-sample tests for each condition
-           #     for exp in range(len(learning_params_dict['initial error'])):
-            #        # Get the data for this experiment
-             #       exp_data = learning_params_dict[param_name][exp]
-              #      
-               #     # Calculate z-scores (how many SDs away from zero)
-                #    mean_value = np.nanmean(exp_data)
-                 #   z_score = mean_value / (baseline_sd / np.sqrt(len(exp_data)))  # z = mean / (sd/sqrt(n))
-                    
-                  #  # Calculate p-value from z-score (two-tailed test)
-                   # p_value = 2 * (1 - st.norm.cdf(abs(z_score)))
-                    
-             #       print(f"Parameter: {current_param_sym_name}, {param_name}, Condition: {exp}")
-              #      print(f"Mean: {mean_value}, SD: {baseline_sd}, Z-score: {z_score}, p-value: {p_value}")
-                    
-               #     # Store the significance boolean and the p-value
-                #    stat_learning_params_dict[param_name]['significant'].append(p_value < thr)
-                 #   stat_learning_params_dict[param_name]['p_values'].append(p_value)
-
-       # return stat_learning_params_dict
-
 
     def compute_stat_learning_param(self, learning_params_dict, stat_learning_params_dict, current_param_sym_name, param_sym_multi=None, paw_path_multi=None, thr=0.05, baseline_trials=8):
         import scipy.stats as st
@@ -2181,11 +2072,236 @@ class loco_class:
         return baseline_stats
 
 
+    @staticmethod
+    def collect_stride_data(param_mat_saved, animal_list, session_list, param_list, locos, paths):
+        """
+        Collects stride-by-stride data without timing information.
         
+        Parameters:
+        -----------
+        param_mat_saved : dict
+            Dictionary with saved parameter matrices
+        animal_list : list
+            List of animal IDs
+        session_list : list
+            List of session IDs
+        param_list : list
+            List of parameters to include
+        locos : list
+            List of locomotion_class instances
+        paths : list
+            List of path strings
+            
+        Returns:
+        --------
+        stride_data : dict
+            Dictionary with structure:
+            {
+                path: {
+                    animal_id: {
+                        param_name: {
+                            'FR': {trial_num: [stride_values]},
+                            'FL': {trial_num: [stride_values]},
+                            'HR': {trial_num: [stride_values]},
+                            'HL': {trial_num: [stride_values]},
+                            'asymmetry': {trial_num: [stride_values]}
+                        }
+                    }
+                }
+            }
+        """
+        import numpy as np
+        
+        stride_data = {}
+        paws = ['FR', 'HR', 'FL', 'HL']
+        
+        for path_idx, path in enumerate(paths):
+            stride_data[path] = {}
+            
+            for animal_idx, animal in enumerate(animal_list):
+                session = int(session_list[animal_idx])
+                stride_data[path][animal] = {}
+                
+                # Get all trial files for this animal
+                filelist = locos[path_idx].get_track_files(animal, session)
+                
+                for param in param_list:
+                    stride_data[path][animal][param] = {}
+                    
+                    # Initialize containers for each paw and asymmetry
+                    for paw in paws:
+                        stride_data[path][animal][param][paw] = {}
+                        
+                    stride_data[path][animal][param]['asymmetry'] = {}
+                    
+                    # For each trial
+                    for trial_file in sorted(filelist, key=lambda x: int(x.split('DLC')[0].split('_')[-1])):
+                        trial_num = int(trial_file.split('DLC')[0].split('_')[-1])
+                        
+                        # If we have saved parameter data, use it
+                        if animal in param_mat_saved and param in param_mat_saved[animal] and trial_num in param_mat_saved[animal][param]:
+                            param_mat = param_mat_saved[animal][param][trial_num]
+                            
+                            # For each paw
+                            for paw_idx, paw in enumerate(paws):
+                                # Extract values for this paw
+                                if param == 'phase_st':
+                                    # Special handling for phase_st
+                                    values = param_mat[0][paw_idx]
+                                else:
+                                    values = param_mat[paw_idx]
+                                
+                                # Store the raw stride values
+                                stride_data[path][animal][param][paw][trial_num] = values.tolist()
+                            
+                            # Calculate asymmetry (FR - FL)
+                            if param != 'phase_st' and param != 'stance_speed':
+                                fr_values = param_mat[0]  # FR 
+                                fl_values = param_mat[2]  # FL
+                                
+                                # Calculate asymmetry values
+                                min_length = min(len(fr_values), len(fl_values))
+                                if min_length > 0:
+                                    asymmetry_values = [fr - fl for fr, fl in zip(fr_values[:min_length], fl_values[:min_length])]
+                                    stride_data[path][animal][param]['asymmetry'][trial_num] = asymmetry_values
+        
+        return stride_data
 
+    @staticmethod
+    def extract_strides_per_trial(stride_data, strides_per_trial):
+        """
+        Extracts a fixed number of strides from each trial for continuous plotting.
+        If a trial has fewer strides, all available strides are used.
+        
+        Parameters:
+        -----------
+        stride_data : dict
+            Stride data from collect_stride_data function
+        strides_per_trial : int
+            Number of strides to extract from each trial
+            
+        Returns:
+        --------
+        extracted_data : dict
+            Restructured data with a fixed number of strides per trial
+        """
+        import numpy as np
+        
+        extracted_data = {}
+        
+        for path in stride_data:
+            extracted_data[path] = {}
+            
+            for animal in stride_data[path]:
+                extracted_data[path][animal] = {}
+                
+                for param in stride_data[path][animal]:
+                    extracted_data[path][animal][param] = {}
+                    
+                    for data_type in stride_data[path][animal][param]:  # paws + asymmetry
+                        continuous_values = []
+                        trial_indices = []
+                        
+                        # Sort trials by number
+                        sorted_trials = sorted(stride_data[path][animal][param][data_type].keys())
+                        
+                        for trial_num in sorted_trials:
+                            stride_values = stride_data[path][animal][param][data_type][trial_num]
+                            
+                            # Determine how many strides to take
+                            num_strides = min(strides_per_trial, len(stride_values))
+                            
+                            if num_strides > 0:
+                                # Extract evenly spaced strides
+                                if num_strides == len(stride_values):
+                                    selected_strides = stride_values
+                                else:
+                                    indices = np.linspace(0, len(stride_values)-1, num_strides, dtype=int)
+                                    selected_strides = [stride_values[i] for i in indices]
+                                
+                                continuous_values.extend(selected_strides)
+                                trial_indices.extend([trial_num] * num_strides)
+                        
+                        extracted_data[path][animal][param][data_type] = {
+                            'values': continuous_values,
+                            'trial_indices': trial_indices
+                        }
+        
+        return extracted_data
 
-
-
+    @staticmethod
+    def bin_stride_data(extracted_data, bin_size=10, baseline_values=None):
+        """
+        Bins the stride data into groups of specified size and applies baseline subtraction
+        using pre-calculated baseline values.
+        
+        Parameters:
+        -----------
+        extracted_data : dict
+            Data from extract_strides_per_trial function
+        bin_size : int
+            Number of strides per bin
+        baseline_values : dict, optional
+            Pre-calculated baseline values structured as:
+            {param_name: {animal_id: {data_type: baseline_value}}}
+            where data_type is 'asymmetry' or a paw name
+            
+        Returns:
+        --------
+        binned_data : dict
+            Data binned into groups of stride_per_bin with baseline subtraction
+        """
+        import numpy as np
+        from collections import Counter
+        
+        binned_data = {}
+        
+        for path in extracted_data:
+            binned_data[path] = {}
+            
+            for animal in extracted_data[path]:
+                binned_data[path][animal] = {}
+                
+                for param in extracted_data[path][animal]:
+                    binned_data[path][animal][param] = {}
+                    
+                    for data_type in extracted_data[path][animal][param]:  # paws + asymmetry
+                        values = extracted_data[path][animal][param][data_type]['values']
+                        trial_indices = extracted_data[path][animal][param][data_type]['trial_indices']
+                        
+                        # Apply baseline subtraction if baseline values are provided
+                        baseline_subtracted_values = values.copy()
+                        if baseline_values and param in baseline_values and animal in baseline_values[param]:
+                            if data_type in baseline_values[param][animal]:
+                                baseline = baseline_values[param][animal][data_type]
+                                baseline_subtracted_values = [v - baseline for v in values]
+                        
+                        binned_values = []
+                        binned_trial_indices = []
+                        
+                        # Calculate number of bins
+                        num_bins = len(baseline_subtracted_values) // bin_size
+                        if num_bins == 0 and len(baseline_subtracted_values) > 0:
+                            num_bins = 1  # Ensure at least one bin if we have data
+                        
+                        for i in range(num_bins):
+                            start_idx = i * bin_size
+                            end_idx = min((i + 1) * bin_size, len(baseline_subtracted_values))
+                            
+                            bin_values = baseline_subtracted_values[start_idx:end_idx]
+                            bin_trials = trial_indices[start_idx:end_idx]
+                            
+                            if bin_values:
+                                binned_values.append(np.nanmean(bin_values))
+                                # Use most common trial number for this bin
+                                binned_trial_indices.append(Counter(bin_trials).most_common(1)[0][0])
+                        
+                        binned_data[path][animal][param][data_type] = {
+                            'values': binned_values,
+                            'trial_indices': binned_trial_indices
+                        }
+        
+        return binned_data
 
 
 

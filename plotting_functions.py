@@ -797,3 +797,138 @@ def plot_statistical_summary_tables(all_stat_dicts, experiment_names, param_name
         fig_list.append(fig)
     
     return fig_list
+
+
+
+
+def plot_stride_by_stride_binned(binned_data, animal_list, param_name, experiment_names, 
+                               experiment_colors_dict, intervals=None, data_type='asymmetry', 
+                               show_individual_animals=False, path_to_save=None,
+                               strides_per_trial=100, strides_bin_size=1):
+    """
+    Creates a stride-by-stride plot using binned data.
+    Only shows the average across animals with standard error of mean.
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import os
+    
+    fig, ax = plt.subplots(figsize=(15, 8))
+    
+    # Process data for all animals
+    all_values = []
+    all_bin_indices = []
+    animal_values = {animal: [] for animal in animal_list}
+    animal_bin_indices = {animal: [] for animal in animal_list}
+    
+    for path in binned_data:
+        for animal in animal_list:
+            if animal in binned_data[path] and param_name in binned_data[path][animal]:
+                if data_type in binned_data[path][animal][param_name]:
+                    values = binned_data[path][animal][param_name][data_type]['values']
+                    # Only if we have values
+                    if values:
+                        # Track bin indices continuously
+                        bin_indices = list(range(len(values)))
+                        
+                        all_values.append(values)
+                        all_bin_indices.append(bin_indices)
+                        animal_values[animal] = values
+                        animal_bin_indices[animal] = bin_indices
+    
+    # Calculate and plot average across animals
+    if all_values:
+        # Find max number of bins
+        max_bins = max([len(vals) for vals in all_values if vals], default=0)
+        
+        if max_bins > 0:
+            # Create common bins array
+            common_bins = np.arange(max_bins)
+            
+            # Interpolate values to common bins
+            aligned_values = []
+            for animal in animal_list:
+                if animal_values[animal]:
+                    # Create animal's data as array with NaNs for missing bins
+                    animal_data = np.full(max_bins, np.nan)
+                    valid_bins = min(len(animal_values[animal]), max_bins)
+                    animal_data[:valid_bins] = animal_values[animal][:valid_bins]
+                    aligned_values.append(animal_data)
+            
+            if aligned_values:
+                # Calculate average and SEM across animals
+                aligned_values = np.array(aligned_values)
+                avg_values = np.nanmean(aligned_values, axis=0)
+                
+                # Calculate SEM safely
+                non_nan_count = np.sum(~np.isnan(aligned_values), axis=0)
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    sem_values = np.nanstd(aligned_values, axis=0) / np.sqrt(non_nan_count)
+                sem_values = np.where(np.isnan(sem_values), 0, sem_values)
+                
+                # Plot average with error band
+                ax.plot(common_bins, avg_values, '-', color='black', linewidth=2, label='Average')
+                ax.fill_between(common_bins, avg_values - sem_values, avg_values + sem_values, 
+                              color='black', alpha=0.2)
+    
+    # Add shaded regions for intervals
+    if intervals:
+        # Convert trial numbers to bin indices using strides_per_trial and strides_bin_size
+        for interval_name, [start_trial, duration_trials] in intervals.items():
+            # Convert trial numbers to bin indices
+            start_bin = (start_trial - 1) * strides_per_trial // strides_bin_size  # -1 because trial numbering starts at 1
+            end_bin = (start_trial + duration_trials - 1) * strides_per_trial // strides_bin_size
+            
+            # Ensure we don't exceed the plot boundaries
+            start_bin = max(0, start_bin)
+            end_bin = min(max_bins if max_bins > 0 else 1000, end_bin)
+            
+            # Determine color based on interval name
+            if interval_name == 'stim':
+                color = experiment_colors_dict.get(experiment_names[0], 'grey')
+                label = 'Stimulation'
+            elif interval_name == 'split':
+                color = 'lightgrey'
+                label = 'Split Belt'
+            
+            ax.axvspan(start_bin, end_bin, alpha=0.3, color=color, label=label)
+    
+    # Add horizontal line at y=0
+    ax.axhline(y=0, color='black', linestyle='--', alpha=0.5)
+    
+    # Set labels and title
+    if data_type == 'asymmetry':
+        ax.set_ylabel(f"{param_name.replace('_', ' ').title()} Asymmetry", fontsize=14)
+    else:
+        ax.set_ylabel(f"{param_name.replace('_', ' ').title()} ({data_type})", fontsize=14)
+    
+    ax.set_xlabel("Stride Bins", fontsize=14)
+    ax.set_title(f"Stride-by-stride {param_name.replace('_', ' ').title()} - {data_type}", fontsize=16)
+    
+    # Auto-scale y-axis to better show fluctuations
+    if aligned_values is not None and len(aligned_values) > 0:
+        # Calculate the mean and standard deviation of the mean trace
+        mean_trace = avg_values
+        std_trace = np.nanstd(mean_trace)
+        mean_value = np.nanmean(mean_trace)
+        
+        # Set y-limits to be mean ± 3*std (or slightly more)
+        y_range = max(std_trace * 4, 1.0)  # At least 1.0 units tall
+        ax.set_ylim(mean_value - y_range, mean_value + y_range)
+    
+    # Clean up the plot
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    
+    # Add legend
+    ax.legend(fontsize=12, frameon=False)
+    
+    plt.tight_layout()
+    
+    # Save figure if path is provided
+    if path_to_save:
+        os.makedirs(os.path.dirname(path_to_save), exist_ok=True)
+        plt.savefig(path_to_save, dpi=300, bbox_inches='tight')
+    
+    return fig

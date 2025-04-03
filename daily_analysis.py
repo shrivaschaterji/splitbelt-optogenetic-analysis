@@ -20,6 +20,11 @@ significance_threshold = 0.05
 validation_test = 0                 # 1 to run statistical validation tests against baseline
 generate_summary_tables = False     # True to plot summary tables of the statistical results
 
+plot_stride_by_stride = True        # Needs param_mat_saved
+strides_per_trial = 100
+strides_bin_size = 1
+
+
 # Ranges for pre-defined range of axes and bars (if uniform_ranges = 1)
 uniform_ranges = 0
 
@@ -44,16 +49,16 @@ bars_ranges = {'coo': [-3, 3], 'step_length': [-6, 6.5], 'double_support': [-5, 
 
 
 # Lists of experiment names and paths for each experiment - it is possible to have only one element
-experiment_names = ['control','stance stim','swing stim']  #['ChR2'] ['100sw', '200st']      #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
+experiment_names = ['stance stim','swing stim']  #['ChR2'] ['100sw', '200st']      #['control','stance stim','swing stim']           #  ['control', 'stance onset', 'swing onset']             #'ChR2']           #'right fast', 'left fast']          #,'stance stim', 'swing stim']           #'left fast no-stim','left fast perturb']   #'right fast', 'left fast' ]   'split left fast stim',    # 'control'] #         #'trial stim', 'stance stim', swing stim    'chr2'
 
 paths = [
         #'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied stance stim HISTOsel\\',
         #'C:\\Users\\User\\Desktop\\test_animals\\Tied belt sessions\\tied swing stim HISTOsel\\'
-        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied stance stim HISTOsel\\',
-        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied swing stim HISTOsel\\'
-        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast control HISTOsel\\',
-        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast stance stim HISTOsel\\',
-        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast swing stim HISTOsel\\'
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied stance stim HISTOsel\\',
+        'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Tied belt sessions\\tied swing stim HISTOsel\\'
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast control HISTOsel\\',
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast stance stim HISTOsel\\',
+        #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments JAWS RT\\Split belt sessions\\split right fast swing stim HISTOsel\\'
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments ChR2LE RT\\Tied belt sessions\\tied 100sw50ms stim HISTOsel\\',
         #'C:\\Users\\User\\Carey Lab Dropbox\\Rotation Carey\\Tati&Ali&INDP2025\\Behavior\\Experiments ChR2LE RT\\Tied belt sessions\\tied 200st50ms stim HISTOsel\\'
     #'D:\\AliG\\climbing-opto-treadmill\\Experiments ChR2 RT\\LOW expression\\ALL_ANIMALS\\tied th200st IO 50ms\\'
@@ -305,6 +310,25 @@ for path in paths:
     if to_save_param_mat:
         with open(path + 'param_mat_saved.pkl', 'wb') as f:
             pickle.dump(param_mat_saved, f)
+
+
+    # Store baseline values for stride-by-stride analysis
+    baseline_values = {}
+    if bs_bool:
+        for p in range(np.shape(param_sym)[0]):
+            baseline_values[param_sym_name[p]] = {}
+            for a, animal in enumerate(animal_list):
+                baseline_values[param_sym_name[p]][animal] = {}
+                
+                # Store asymmetry baseline
+                if stim_start == split_start:
+                    baseline_values[param_sym_name[p]][animal]['asymmetry'] = np.nanmean(param_sym[p, a, :stim_start-1])
+                elif stim_start < split_start:
+                    baseline_values[param_sym_name[p]][animal]['asymmetry'] = np.nanmean(param_sym[p, a, stim_start-1:split_start-1])
+                
+                # Store paw-specific baselines
+                for count_paw, paw in enumerate(paws):
+                    baseline_values[param_sym_name[p]][animal][paw] = np.nanmean(param_paw[p, a, count_paw, :stim_start-1])
 
     # BASELINE SUBTRACTION OF PARAMETERS
     if bs_bool:
@@ -630,4 +654,49 @@ for paw_name in paws:
                         if print_plots_multi_session:
                             pf.save_plot_with_paw(fig_separate_paw, paths_save[0], param_sym_name[p], paw_name, plot_name='bar_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=1200)
                             pf.save_plot_with_paw(fig_scatter_paw, paths_save[0], param_sym_name[p], paw_name, plot_name='avg_scatterplot_'+lp_name, bs_bool=bs_bool, dpi=120)
- 
+
+
+# Stride-by-stride analysis
+if plot_stride_by_stride:
+    print("Generating stride-by-stride plots...")
+    
+    # Collect stride data - note the proper way to call static methods: ClassName.method_name()
+    stride_data = locomotion_class.loco_class.collect_stride_data(param_mat_saved, animal_list, session_list, param_sym_name, locos, paths)
+    
+    # Extract fixed number of strides per trial
+    extracted_data = locomotion_class.loco_class.extract_strides_per_trial(stride_data, strides_per_trial)
+    
+    # Bin the data
+    binned_data = locomotion_class.loco_class.bin_stride_data(extracted_data, strides_bin_size, baseline_values=baseline_values if bs_bool else None)
+    
+    # Plot stride-by-stride data for each parameter
+    for p in range(np.shape(param_sym)[0]):
+        if param_sym_name[p] == 'stance_speed':
+            continue
+        
+        # Plot asymmetry
+        fig_stride_asymm = pf.plot_stride_by_stride_binned(
+            binned_data, 
+            included_animal_list, 
+            param_sym_name[p], 
+            experiment_names,
+            experiment_colors_dict,
+            intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]},
+            data_type='asymmetry',
+            path_to_save=f"{paths_save[0]}{param_sym_name[p]}_stride_by_stride_asymmetry.png",
+            strides_per_trial=strides_per_trial,
+            strides_bin_size=strides_bin_size)
+        
+        # Plot individual paws
+        for paw_name in paws:
+            fig_stride_paw = pf.plot_stride_by_stride_binned(
+                binned_data,
+                included_animal_list,
+                param_sym_name[p],
+                experiment_names,
+                experiment_colors_dict,
+                intervals={'split': [split_start, split_duration], 'stim': [stim_start, stim_duration]},
+                data_type=paw_name,
+                path_to_save=f"{paths_save[0]}{param_sym_name[p]}_{paw_name}_stride_by_stride.png",
+                strides_per_trial=strides_per_trial,
+                strides_bin_size=strides_bin_size)
